@@ -1,7 +1,16 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Walker Motion Pictures · Corporate video for fintech &amp; SaaS</title>
-<meta name="description" content="A filmmaker who speaks fintech and SaaS. Customer stories, company updates and ads, made by someone who already knows how finance software gets sold.">
-<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Walker Motion Pictures · Corporate video</title>
+<meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
+<link rel="canonical" href="https://walkermotionpictures.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Walker Motion Pictures">
+<meta property="og:url" content="https://walkermotionpictures.com/">
+<meta property="og:title" content="Walker Motion Pictures · Corporate video">
+<meta property="og:description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
+<meta property="og:image" content="https://walkermotionpictures.com/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#f6f7f9">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
@@ -59,7 +68,7 @@ nav.top button.cta:hover { background:var(--accent); }
 .rail button:hover span, .rail button:focus-visible span { opacity:1; transform:none; }
 @media (max-width:620px) { .rail { display:none; } }
 .count { display:none; align-self:center; font-size:13px; font-weight:500; color:var(--mid); border-radius:999px; padding:7px 11px; font-variant-numeric:tabular-nums; }
-@media (max-width:620px) { .count { display:block; } }
+@media (max-width:620px) { .count { display:none; } }
 .hint { position:fixed; z-index:10; left:max(14px,2.6vw); bottom:calc(env(safe-area-inset-bottom,0px) + 14px); display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--mid); border-radius:999px; padding:8px 14px; transition:opacity .5s; pointer-events:none; }
 .hint kbd { font:inherit; font-size:11px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 5px; background:#fff; color:var(--ink); }
 .ctl { position:fixed; z-index:10; left:0; top:0; display:flex; gap:10px; align-items:center; will-change:transform; }
@@ -72,7 +81,8 @@ nav.top button.cta:hover { background:var(--accent); }
 .listbar button:hover { background:var(--accent); }
 .ctl .next { background:var(--ink); color:#fff; border-color:var(--ink); }
 .ctl .next:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
-@media (max-width:620px) { .hint { display:none; } .ctl button { font-size:14px; padding:11px 16px; min-height:44px; } }
+@media (max-width:620px) { .hint { display:none; } .ctl { gap:6px; } .ctl button { font-size:14px; padding:11px 14px; min-height:44px; } }
+.ctl button { white-space:nowrap; }
 .aud { position:fixed; z-index:12; left:50%; top:calc(env(safe-area-inset-top,0px) + 96px); transform:translateX(-50%); display:flex; gap:4px; align-items:center; padding:5px 6px 5px 12px; border-radius:12px; max-width:calc(100vw - 24px); overflow:auto; }
 .aud span { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-right:6px; white-space:nowrap; }
 .aud button { font:inherit; font-size:13px; font-weight:500; color:var(--mid); background:none; border:0; border-radius:8px; padding:7px 10px; cursor:pointer; white-space:nowrap; }
@@ -123,7 +133,7 @@ p { margin:0; color:var(--mid); }
 .hero { display:grid; grid-template-columns:1.25fr 1fr; gap:44px; align-items:center; }
 .hero .kick { font-size:14px; font-weight:500; color:var(--mid); margin:0 0 22px; display:flex; align-items:center; gap:10px; }
 .hero .kick b { color:var(--ink); font-weight:600; }
-.hero h1 { margin-bottom:24px; }
+.hero h1 { margin-bottom:24px; } .hero h1.heroh { font-size:66px; }
 .hero .sub { margin-bottom:30px; }
 .hero .vid { box-shadow:0 30px 80px -30px rgba(11,18,32,.6); }
 .hero .note { margin-top:14px; font-size:13px; color:var(--dim); display:flex; justify-content:space-between; }
@@ -238,6 +248,134 @@ p { margin:0; color:var(--mid); }
 .ways1 span { color:var(--accent); font-weight:500; cursor:pointer; }
 .ways1 span:hover { text-decoration:underline; }
 
+.vid[data-vid] { cursor:pointer; }
+.vid .vcap { position:absolute; z-index:1; left:10px; right:10px; bottom:9px; font-size:12px; font-weight:500; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vid .dur:empty { display:none; }
+.vid .vcap + .dur { bottom:auto; top:9px; }
+.vid img.th { opacity:0; transition:opacity .5s; } .vid img.th.on { opacity:1; }
+.vid::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 55%, rgba(0,0,0,.45)); pointer-events:none; }
+#lb { position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; background:rgba(5,8,16,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+#lb .frame { position:relative; width:min(1200px, 100%, calc((100vh - 140px) * 16 / 9)); aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 30px 90px -20px rgba(0,0,0,.8); }
+#lb iframe, #lb video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
+#lb .bar { width:min(1200px, 100%, calc((100vh - 140px) * 16 / 9)); display:flex; align-items:center; justify-content:space-between; gap:16px; color:#e8ecf5; font-size:15px; font-weight:500; }
+#lb button { font:inherit; font-size:14px; font-weight:500; color:#fff; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:10px 18px; cursor:pointer; }
+#lb button:hover { background:rgba(255,255,255,.2); }
+@media (min-width:701px) { .card { width:min(var(--w), calc(100vw - 110px)); } }
+
+/* short laptop screens: denser cards so they still land at 1:1 */
+@media (min-width:701px) and (max-height:820px) {
+  .card { padding:24px 26px 22px; }
+  h1 { font-size:60px; } h2 { font-size:34px; margin-bottom:8px; } .sub { font-size:16px; } .chip { margin-bottom:12px; }
+  .hero { gap:32px; } .hero h1 { margin-bottom:16px; } .hero .sub { margin-bottom:20px; } .hero .kick { margin-bottom:14px; }
+  .work { gap:22px; margin-top:16px; } .work .feat .vid { aspect-ratio:16/8; } .frames { margin-top:8px; } .frames figcaption { display:none; }
+  .work h3 { font-size:20px; margin-bottom:6px; } .work .logline { font-size:14.5px; margin-bottom:8px; } .work .meta { margin-bottom:14px; }
+  .more .vid { aspect-ratio:16/9; } .stats { margin-top:16px; padding-top:14px; } .stats b { font-size:24px; }
+  .three { margin-top:18px; gap:12px; } .tile { padding:12px 12px 14px; } .tile .vid { margin-bottom:10px; aspect-ratio:16/8; } .tile p { font-size:14px; }
+  .onsite { margin-top:14px; padding:12px 16px; font-size:14px; } .onsite .scale { margin-top:8px; }
+}
+
+.vid .big { position:absolute; z-index:1; left:6%; bottom:44%; max-width:40%; font-family:var(--head); font-weight:800; font-size:50px; line-height:.95; letter-spacing:-.04em; color:#fff; text-shadow:0 2px 24px rgba(0,0,0,.45); pointer-events:none; }
+.vid .big ~ .pl { left:6%; top:62%; margin:0; }   /* play button sits under the title, off her face */
+@media (max-width:700px) { .vid .big { font-size:27px; bottom:46%; } .vid .big ~ .pl { top:60%; width:44px; height:44px; } .vid .big ~ .pl::after { left:17px; top:13px; border-left-width:13px; border-top-width:9px; border-bottom-width:9px; } }
+@media (min-width:701px) and (max-height:820px) { .vid .big { font-size:42px; } }
+
+/* Portfolio selects */
+.sel { margin:24px 0 22px; }
+.sel .tag { margin:0 0 10px; font-size:12px; font-weight:600; color:var(--accent); }
+.row5 { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:22px; }
+.row5 .vid .pl, .pair .vid .pl { width:38px; height:38px; margin:-19px 0 0 -19px; } .row5 .vid .pl::after, .pair .vid .pl::after { left:15px; top:11px; border-left-width:12px; border-top-width:8px; border-bottom-width:8px; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.pair { display:grid; grid-template-columns:1.1fr 1fr; gap:16px; align-items:center; }
+.pair h3 { font-size:18px; margin:0 0 6px; } .pair p:not(.tag) { font-size:14px; line-height:1.45; color:var(--mute,#5b6475); margin:0; }
+@media (max-width:700px) { .row5 { grid-template-columns:repeat(2,1fr); } .row5 .vid:last-child { grid-column:span 2; } .two, .pair { grid-template-columns:1fr; } .pair { gap:10px; } }
+@media (min-width:701px) and (max-height:820px) { .sel { margin:16px 0 14px; } .row5 { margin-bottom:14px; } .pair p:not(.tag) { font-size:13px; } }
+
+/* Onsite */
+.evt { display:grid; grid-template-columns:1.3fr 1fr; gap:30px; align-items:center; margin-top:24px; }
+.evt .vid { aspect-ratio:16/9; box-shadow:0 30px 80px -30px rgba(0,0,0,.7); }
+.evt .tag, .night .sel .tag { font-size:12px; font-weight:600; color:#a9bcff; margin:0 0 12px; }
+.crew { margin:0 0 10px; color:#aab5cc; font-size:15px; display:flex; align-items:baseline; gap:10px; }
+.crew b { font-family:var(--head); font-weight:800; font-size:68px; line-height:.9; letter-spacing:-.04em; color:#fff; }
+.evtx { color:#cfd7e8; font-size:15px; line-height:1.5; margin:0; }
+.scale3 { margin-top:18px; border-top:1px solid rgba(255,255,255,.12); }
+.scale3 div { display:grid; grid-template-columns:118px 1fr; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.12); }
+.scale3 b { color:#fff; font-weight:600; font-size:14px; } .scale3 span { color:#aab5cc; font-size:13.5px; line-height:1.4; }
+.night .scale { color:#8f9bb5; margin-top:14px; }
+@media (max-width:700px) { .evt { grid-template-columns:1fr; gap:16px; } .crew b { font-size:56px; } .scale3 div { grid-template-columns:104px 1fr; } }
+@media (min-width:701px) and (max-height:820px) { .evt { margin-top:16px; } .crew b { font-size:54px; } .scale3 { margin-top:12px; } .scale3 div { padding:6px 0; } .night .scale { margin-top:10px; } }
+
+/* On your team */
+.embed { display:grid; grid-template-columns:1fr 1.15fr; gap:36px; align-items:center; margin-top:6px; }
+.embed h2 { margin-bottom:14px; } .embed .sub { margin-bottom:22px; }
+.embed .vid { box-shadow:0 30px 80px -34px rgba(11,18,32,.55); }
+@media (max-width:700px) { .embed { grid-template-columns:1fr; gap:20px; } }
+
+/* Start a project: the email form unfolds under the button */
+.reach { justify-content:flex-start; }
+.mailbox { display:grid; grid-template-rows:0fr; transition:grid-template-rows .55s cubic-bezier(.2,.7,.2,1); }
+.mailbox > form { overflow:hidden; min-height:0; }
+.mailbox.open { grid-template-rows:1fr; }
+.mailform { display:grid; grid-template-columns:repeat(3,1fr); gap:12px 14px; }
+.mailbox.open .mailform { padding-top:20px; }
+.mailform .wide { grid-column:1 / -1; }
+.mailform label span { display:block; font-size:12.5px; font-weight:600; color:#a9bcff; margin-bottom:6px; } .mailform label i { font-style:normal; font-weight:400; color:#7f8aa3; }
+.mailform input, .mailform textarea { width:100%; box-sizing:border-box; font:inherit; font-size:15px; color:#fff; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:12px 14px; outline:none; resize:vertical; transition:border-color .2s, background .2s; }
+.mailform input:focus, .mailform textarea:focus { border-color:#7d97ff; background:rgba(255,255,255,.09); }
+.mailform .bad { border-color:#ff7a8a; }
+.mailform .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+.sendrow { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.mstat { margin:0; font-size:14px; color:#aab5cc; } .mstat a { color:#fff; }
+@media (max-width:700px) { .mailform { grid-template-columns:1fr; } .mailform input, .mailform textarea { font-size:16px; } }   /* 16px stops iOS zooming into the field */
+
+/* ---------- radio globe (Radio Garden): floats in open space, no panel behind it ---------- */
+.radio { position:fixed; z-index:11; right:max(18px,2.6vw); bottom:calc(env(safe-area-inset-bottom,0px) + 14px); display:grid; grid-template-columns:auto auto; grid-template-areas:"top globe" "info globe"; column-gap:14px; align-items:end; text-align:right; color:var(--ink); }
+.rrow { display:contents; } .rtop { grid-area:top; } .globe { grid-area:globe; align-self:center; } .rinfo { grid-area:info; } .radio > .rby { grid-area:by; }
+.radio p { text-shadow:0 0 6px #f6f7f9, 0 0 12px #f6f7f9, 0 0 2px #f6f7f9; }                 /* a halo of the page colour keeps text readable over grid lines */
+.rtop { margin:0; font-size:12.5px; font-weight:600; white-space:nowrap; }
+.globe { width:92px; height:92px; padding:0; border:0; background:none; border-radius:50%; cursor:pointer; position:relative; }
+.globe::after { content:''; position:absolute; left:18%; right:18%; bottom:-7px; height:12px; border-radius:50%; background:radial-gradient(closest-side, rgba(11,18,32,.18), transparent); z-index:-1; }  /* contact shadow: it sits in the space */
+.globe canvas { width:92px; height:92px; display:block; }
+.globe:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.rinfo { max-width:230px; margin-top:3px; }
+.rst { margin:0; font-size:13px; font-weight:600; line-height:1.25; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; transition:opacity .35s; }
+.rpl { margin:2px 0 0; font-size:12px; color:var(--mid); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:15.6px; transition:opacity .35s; }
+.radio.tuning .rst, .radio.tuning .rpl { opacity:.45; }
+.radio .rmini, .radio .rby2 { display:none; }
+.rctl { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:6px; }
+.rbtn { width:32px; height:32px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(11,18,32,.22); background:rgba(246,247,249,.6); color:var(--ink); cursor:pointer; padding:0; }
+.rbtn:hover { border-color:var(--accent); color:var(--accent); }
+.rbtn svg { width:14px; height:14px; fill:currentColor; }
+.rbtn .i-play { display:none; } .radio.paused .rbtn .i-play { display:inline; } .radio.paused .rbtn .i-pause { display:none; }
+.knob { --v:.7; position:relative; width:32px; height:32px; border-radius:50%; cursor:ns-resize; touch-action:none; background:conic-gradient(from 225deg, var(--accent) calc(var(--v) * 270deg), rgba(11,18,32,.14) 0 270deg, transparent 0); }
+.knob::before { content:''; position:absolute; inset:4px; border-radius:50%; background:#f6f7f9; }
+.knob i { position:absolute; left:50%; top:50%; width:2px; height:8px; margin-left:-1px; border-radius:1px; background:var(--ink); transform-origin:50% 100%; transform:translateY(-100%) rotate(calc(-135deg + var(--v) * 270deg)); }
+.knob:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.rby { margin:6px 0 0; font-size:10.5px; color:var(--mid); white-space:nowrap; } .rby a { color:var(--ink); font-weight:600; text-decoration:none; } .rby a:hover { color:var(--accent); }
+@media (max-height:780px) and (min-width:621px) { .globe, .globe canvas { width:80px; height:80px; } .rctl { margin-top:4px; } .rby { margin-top:3px; } .rbtn, .knob { width:28px; height:28px; } }
+/* small laptop windows: a tighter corner so it never reaches the Next / Back buttons */
+@media (min-width:621px) and (max-width:1180px), (min-width:621px) and (max-height:700px) { .radio { column-gap:10px; right:14px; bottom:10px; } .globe, .globe canvas { width:64px; height:64px; } .rtop { font-size:11.5px; white-space:normal; max-width:118px; justify-self:end; line-height:1.25; } .rst { font-size:12px; } .rpl { font-size:11px; min-height:0; } .rinfo { max-width:140px; } .rctl { gap:8px; margin-top:4px; } .rbtn, .knob { width:26px; height:26px; } .rbtn svg { width:12px; height:12px; } }
+@media (max-width:620px) {
+  /* phones: a small globe under the header; the station floats out beside it after each spin, then tucks away */
+  .radio { right:10px; bottom:auto; top:calc(env(safe-area-inset-top,0px) + 62px); display:block; text-align:right; }
+  .rtop, .radio > .rby, .rctl { display:none; }
+  .rrow { display:flex; flex-direction:row-reverse; align-items:flex-start; gap:8px; position:relative; }
+  .globe, .globe canvas { width:58px; height:58px; } .globe::after { bottom:-4px; height:7px; }
+  .radio .rmini { display:grid; position:absolute; right:-6px; top:42px; width:24px; height:24px; } .rmini svg { width:11px; height:11px; }
+  .radio.paused .rmini .i-play { display:inline; } .radio.paused .rmini .i-pause { display:none; }
+  .rinfo { width:auto; max-width:170px; margin-top:6px; opacity:0; transform:translateX(8px); pointer-events:none; transition:opacity .35s, transform .35s; }
+  .radio.peek .rinfo { opacity:1; transform:none; pointer-events:auto; }
+  .rst { font-size:12px; -webkit-line-clamp:1; } .rpl { font-size:11px; }
+  .radio .rby2 { display:block; margin:2px 0 0; font-size:10px; }
+}
+
+/* ---------- first load: the grid fades in, then the stops ---------- */
+#gl { transition:opacity 1.6s ease; }
+body.intro #gl { opacity:0; }
+#css .card { transition:opacity 1s ease; }
+body.intro #css .card, body.intro-c #css .card { opacity:0; }
+header, .rail, .hint, .ctl, .radio { transition:opacity .9s ease; }
+body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.intro .radio, body.intro-c header, body.intro-c .rail, body.intro-c .hint, body.intro-c .ctl, body.intro-c .radio { opacity:0; pointer-events:none; }
+
 /* phones: narrower cards, single columns */
 @media (max-width:700px) {
   .card { width:var(--wm, 360px); padding:24px 22px 22px; }
@@ -255,8 +393,8 @@ p { margin:0; color:var(--mid); }
 #list .card { width:auto; cursor:default; }
 @media (prefers-reduced-motion:reduce) { .hint, .rail i, .rail span { transition:none; } }
 </style>
-<script type="importmap">{ "imports": { "three": "../vendor/three.module.min.js" } }</script>
-</head><body>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head><body class="intro">
 <div id="void" aria-hidden="true"></div>
 <canvas id="gl" aria-hidden="true"></canvas>
 <button id="hole" type="button" hidden aria-label="A black hole"><span class="tip" id="holetip">Do not click this unless you are okay with the end.</span></button>
@@ -269,29 +407,45 @@ p { margin:0; color:var(--mid); }
   </button>
   <nav class="top glass" aria-label="Sections">
     <button type="button" data-go="work">Work</button>
-    <button type="button" data-go="do">What I do</button>
-    <button type="button" data-go="process">How I work</button>
+    <button type="button" data-go="do">Selects</button>
+    <button type="button" data-go="onsite">Onsite</button>
+    <button type="button" data-go="process">On your team</button>
     <button type="button" class="cta" data-go="next">Start a project</button>
   </nav>
 </header>
-<p class="build">Build preview</p>
 <nav class="rail glass" id="rail" aria-label="Stops"></nav>
+<aside class="radio" id="radio" aria-label="Radio: old music from around the world">
+  <p class="rtop">Spin the globe to play a tune.</p>
+  <div class="rrow">
+    <button type="button" class="globe" id="globe" aria-label="Spin the globe to play a random station"><canvas id="globecv" width="260" height="260"></canvas></button>
+    <button type="button" class="rbtn rmini" id="rplay2" aria-label="Pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-play" d="M6 4.5v11l9-5.5z"/><path class="i-pause" d="M5.5 4.5h3v11h-3zM11.5 4.5h3v11h-3z"/></svg></button>
+    <div class="rinfo">
+      <p class="rst" id="rst">Tuning in…</p>
+      <p class="rpl" id="rpl"></p>
+      <div class="rctl">
+        <button type="button" class="rbtn" id="rplay" aria-label="Pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-play" d="M6 4.5v11l9-5.5z"/><path class="i-pause" d="M5.5 4.5h3v11h-3zM11.5 4.5h3v11h-3z"/></svg></button>
+        <div class="knob" id="rvol" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><i></i></div>
+      </div>
+    </div>
+  </div>
+</aside>
 <p class="hint glass" id="hint"><kbd>Scroll</kbd> to travel · <kbd>Drag</kbd> to look around</p>
-<div class="ctl"><button type="button" class="glass" id="listbtn">List view</button><button type="button" class="glass bird" id="birdbtn" aria-label="Birdseye view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14 7 3h6l5 11H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.2 10.5h9.6M3.6 14 8 3M16.4 14 12 3" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/></svg><span>Birdseye</span></button><span class="count glass" id="count">01 / 05</span><button type="button" class="next" id="nextbtn">Next ↓</button></div>
+<div class="ctl"><button type="button" class="glass" id="listbtn">List view</button><button type="button" class="glass bird" id="birdbtn" aria-label="Birdseye view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14 7 3h6l5 11H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.2 10.5h9.6M3.6 14 8 3M16.4 14 12 3" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/></svg><span>Birdseye</span></button><span class="count glass" id="count">01 / 05</span><button type="button" class="next" id="nextbtn">Next ↑</button><button type="button" class="glass" id="backbtn">↓ Back</button></div>
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="Video player"><div class="frame" id="lbframe"></div><div class="bar"><span id="lbtitle"></span><button type="button" id="lbclose">Close · Esc</button></div></div>
 <div id="list" hidden><div class="listbar"><button type="button" class="next" id="backto3d">← Cool 3D view</button></div><div class="wrap" id="listwrap"></div></div>
 
 <template id="cards">
   <article class="card" data-id="hero" data-label="Intro" style="--w:1180px;--wm:360px">
     <div class="hero">
       <div>
-        <p class="kick"><b>Walker Motion Pictures</b> · Corporate video for fintech &amp; SaaS</p>
-        <h1>A filmmaker who speaks <span class="grad">fintech and SaaS.</span></h1>
-        <p class="sub">Customer stories, company updates and ads, made by someone who already knows how finance software gets sold.</p>
+        <p class="kick"><b>Walker Motion Pictures</b> · Corporate video</p>
+        <h1 class="heroh">Corporate video with a soft spot for <span class="grad">fintech and SaaS.</span></h1>
+        <p class="sub">Customer stories, company updates and commercials, from a single interview to a full event crew.</p>
         <div class="row"><span class="btn pri" data-go="work">See the work</span><span class="btn sec" data-go="next">Start a project</span></div>
       </div>
       <div>
-        <div class="vid"><span class="pl"></span><span class="ph">[Showreel]</span><span class="dur ph" style="color:#fff">[0:60]</span></div>
-        <p class="note"><span>Showreel</span><span class="ph">[Client logos]</span></p>
+        <div class="vid" data-vid="1237688951/c7ec56b33c" data-title="AI Analyst commercial · Planful"><img src="img/planful_hero.jpg" alt="Still from the AI Analyst commercial" draggable="false" data-keep><span class="pl"></span><span class="dur">1:42</span></div>
+        <p class="note"><span>Featured · AI Analyst commercial · Planful</span></p>
       </div>
     </div>
   </article>
@@ -300,59 +454,77 @@ p { margin:0; color:var(--mid); }
     <h2 style="color:#fff">A finance product, sold as a story.</h2>
     <div class="work">
       <div class="feat">
-        <div class="vid"><img src="img/planful_hero.jpg" alt="Still from the AI Analyst commercial" draggable="false"><span class="pl"></span><span class="ph">[Video]</span><span class="dur">1:42</span></div>
+        <div class="vid" data-vid="1237688951/c7ec56b33c" data-title="AI Analyst commercial · Planful"><img src="img/analyst_thumb.jpg" alt="Still from the AI Analyst commercial" draggable="false" data-keep><span class="big">Narrative Ad</span><span class="pl"></span><span class="dur">1:42</span></div>
         <div class="frames">
           <figure><img src="img/planful_1.jpg" alt="" draggable="false"><figcaption>The ask from home</figcaption></figure>
-          <figure><img src="img/planful_2.jpg" alt="" draggable="false"><figcaption>The ask from the board</figcaption></figure>
-          <figure><img src="img/planful_3.jpg" alt="" draggable="false"><figcaption>Out the door on time</figcaption></figure>
+          <figure><img src="img/analyst_f2.jpg" alt="" draggable="false"><figcaption>The ask from the board</figcaption></figure>
+          <figure><img src="img/analyst_f3.jpg" alt="" draggable="false"><figcaption>Out the door on time</figcaption></figure>
         </div>
       </div>
       <div>
         <h3 style="color:#fff">AI Analyst commercial · Planful</h3>
         <p class="logline">An FP&amp;A manager gets a late request from the board, answers it with AI Analyst, and still makes it to her son’s game.</p>
         <p class="meta">Narrative spot · 1:42 · Shot by Walker Motion Pictures</p>
-        <div class="more">
-          <div class="vid t2"><span class="pl"></span><span class="ph">[Video]</span></div>
-          <div class="vid t4"><span class="pl"></span><span class="ph">[Video]</span></div>
-          <div class="vid t3"><span class="pl"></span><span class="ph">[Video]</span></div>
-          <div class="vid"><span class="pl"></span><span class="ph">[Video]</span></div>
-        </div>
       </div>
     </div>
-    <p class="stats"><span><b data-count="30">30</b>pieces of content from one event</span><span><b>2</b>weeks to deliver them</span><span><b>3</b>formats: 16:9, square, vertical</span></p>
   </article>
-  <article class="card" data-id="do" data-label="What I do" style="--w:1040px">
-    <p class="chip">What I do</p>
-    <h2>Shot, edited and finished for the three kinds of video your team needs most.</h2>
-    <div class="three">
-      <div class="tile"><div class="vid t2"><span class="pl"></span><span class="ph">[Video]</span></div><span class="tag">Testimonials</span><h3>Customer testimonials</h3><p>Finance leaders on camera, explaining the before and after, cut long for your site and short for social.</p></div>
-      <div class="tile"><div class="vid"><span class="pl"></span><span class="ph">[Video]</span></div><span class="tag">Internal</span><h3>Internal company updates</h3><p>Leadership messages, all-hands recaps and announcements your team will actually watch.</p></div>
-      <div class="tile"><div class="vid t3"><span class="pl"></span><span class="ph">[Video]</span></div><span class="tag">Paid media</span><h3>Commercials and ads</h3><p>Spots for paid social, web and events, shot and finished to run as ads.</p></div>
-    </div>
-    <div class="onsite">
-      <div><b>Onsite, at any scale.</b> One or two cinema cameras at your office or booth, a scripted commercial crew, or a full crew across breakout rooms, a live stream and a multicamera keynote, with me directing.</div>
-      <p class="scale"><span>One operator</span><i></i><span>Full crew</span></p>
+  <article class="card" data-id="do" data-label="Selects" style="--w:1120px">
+    <p class="chip">Portfolio selects</p>
+    <h2 class="selh">Selected work: from testimonials, company updates, to an AI series.</h2>
+    <div class="sel">
+      <p class="tag">Customer testimonials</p>
+      <div class="row5">
+        <div class="vid t2" data-vid="1237674016/74af37617e" data-title="Blake Martin · Incident IQ"><span class="pl"></span><span class="vcap">Blake Martin · Incident IQ</span><span class="dur"></span></div>
+        <div class="vid t3" data-vid="1237674019/c397187974" data-title="Kiper · Incident IQ"><span class="pl"></span><span class="vcap">Kiper · Incident IQ</span><span class="dur"></span></div>
+        <div class="vid t4" data-vid="1237675060/f4302833aa" data-title="Daniel Rahm · McLarens"><span class="pl"></span><span class="vcap">Daniel Rahm · McLarens</span><span class="dur"></span></div>
+        <div class="vid t2" data-vid="1237674396/035baf2a55" data-title="Kimball Midwest"><span class="pl"></span><span class="vcap">Kimball Midwest</span><span class="dur"></span></div>
+        <div class="vid t3" data-vid="1237674017/37eb333668" data-title="TerSera"><span class="pl"></span><span class="vcap">TerSera</span><span class="dur"></span></div>
+      </div>
+      <div class="two">
+        <div class="pair"><div class="vid" data-vid="1237676363/ca1bf1530d" data-title="Product updates, Q4 2025"><span class="pl"></span><span class="vcap">Product updates, Q4 2025</span><span class="dur"></span></div><div><p class="tag">Company updates</p><h3>Planful product updates</h3><p>The quarterly rundown of what shipped, made for Planful’s customers.</p></div></div>
+        <div class="pair"><div class="vid t4" data-vid="1237672952/810e922cc9" data-title="Smarter budgeting with Planful AI"><span class="pl"></span><span class="vcap">Smarter budgeting with Planful AI</span><span class="dur"></span></div><div><p class="tag">AI Labs · a series</p><h3>Planful AI Labs</h3><p>A recurring series with Planful’s AI expert on how finance teams can put AI to work.</p></div></div>
+      </div>
     </div>
   </article>
-  <article class="card" data-id="process" data-label="How I work" style="--w:1080px">
-    <p class="chip">How a video gets made</p>
-    <h2>From your references to a finished cut.</h2>
-    <p class="sub">Your team is involved at steps 1 and 4. Either of us can write the script.</p>
-    <ol class="steps">
-      <li class="y"><i>1</i><span class="who">You</span><b>Project brief</b><span>Style, references and deliverables.</span></li>
-      <li class="e"><i>2</i><span class="who">Either of us</span><b>Script</b><span>You send a draft, or I write one.</span></li>
-      <li class="m"><i>3</i><span class="who">Me</span><b>Design in Figma</b><span>Storyboards and vector assets created.</span></li>
-      <li class="y"><i>4</i><span class="who">You</span><b>Review</b><span>Your design team comments right on the boards.</span></li>
-      <li class="m"><i>5</i><span class="who">Me</span><b>Execute</b><span>I animate the approved boards and deliver the cut.</span></li>
-    </ol>
-    <p class="legend"><span><i style="background:#e7edff;border:1.5px solid #c9d6ff"></i>Your team</span><span><i style="background:var(--ink)"></i>Me</span><span>Animation starts after your team approves the boards.</span></p>
-    <p class="ways1">Per-project packages and monthly retainers. <span data-go="next">Ask for a proposal →</span></p>
+  <article class="card night" data-id="onsite" data-label="Onsite" style="--w:1120px">
+    <p class="chip">Onsite</p>
+    <h2 style="color:#fff">Whether it’s a small footprint needed, or a big crew for a user event, we have you covered.</h2>
+    <div class="evt">
+      <div class="vid" data-vid="1237676451/ca7da3e647" data-title="Perform25 event recap · Planful"><span class="pl"></span><span class="vcap">Perform25 event recap · Planful</span><span class="dur"></span></div>
+      <div>
+        <p class="tag">Case · Perform25 · Planful</p>
+        <p class="crew"><b>15</b>person crew</p>
+        <p class="evtx">B-roll across the venue, every breakout room, and a multicamera keynote, cut into the event recap.</p>
+        <p class="scale"><span>One operator</span><i></i><span>Full crew</span></p>
+      </div>
+    </div>
+  </article>
+  <article class="card" data-id="process" data-label="On your team" style="--w:1080px">
+    <p class="chip">On your design team</p>
+    <div class="embed">
+      <div>
+        <h2>A motion designer on your team, working in your brand.</h2>
+        <p class="sub">Your head designer leads. We work from your brand guidelines and Figma files, and your team reviews on the boards before anything moves.</p>
+        <p class="ways1">Per-project or on a monthly retainer. <span data-go="next">Ask for a proposal →</span></p>
+      </div>
+      <div class="vid" data-vid="file:media/facilities.mp4" data-title="iiQ Facilities · Incident IQ"><img src="img/facilities_poster.jpg" alt="Still from the iiQ Facilities product video" draggable="false" data-keep><span class="pl"></span><span class="vcap">iiQ Facilities · made in the iiQ brand</span><span class="dur">1:26</span></div>
+    </div>
   </article>
   <article class="card night" data-id="next" data-label="Start a project" style="--w:900px">
     <p class="chip">Start a project</p>
-    <h2 style="color:#fff">Tell me what’s first on your list.</h2>
-    <p class="sub" style="color:#aab5cc">One-off or ongoing, send a line about it. I reply with a proposal sized to it, and a kickoff call plans the first shoot or edit.</p>
-    <div class="reach"><span class="mail"><span class="ph">[studio email]</span></span><span class="btn pri">Email the studio</span></div>
+    <h2 style="color:#fff">What do you got cookin’?</h2>
+    <p class="sub" style="color:#aab5cc">One-off or ongoing, send a line about it, we’d love to chat with you.</p>
+    <div class="reach"><button type="button" class="btn pri" data-mailopen aria-expanded="false">Email the studio</button></div>
+    <div class="mailbox" data-mailbox>
+      <form class="mailform" novalidate>
+        <label><span>Name</span><input name="name" autocomplete="name" required></label>
+        <label><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
+        <label><span>Company <i>(optional)</i></span><input name="company" autocomplete="organization"></label>
+        <label class="wide"><span>What’s the project?</span><textarea name="message" rows="2" required></textarea></label>
+        <input name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="wide sendrow"><button type="submit" class="btn pri">Send</button><p class="mstat" role="status" aria-live="polite"></p></div>
+      </form>
+    </div>
   </article>
 </template>
 
@@ -365,13 +537,15 @@ const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
 
 // Where each stop sits in the grid (cell coordinates) and how it is turned. The tour weaves deeper and higher.
-const ORDER = ['hero', 'work', 'do', 'process', 'next'];
+const ORDER = ['hero', 'work', 'do', 'onsite', 'process', 'next'];
 const SPOTS = {
+  // Josiah 10-21 (audition v3): every card squared to the grid and centred on a main grid line, eight cells apart
   hero:    { p: [0, 3, 0],     ry: 0 },
-  work:    { p: [-9, 5, -9],   ry: 22 },
-  do:      { p: [9, 6, -17],   ry: -22 },
-  process: { p: [-5, 8, -25],  ry: 14 },
-  next:    { p: [5, 10, -32],  ry: -12 },
+  work:    { p: [-8, 5, -8],   ry: 0 },
+  do:      { p: [8, 6, -16],   ry: 0 },
+  onsite:  { p: [-8, 7, -24],  ry: 0 },
+  process: { p: [8, 9, -32],   ry: 0 },
+  next:    { p: [0, 11, -40],  ry: 0 },
 };
 const OVER = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 function setOverview() {
@@ -384,8 +558,8 @@ function setOverview() {
 let gl;
 try { gl = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, alpha: true }); } catch (e) { gl = null; }
 const listWrap = $('listwrap');
-function buildList() { if (!listWrap.childElementCount) for (const c of $('cards').content.querySelectorAll('.card')) listWrap.append(c.cloneNode(true)); }
-if (!gl) { buildList(); $('list').hidden = false; $('listbtn').hidden = true; $('nextbtn').hidden = true; throw new Error('no webgl'); }
+function buildList() { if (!listWrap.childElementCount) { for (const c of $('cards').content.querySelectorAll('.card')) listWrap.append(c.cloneNode(true)); if (window.hydrate) hydrate(listWrap); wireMail(listWrap); } }
+if (!gl) { document.body.classList.remove('intro', 'intro-c'); buildList(); $('list').hidden = false; $('listbtn').hidden = true; $('nextbtn').hidden = true; throw new Error('no webgl'); }
 gl.setPixelRatio(Math.min(devicePixelRatio, 2)); gl.setClearColor(0xf6f7f9, 0);
 const css = new CSS3DRenderer({ element: $('css') });
 const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xf6f7f9, 2600, 9000);
@@ -425,7 +599,7 @@ const pointMat = (color, opacity, size) => new THREE.ShaderMaterial({ transparen
   vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0, 9000.0, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
   fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { if (length(gl_PointCoord - 0.5) > 0.5) discard; vec3 c = mix(uColor, uStressCol, uStress); gl_FragColor = vec4(mix(c, uFogCol, vFog), min(1.0, uOpacity * (1.0 + 1.3 * uStress)) * (1.0 - uFade) * (1.0 - vFog) * vEat); }` });
 const LINES = (function lattice() {
-  const X = 18, Z0 = -40, Z1 = 14, YT = 12;
+  const X = 18, Z0 = -48, Z1 = 14, YT = 12;   // reaches past the last card (z = -40)
   const floor = [], major = [], cage = [], nodes = [];
   // every line is cut into half-cell pieces so the fabric can curve, not just tilt
   const STEP = G / 2;
@@ -587,10 +761,47 @@ for (const src of tpl.querySelectorAll('.card')) {
   cards[id] = { obj, el, ring };
   el.addEventListener('click', e => {
     if (moved > 6) return;
+    const v1 = e.target.closest('[data-vid]'); if (v1 && current === id) { openVideo(v1.dataset.vid, v1.dataset.title); return; }
     const go1 = e.target.closest('[data-go]'); if (go1 && current === id) { go(go1.dataset.go); return; }
     if (current !== id) go(id);
   });
 }
+
+// ---------- videos: thumbnails from Vimeo, a player that opens over the grid ----------
+const VIMEO = {};
+function vimeoInfo(v) {
+  if (!VIMEO[v]) VIMEO[v] = fetch('https://vimeo.com/api/oembed.json?width=1280&url=' + encodeURIComponent('https://vimeo.com/' + v)).then(r => r.ok ? r.json() : null).catch(() => null);
+  return VIMEO[v];
+}
+const fmt = s => { s = Math.round(s || 0); return s ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : ''; };
+function hydrate(root) {
+  root.querySelectorAll('[data-vid]').forEach(box => {
+    if (box.dataset.vid.startsWith('file:')) return;
+    vimeoInfo(box.dataset.vid).then(j => {
+      if (!j) return;
+      const dur = box.querySelector('.dur'); if (dur && !dur.textContent) dur.textContent = fmt(j.duration);
+      if (!box.querySelector('img[data-keep]') && j.thumbnail_url) {
+        const img = new Image(); img.className = 'th'; img.alt = ''; img.draggable = false; img.decoding = 'async';
+        img.src = j.thumbnail_url.replace(/_\d+x\d+/, '_1280x720'); img.onload = () => img.classList.add('on');
+        box.prepend(img);
+      }
+    });
+  });
+}
+function openVideo(v, title) {
+  if (window.__radio) __radio.duck(true);
+  if (v.startsWith('file:')) { $('lbframe').innerHTML = `<video src="${v.slice(5)}" controls autoplay playsinline></video>`; $('lbtitle').innerHTML = title; $('lb').hidden = false; $('lbclose').focus(); return; }
+  const [id, h] = v.split('/');
+  const q = new URLSearchParams({ autoplay: '1', title: '0', byline: '0', portrait: '0', dnt: '1', playsinline: '1' }); if (h) q.set('h', h);
+  $('lbframe').innerHTML = `<iframe src="https://player.vimeo.com/video/${id}?${q}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${title.replace(/"/g, '&quot;')}"></iframe>`;
+  $('lbtitle').innerHTML = title; $('lb').hidden = false; $('lbclose').focus();
+}
+function closeVideo() { $('lb').hidden = true; $('lbframe').innerHTML = ''; if (window.__radio) __radio.duck(false); }
+$('lbclose').addEventListener('click', closeVideo);
+$('lb').addEventListener('click', e => { if (e.target === $('lb')) closeVideo(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lb').hidden) { e.stopImmediatePropagation(); closeVideo(); } }, true);
+for (const k in cards) hydrate(cards[k].el); window.hydrate = hydrate;
+$('listwrap').addEventListener('click', e => { const b = e.target.closest('[data-vid]'); if (b) openVideo(b.dataset.vid, b.dataset.title); });
 
 // ---------- rail ----------
 const rail = $('rail');
@@ -610,13 +821,21 @@ function viewFor(id) {
   const phone = innerWidth < 700;
   const usableH = 1 - (phone ? 0.26 : 0.2);                              // leave room for the header and the bottom bar
   const dW = (w / (phone ? 0.94 : 0.78)) / (2 * t * aspect), dH = (h / usableH) / (2 * t);
-  const d = phone && dH > dW * 1.15 ? dW : Math.max(dW, dH);      // phones: fit the width and pan down a tall card
-  const visH = 2 * t * d * usableH;                                     // world units of card visible at once
-  const panMax = Math.max(0, h - visH);
-  // a tall card on a phone starts at its top; the swipe pans down it (see pan below)
-  const lift = panMax ? h / 2 - visH / 2 : 0;
-  const look = o.position.clone().add(new THREE.Vector3(0, lift + (phone ? -10 : -6), 0));
-  return { pos: o.position.clone().addScaledVector(n, d).add(new THREE.Vector3(0, lift, 0)), look, panMax, worldPerPx: visH / (innerHeight * usableH) };
+  // Crisp text: at distance ONE the card is drawn at exactly its own pixel size (1 world unit = 1 CSS px), so the browser
+  // never resamples it. Use that whenever the card fits; otherwise fall back to fitting it (slightly soft, rare).
+  const ONE = camera.projectionMatrix.elements[5] * innerHeight / 2;
+  const availH = phone ? innerHeight * usableH : innerHeight - 150;          // header above, control bar below
+  const fitsW = w <= innerWidth * (phone ? 0.97 : 0.92), fitsH = h <= availH;
+  let d = phone ? (fitsW ? ONE : dW) : (fitsW && fitsH ? ONE : Math.max(dW, h / availH * ONE, w / (innerWidth * .92) * ONE));
+  const visH = 2 * t * d * usableH;
+  const panMax = phone && h > visH ? Math.round(h - visH) : 0;
+  const lift = panMax ? Math.round(h / 2 - visH / 2) : 0;
+  // whole-pixel alignment: the card's edges land on pixel boundaries
+  const ox = ((Math.round(innerWidth) - w) & 1) ? .5 : 0, oy = ((Math.round(innerHeight) - h) & 1) ? .5 : 0;
+  const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.rotation.y);
+  const off = right.multiplyScalar(ox).add(new THREE.Vector3(0, lift + (phone ? -10 : -6) + oy, 0));
+  const look = o.position.clone().add(off);
+  return { pos: look.clone().addScaledVector(n, d), look, panMax, worldPerPx: d === ONE ? 1 : visH / (innerHeight * usableH) };
 }
 
 // Along grid lines: snap to a node, then height, then x, then z, corners rounded.
@@ -654,10 +873,12 @@ function go(id, opt = {}) {
   if (id === current && !flight) return;
   const to = viewFor(id), fromPos = eyeNow(), fromLook = lookNow();
   tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; mark(null);
+  for (const k in cards) cards[k].obj.element.style.willChange = 'transform';
   if (still) { cam.pos.copy(to.pos); cam.look.copy(to.look); arrive(id); return; }
   // a straight pull-back (end of the tour) flies a straight line instead of following the grid
   const path = opt.straight ? new THREE.CurvePath() : route(fromPos, to.pos); if (opt.straight) path.add(new THREE.LineCurve3(fromPos, to.pos));
-  const len = path.getLength();
+  const len = path.curves.length ? path.getLength() : 0;
+  if (len < 1) { cam.pos.copy(to.pos); cam.look.copy(to.look); arrive(id); return; }   // already there: nothing to fly
   const pts = path.getSpacedPoints(Math.max(60, Math.round(len / 20)));
   trailGeo.setFromPoints(pts); trailGeo.setDrawRange(0, 0); trail.material.opacity = opt.straight ? 0 : .95; headMat.opacity = opt.straight ? 0 : 1;
   flight = { path, pts, t0: performance.now(), dur: Math.min(4200, Math.max(1900, 900 + len / 1.45)), fromLook, toLook: to.look, id };
@@ -665,11 +886,13 @@ function go(id, opt = {}) {
 }
 function arrive(id) {
   current = id; flight = null; mark(id); navState(id); headMat.opacity = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => { for (const k in cards) cards[k].obj.element.style.willChange = 'auto'; }));
   { const v = viewFor(id); pan.max = v.panMax || 0; pan.k = v.worldPerPx || 1; pan.y = pan.cur = 0; }
   const t0 = performance.now(), o = trail.material.opacity;
   const f = () => { const k = Math.min(1, (performance.now() - t0) / 1000); trail.material.opacity = o * (1 - k); if (k < 1) requestAnimationFrame(f); }; f();
-  if (id === 'work') countUp(cards.work.el);
-  const i = ORDER.indexOf(id); $('nextbtn').textContent = i === ORDER.length - 1 ? 'Start over ↺' : 'Next ↓';
+  
+  const i = ORDER.indexOf(id); $('nextbtn').textContent = i === ORDER.length - 1 ? 'Start over ↺' : 'Next ↑';
+  $('backbtn').hidden = id === 'overview';
 }
 function mark(id) { for (const k in cards) cards[k].el.classList.toggle('here', k === id); }
 function navState(id) {
@@ -682,19 +905,19 @@ function countUp(el) {
   el.querySelectorAll('[data-count]').forEach(b => { const n = +b.dataset.count, t0 = performance.now(); if (still) return;
     const f = () => { const k = Math.min(1, (performance.now() - t0) / 900); b.textContent = Math.round(n * ease(k)); if (k < 1) requestAnimationFrame(f); }; b.textContent = 0; f(); });
 }
-const step = d => { if (flight || HOLE.active) return; const i = ORDER.indexOf(current); const j = i < 0 ? 0 : i + d; if (j >= ORDER.length) return go('overview', { straight: true }); if (j < 0) return go('overview', { straight: true }); go(ORDER[j]); };
+const step = (d, opt = {}) => { if (flight || HOLE.active) return; const i = ORDER.indexOf(current); const j = i < 0 ? 0 : i + d; if (j >= ORDER.length) return go('overview', { straight: true }); if (j < 0) return go('overview', { straight: true }); go(ORDER[j], opt); };
 
 // ---------- input: drag looks, scroll / swipe / keys travel ----------
 const el = $('css');
 let down = null, moved = 0, wheelAcc = 0, wheelT = 0;
-el.addEventListener('pointerdown', e => { if (flight || HOLE.active) return; down = { x: e.clientX, y: e.clientY, yaw: tYaw, pitch: tPitch, pan: pan.y, touch: e.pointerType === 'touch' }; moved = 0; el.classList.add('dragging'); });
+el.addEventListener('pointerdown', e => { if (flight || HOLE.active || !$('lb').hidden) return; down = { x: e.clientX, y: e.clientY, yaw: tYaw, pitch: tPitch, pan: pan.y, touch: e.pointerType === 'touch' }; moved = 0; el.classList.add('dragging'); });
 addEventListener('pointermove', e => {
   if (!down) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y; moved = Math.max(moved, Math.hypot(dx, dy));
   const k = 0.16, lim = current === 'overview' ? 40 : 24;
   tYaw = THREE.MathUtils.clamp(down.yaw + dx * k, -lim, lim);                 // inverted (Josiah 10-20): drag right looks right
   if (!down.touch) tPitch = THREE.MathUtils.clamp(down.pitch - dy * k * .7, -16, 14);
-  else if (pan.max && Math.abs(dy) > Math.abs(dx)) { pan.y = THREE.MathUtils.clamp(down.pan - dy * pan.k, 0, pan.max); tYaw = down.yaw; }
+  else if (pan.max && Math.abs(dy) > Math.abs(dx)) { pan.y = Math.round(THREE.MathUtils.clamp(down.pan - dy * pan.k, 0, pan.max)); tYaw = down.yaw; }
   if (moved > 6) hideHint();
 });
 addEventListener('pointerup', e => {
@@ -709,20 +932,22 @@ addEventListener('pointerup', e => {
 });
 addEventListener('pointercancel', () => { down = null; el.classList.remove('dragging'); });
 addEventListener('wheel', e => {
-  if (!$('list').hidden || HOLE.active) return; e.preventDefault();
+  if (!$('list').hidden || HOLE.active || !$('lb').hidden) return; e.preventDefault();
   const now = performance.now(); if (now - wheelT > 500) wheelAcc = 0; wheelT = now; wheelAcc += e.deltaY;
-  if (pan.max && !flight) { const ny = THREE.MathUtils.clamp(pan.y + e.deltaY * pan.k, 0, pan.max); const used = ny !== pan.y; pan.y = ny; if (used) { wheelAcc = 0; return; } }
+  if (pan.max && !flight) { const ny = Math.round(THREE.MathUtils.clamp(pan.y + e.deltaY * pan.k, 0, pan.max)); const used = ny !== pan.y; pan.y = ny; if (used) { wheelAcc = 0; return; } }
   if (Math.abs(wheelAcc) > 60 && !flight) { step(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; hideHint(); }
 }, { passive: false });
 addEventListener('keydown', e => {
-  if (!$('list').hidden || HOLE.active) return;
+  if (!$('list').hidden || HOLE.active || !$('lb').hidden) return;
   if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); step(1); }
   if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); }
   if (e.key === 'Escape') go('overview');
 });
 function hideHint() { $('hint').style.opacity = 0; }
 document.querySelectorAll('header [data-go], #rail [data-go]').forEach(b => b.addEventListener('click', () => { closeList(); go(b.dataset.go); }));
-$('nextbtn').addEventListener('click', () => { if (pan.max && pan.y < pan.max - 1) { pan.y = Math.min(pan.max, pan.y + innerHeight * 0.6 * pan.k); return; } step(1); });
+// Back: the previous stop, the camera pulling straight back along a line (no grid route); from the intro it pulls back to the bird's-eye view
+$('backbtn').addEventListener('click', () => step(-1, { straight: true }));
+$('nextbtn').addEventListener('click', () => { if (pan.max && pan.y < pan.max - 1) { pan.y = Math.round(Math.min(pan.max, pan.y + innerHeight * 0.6 * pan.k)); return; } step(1); });
 $('listbtn').addEventListener('click', () => $('list').hidden ? openList() : closeList());
 $('backto3d').addEventListener('click', closeList);
 $('birdbtn').addEventListener('click', () => { closeList(); go('overview'); });
@@ -751,13 +976,14 @@ function placeCtl(dt) {
 
 // ---------- the black hole: a 20 s end of the fabric, and its recreation ----------
 const QA_NOSTRETCH = /nostretch/.test(location.hash), QA_NOFLOW = /noflow/.test(location.hash);
+const BLACKHOLE_ON = /blackhole/.test(location.hash);                // shelved 10-20: only with #blackhole in the address
 const HOLE = (() => {
   const el = $('hole'), tip = $('holetip'), voidEl = $('void');
   const DUR = 20000, BACK = 6500;
   const st = { t: 0, dir: 0, active: false, ended: false, homes: null, radius: 1.1 * G };
   const base = new THREE.Vector3(0, 0, -13 * G);
   const E = x => Math.min(1, Math.max(0, x)), S3 = (a, b, x) => { const t = E((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-  const vis = () => (current === 'overview' && !flight) || st.active || st.ended;
+  const vis = () => BLACKHOLE_ON && ((current === 'overview' && !flight) || st.active || st.ended);
   function start() { if (st.active || st.ended) return; st.active = true; st.dir = 1; st.t0 = performance.now() - st.t * DUR; el.classList.add('busy'); document.body.classList.add('ending'); st.homes = {}; for (const k in cards) st.homes[k] = { p: cards[k].obj.position.clone(), r: cards[k].obj.rotation.y }; }
   function recreate() { if (!st.ended) return; st.ended = false; st.active = true; st.dir = -1; st.t0 = performance.now() - (1 - st.t) * BACK; el.classList.add('busy'); el.classList.remove('orb'); tip.textContent = 'Do not click this unless you are okay with the end.'; }
   el.addEventListener('click', () => st.ended ? recreate() : start());
@@ -836,20 +1062,23 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   if (flight) {
-    const k = Math.min(1, (now - flight.t0) / flight.dur), t = ease(k);
-    const tt = Math.min(t, .9995), p = flight.path.getPointAt(tt), tan = flight.path.getTangentAt(Math.min(.999, tt + .01));
+    // rAF timestamps can predate the click that started the flight, so k is clamped at 0 (a negative t falls off the path)
+    const k = Math.min(1, Math.max(0, (now - flight.t0) / flight.dur)), t = ease(k);
+    const tt = Math.min(t, .9995), p = flight.path.getPointAt(tt) || flight.path.getPointAt(0), tan = flight.path.getTangentAt(Math.min(.999, tt + .01));
     // the look direction turns once, on the same curve as the motion, so nothing jolts at corners
     const look = flight.fromLook.clone().lerp(flight.toLook, ease(Math.min(1, k / .9)));
     cam.pos.copy(p); cam.look.copy(look);
     trailGeo.setDrawRange(0, Math.max(2, Math.round(flight.pts.length * t)));
-    if (trail.material.opacity > 0) headMat.opacity = smooth(0, .08, k) * (1 - smooth(.8, .95, k)); head.position.copy(flight.path.getPointAt(Math.min(.9995, tt + .06)));
+    if (trail.material.opacity > 0) headMat.opacity = smooth(0, .08, k) * (1 - smooth(.8, .95, k)); { const hp = flight.path.getPointAt(Math.min(.9995, tt + .06)); if (hp) head.position.copy(hp); }
     if (k >= 1) { const v = viewFor(flight.id); cam.pos.copy(v.pos); cam.look.copy(v.look); arrive(flight.id); }
   }
   { const k = 1 - Math.exp(-dt * 8); yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k; }
+  if (Math.abs(tYaw - yaw) < .004) yaw = tYaw; if (Math.abs(tPitch - pitch) < .004) pitch = tPitch;
   const dir = cam.look.clone().sub(cam.pos), dist = dir.length(); dir.normalize();
   const right = new THREE.Vector3().crossVectors(dir, up).normalize();
   dir.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(right, THREE.MathUtils.degToRad(-pitch))).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(up, THREE.MathUtils.degToRad(yaw)));
   pan.cur += (pan.y - pan.cur) * (1 - Math.exp(-dt * 14));
+  if (Math.abs(pan.y - pan.cur) < .05) pan.cur = pan.y;
   camera.position.copy(cam.pos).addScaledVector(right, -yaw * 8).addScaledVector(up, pitch * 6 - pan.cur);
   camera.lookAt(tmp.copy(camera.position).addScaledVector(dir, dist));
   // ground rings breathe gently
@@ -869,7 +1098,234 @@ cam.pos.copy(OVER.pos); cam.look.copy(OVER.look);
 requestAnimationFrame(frame);
 // Opening move: a beat on the whole grid, then the camera travels in to the intro.
 const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.slice(1) : '');
-setTimeout(() => go(cards[startAt] ? startAt : 'hero'), still ? 0 : 900);
-window.__wmp = { go, step, get current() { return current; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
+// Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
+{
+  const first = cards[startAt] ? startAt : 'hero', body = document.body;
+  if (still) { body.classList.remove('intro', 'intro-c'); go(first); }
+  else {
+    requestAnimationFrame(() => requestAnimationFrame(() => { body.classList.add('intro-c'); body.classList.remove('intro'); }));
+    setTimeout(() => {
+      ORDER.forEach((k, i) => { cards[k].el.style.transitionDelay = i * 120 + 'ms'; });
+      body.classList.remove('intro-c');
+      setTimeout(() => { for (const k in cards) cards[k].el.style.transitionDelay = ''; }, 2200);
+    }, 1400);
+    setTimeout(() => go(first), 2500);
+  }
+}
+// headline auditions: #h=1..4 (Portfolio selects), #k=1..4 (intro); combine with &
+const AUD = {
+  k: ['.heroh', ['Corporate video with a soft spot for <span class="grad">fintech and SaaS.</span>', 'Corporate video, fluent in <span class="grad">fintech and SaaS.</span>', 'Corporate video, at home in <span class="grad">fintech and SaaS.</span>', 'Corporate video with a weakness for <span class="grad">fintech and SaaS.</span>']],
+};
+function selHead() { for (const key in AUD) { const m = location.hash.match(new RegExp('(?:^#|&)' + key + '=(\\d)')), [sel, list] = AUD[key]; if (m && list[m[1] - 1]) document.querySelectorAll(sel).forEach(el => { el.innerHTML = list[m[1] - 1]; }); } }
+selHead(); addEventListener('hashchange', selHead);
+// ---------- Start a project: email form ----------
+// The card grows downward (its top stays put while the form unfolds), then the camera settles on the taller card.
+function refit(id) {
+  if (flight || current !== id) return;
+  const to = viewFor(id), from = eyeNow(), path = new THREE.CurvePath(); path.add(new THREE.LineCurve3(from, to.pos));
+  if (path.getLength() < 1 && lookNow().distanceTo(to.look) < 1) { arrive(id); return; }
+  const pts = [from.clone(), to.pos.clone()]; trailGeo.setFromPoints(pts); trail.material.opacity = 0; headMat.opacity = 0;
+  flight = { path, pts, t0: performance.now(), dur: 700, fromLook: cam.look.clone(), toLook: to.look, id }; current = 'flying';
+}
+function wireMail(root, c, k) {
+  const MAILTO = 'walkermotionpictures@gmail.com', ENDPOINT = 'https://formspree.io/f/xeaebrzk';   // Josiah's Walker Motion Pictures Formspree form (10-20); local because List view (no WebGL) wires this before the module finishes
+  const box = root.querySelector('[data-mailbox]'); if (!box) return;
+  const btn = root.querySelector('[data-mailopen]'), form = box.querySelector('form'), stat = form.querySelector('.mstat');
+  // h0 = the card's height with the form closed, measured when it opens; until then the card stays exactly on its spot
+  let h0 = null; const y0 = c ? c.obj.position.y : 0;
+  if (c) {
+    new ResizeObserver(() => { if (h0 != null) c.obj.position.y = y0 - Math.max(0, c.el.offsetHeight - h0) / 2; }).observe(c.el);
+    addEventListener('resize', () => { if (!box.classList.contains('open')) { h0 = null; c.obj.position.y = y0; } });
+    box.addEventListener('transitionend', e => { if (e.target === box) refit(k); });
+  }
+  btn.addEventListener('click', e => {
+    e.stopPropagation(); if (c && current !== k) { go(k); return; }
+    const open = !box.classList.contains('open'); if (c && open && h0 == null) h0 = c.el.offsetHeight - (box.offsetHeight || 0);
+    box.classList.toggle('open', open); btn.setAttribute('aria-expanded', open);
+    btn.textContent = open ? 'Close' : 'Email the studio';
+    if (open) setTimeout(() => form.elements.name.focus({ preventScroll: !!c }), 450);
+  });
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); const f = form.elements; let ok = true;
+    for (const n of ['name', 'email', 'message']) { const bad = !f[n].value.trim() || (n === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f[n].value.trim())); f[n].classList.toggle('bad', bad); if (bad && ok) { ok = false; f[n].focus({ preventScroll: !!c }); } }
+    if (!ok) { stat.textContent = 'Name, email and a line about the project, please.'; return; }
+    if (f._gotcha.value) return;
+    const send = form.querySelector('[type=submit]'); send.disabled = true; stat.textContent = 'Sending…';
+    const body = { name: f.name.value.trim(), email: f.email.value.trim(), company: f.company.value.trim(), message: f.message.value.trim(), _subject: 'Project inquiry · ' + (f.company.value.trim() || f.name.value.trim()) };
+    const mail = `mailto:${MAILTO}?subject=${encodeURIComponent(body._subject)}&body=${encodeURIComponent(body.message + '\n\n' + body.name + (body.company ? ', ' + body.company : '') + '\n' + body.email)}`;
+    try {
+      // Formspree: the field named email becomes the reply-to; _subject sets the subject line
+      const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { form.reset(); stat.textContent = 'Sent. A reply goes to ' + body.email + '.'; }
+      else if (j.errors && j.errors.length) { stat.textContent = j.errors.map(x => x.message).join(' '); for (const x of j.errors) if (x.field && f[x.field]) f[x.field].classList.add('bad'); }
+      else throw new Error(r.status);
+    } catch (err) { stat.innerHTML = `Didn’t go through. <a href="${mail}">Send it from your email app</a> instead.`; }
+    send.disabled = false;
+  });
+  if (c) {   // in 3D: typing must not drive the camera, and focusing a field must not scroll the 3D layer
+    form.addEventListener('keydown', e => e.stopPropagation());
+    form.addEventListener('pointerdown', e => e.stopPropagation());
+    form.addEventListener('focusin', () => requestAnimationFrame(() => { for (let n = form; n; n = n.parentElement) { n.scrollTop = 0; n.scrollLeft = 0; } scrollTo(0, 0); }));
+  }
+}
+for (const k in cards) wireMail(cards[k].el, cards[k], k);
+// ---------- radio globe: Radio Garden stations (with Radio Garden's OK, Josiah 10-20) ----------
+// On load the globe spins itself, lands on a station and plays it; each click spins to a different one (2 s to a dead stop).
+// Old music only (Josiah 10-20): each visit pulls popular stations tagged oldies / 30s–70s / swing / big band / doo-wop /
+// Motown / rock 'n' roll from Radio Browser's open directory (radio-browser.info), keeps 10 from far-apart places, and deals
+// them from a shuffled deck so none repeats until all ten have played. Stations that fail are set aside for the visit.
+(() => {
+  let deck = [];
+  const RB = ['https://de1.api.radio-browser.info', 'https://fi1.api.radio-browser.info', 'https://de2.api.radio-browser.info', 'https://nl1.api.radio-browser.info'];
+  const TAGS = ['oldies', '60s', '50s', '70s', '40s', '30s', 'swing', 'big band', 'doo wop', 'motown', "rock'n'roll", 'golden oldies'];
+  const FALLBACK = [   // vintage streams used only if the directory can't be reached
+    { title: 'SomaFM Seven Inch Soul', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/7soul-128-mp3' },
+    { title: 'SomaFM Secret Agent', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/secretagent-128-mp3' },
+    { title: 'SomaFM Left Coast 70s', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/seventies-128-mp3' },
+    { title: 'Radio Swiss Jazz', place: 'Basel', country: 'Switzerland', geo: [7.59, 47.56], src: 'https://stream.srg-ssr.ch/srgssr/rsj/mp3/128' },
+    { title: 'WWOZ 90.7', place: 'New Orleans', country: 'United States', geo: [-90.07, 29.95], src: 'https://wwoz-sc.streamguys1.com/wwoz-hi.mp3' },
+  ];
+  let STATIONS = FALLBACK.slice();
+  const km = (a, b) => { const r = Math.PI / 180, dLa = (b[1] - a[1]) * r, dLo = (b[0] - a[0]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[1] * r) * Math.cos(b[1] * r) * Math.sin(dLo / 2) ** 2; return 12742 * Math.asin(Math.sqrt(h)); };
+  async function rb(path) { for (const host of RB) { try { const r = await fetch(host + path); if (r.ok) return { host, data: await r.json() }; } catch (e) {} } throw new Error('Radio Browser unreachable'); }
+  let RBHOST = null;
+  const directory = (async () => {
+    const lists = await Promise.all(TAGS.map(t => rb('/json/stations/search?' + new URLSearchParams({ tag: t, has_geo_info: 'true', is_https: 'true', hidebroken: 'true', order: 'clickcount', reverse: 'true', limit: '80' })).then(x => { RBHOST = RBHOST || x.host; return x.data; }).catch(() => [])));
+    const seen = new Set(), all = [];
+    for (const list of lists) for (const x of list) {
+      const url = x.url_resolved || x.url || '', codec = (x.codec || '').toUpperCase();
+      if (seen.has(x.stationuuid) || !/^https:/.test(url) || /\.m3u8|\.pls|\.m3u(\?|$)/i.test(url) || !/^(MP3|AAC|AAC\+|OGG)$/.test(codec) || x.geo_lat == null || x.geo_long == null) continue;
+      seen.add(x.stationuuid);
+      all.push({ title: (x.name || 'Radio').trim().replace(/\s+/g, ' ').slice(0, 48), place: (x.state || '').trim(), country: (x.country || '').trim(), geo: [+x.geo_long, +x.geo_lat], src: url, uuid: x.stationuuid, clicks: x.clickcount || 0 });
+    }
+    if (all.length < 4) return;
+    // ten from far-apart places: popular first, with a little shuffle so each visit differs
+    for (const x of all) x.score = x.clicks * (0.6 + Math.random() * 0.8);
+    all.sort((a, b) => b.score - a.score);
+    const out = [];
+    for (const minKm of [1500, 700, 250, 0]) { for (const x of all) { if (out.length >= 10) break; if (out.includes(x)) continue; if (out.every(o => km(o.geo, x.geo) >= minKm && (minKm < 700 || o.country !== x.country || out.length > 6))) out.push(x); } if (out.length >= 10) break; }
+    STATIONS = out; deck = [];
+  })().catch(() => {});
+  const box = $('radio'), cv = $('globecv'), st = $('rst'), pl = $('rpl'), playBtn = $('rplay'), knob = $('rvol');
+  let peekT = 0; const peek = ms => { box.classList.add('peek'); clearTimeout(peekT); if (ms) peekT = setTimeout(() => box.classList.remove('peek'), ms); };
+  const audio = new Audio(); audio.preload = 'none';
+  let vol = .7, userPaused = false, ducked = false, current = null, spinning = false, wantPlay = false, tries = 0;
+  try { const v = parseFloat(localStorage.getItem('wmp-radio-vol')); if (v >= 0 && v <= 1) vol = v; } catch (e) {}
+  audio.volume = vol;
+
+  // --- the globe (style A, Josiah 10-20): shaded white sphere, blue coastlines (Natural Earth, public domain), faint lat/long lattice
+  const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+  R.setPixelRatio(1); R.setSize(260, 260, false);
+  const S = new THREE.Scene(), C = new THREE.PerspectiveCamera(30, 1, .1, 10); C.position.set(0, 0, 4.15);
+  S.add(new THREE.AmbientLight(0xffffff, 2.1)); { const d = new THREE.DirectionalLight(0xffffff, 1.5); d.position.set(-2, 2.5, 3); S.add(d); }   // r160 light units
+  const G0 = new THREE.Group(); S.add(G0);
+  G0.add(new THREE.Mesh(new THREE.SphereGeometry(.99, 64, 48), new THREE.MeshLambertMaterial({ color: 0xffffff })));
+  const ll = (lat, lng, r = 1) => { const ph = (90 - lat) * Math.PI / 180, th = (lng + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const gridMat = new THREE.LineBasicMaterial({ color: 0x9fb2e6, transparent: true, opacity: .45 });
+  for (let lat = -60; lat <= 60; lat += 30) { const pts = []; for (let lng = -180; lng <= 180; lng += 4) pts.push(ll(lat, lng, 1.002)); G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat)); }
+  for (let lng = -180; lng < 180; lng += 30) { const pts = []; for (let lat = -90; lat <= 90; lat += 4) pts.push(ll(lat, lng, 1.002)); G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat)); }
+  const landMat = new THREE.LineBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: .95 });
+  fetch('land.json').then(r => r.json()).then(j => { for (const ring of j.rings) G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring.map(([x, y]) => ll(y, x, 1.003))), landMat)); }).catch(() => {});
+  const pin = new THREE.Mesh(new THREE.SphereGeometry(.035, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff4d6d }));
+  pin.visible = false; G0.add(pin);
+  G0.rotation.set(.35, 0, 0);
+
+  // --- spin: an ease-out over 2 s so it whips round and settles to a full stop with the place facing you
+  let spin = null;
+  const easeOut = t => 1 - Math.pow(1 - t, 4);
+  function spinTo(place) {
+    const v = ll(place.geo[1], place.geo[0]);
+    const yaw = Math.atan2(-v.x, v.z), lat = place.geo[1] * Math.PI / 180 * .85;    // a little less than the full latitude keeps the poles in view
+    const y0 = G0.rotation.y; let y1 = yaw; while (y1 < y0 + Math.PI * 4) y1 += Math.PI * 2;
+    spin = { t0: performance.now(), dur: 2000, y0, y1, x0: G0.rotation.x, x1: lat, place };
+    pin.visible = false; spinning = true;
+  }
+  let lastT = performance.now();
+  function loop(now) {
+    const dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+    if (spin) {
+      const k = Math.min(1, (now - spin.t0) / spin.dur), e = easeOut(k);
+      G0.rotation.y = spin.y0 + (spin.y1 - spin.y0) * e; G0.rotation.x = spin.x0 + (spin.x1 - spin.x0) * (k * k * (3 - 2 * k));
+      if (k >= 1) { const p = spin.place; spin = null; spinning = false; landed(p); }
+    } else if (!current) G0.rotation.y += dt * .25;                                // idle drift until the first station lands
+    if (pin.visible) pin.scale.setScalar(1 + Math.sin(now / 220) * .25);
+    R.render(S, C); requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // --- the deck: a shuffled pass through all ten, never the same station twice in a row
+  // a station that fails to play is set aside for the rest of the visit, so the deck only deals ones that work
+  let last = null; const dead = new Set();
+  const draw = () => {
+    const live = STATIONS.filter(x => !dead.has(x)), pool = live.length ? live : STATIONS;
+    deck = deck.filter(x => STATIONS.includes(x));
+    deck = deck.filter(x => !dead.has(x));
+    if (!deck.length) { deck = pool.slice().sort(() => Math.random() - .5); if (deck.length > 1 && deck[deck.length - 1] === last) deck.unshift(deck.pop()); }
+    return (last = deck.pop());
+  };
+  let watchdog = 0;
+  function show(title, where) { st.textContent = title; pl.textContent = where || ''; }
+  let firstSpin = true;
+  async function tune() {
+    if (spinning) return;
+    box.classList.add('tuning'); show('Tuning in…', ''); peek(0);
+    if (firstSpin) { firstSpin = false; await Promise.race([directory, new Promise(r => setTimeout(r, 2500))]); }
+    spinTo(draw());
+  }
+  function landed(s1) {
+    pin.position.copy(ll(s1.geo[1], s1.geo[0], 1.01)); pin.visible = true;
+    current = { ...s1 };
+    box.classList.remove('tuning');
+    show(current.title, [current.place, current.country].filter(Boolean).join(', ')); peek(5000);
+    audio.src = s1.src;
+    if (s1.uuid && RBHOST) fetch(RBHOST + '/json/url/' + s1.uuid).catch(() => {});   // Radio Browser's play counter, as its docs ask
+    if (!userPaused && !ducked) start();
+  }
+  // no sound within 10 s of asking for it (and not held back by the browser): skip to the next station
+  const arm = () => { clearTimeout(watchdog); watchdog = setTimeout(() => { if (wantPlay && audio.paused === false && audio.readyState < 3 && current) fail(); }, 10000); };
+  function fail() { if (!current) return; dead.add(STATIONS.find(x => x.src === current.src) || current); if (++tries < 6) { show('Off air, retuning…', ''); setTimeout(tune, 400); } }
+  function start() {
+    wantPlay = true;
+    arm();
+    audio.play().then(() => { box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
+      .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
+  }
+  function stop() { wantPlay = false; audio.pause(); box.classList.add('paused'); playBtn.setAttribute('aria-label', 'Play'); }
+  // a station that is off air: try another place
+  audio.addEventListener('error', () => { if (current && wantPlay) fail(); });   // a station that's down: set it aside and spin on to the next
+  audio.addEventListener('pause', () => { if (!ducked) box.classList.add('paused'); });
+  audio.addEventListener('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
+
+  $('globe').addEventListener('click', e => { e.stopPropagation(); userPaused = false; tries = 0; tune(); });
+  const toggle = e => { e.stopPropagation(); if (audio.paused) { userPaused = false; if (current) start(); else tune(); } else { userPaused = true; stop(); } };
+  playBtn.addEventListener('click', toggle); $('rplay2').addEventListener('click', toggle);
+  // volume knob: drag up or down, scroll, or arrow keys
+  const setVol = v => { vol = Math.min(1, Math.max(0, v)); audio.volume = vol; knob.style.setProperty('--v', vol); knob.setAttribute('aria-valuenow', Math.round(vol * 100)); try { localStorage.setItem('wmp-radio-vol', String(vol)); } catch (e) {} };
+  setVol(vol);
+  let kd = null;
+  knob.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); kd = { y: e.clientY, x: e.clientX, v: vol }; knob.setPointerCapture(e.pointerId); });
+  knob.addEventListener('pointermove', e => { if (kd) setVol(kd.v + ((kd.y - e.clientY) + (e.clientX - kd.x)) / 120); });
+  knob.addEventListener('pointerup', () => { kd = null; });
+  knob.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); setVol(vol - e.deltaY / 800); }, { passive: false });
+  knob.addEventListener('keydown', e => { const d = { ArrowUp: .05, ArrowRight: .05, ArrowDown: -.05, ArrowLeft: -.05 }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); setVol(vol + d); } });
+  box.addEventListener('pointerdown', e => { if (e.target.closest('button, .knob, a')) e.stopPropagation(); });
+  box.addEventListener('wheel', e => e.stopPropagation());
+
+  // Browsers hold sound until the visitor interacts: the first click, tap or key anywhere starts the station.
+  const evs = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
+  const kick = () => { if (userPaused || !current || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } start(); };
+  evs.forEach(e => addEventListener(e, kick, { capture: true, passive: true }));
+
+  // a video in the player takes the sound; the radio comes back when it closes
+  window.__radio = { audio, tune, duck(on) { if (on) { if (!audio.paused) { ducked = true; audio.pause(); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
+  // first spin once the stops have faded in
+  setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
+})();
+window.__wmp = { go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
+</script>
+<script>
+// safety net: if anything stops the opening sequence, show the page anyway
+setTimeout(() => document.body.classList.remove('intro', 'intro-c'), 6000);
 </script>
 </body></html>
