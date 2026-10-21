@@ -1280,10 +1280,19 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   })().catch(() => {});
   const box = $('radio'), cv = $('globecv'), st = $('rst'), pl = $('rpl'), playBtn = $('rplay'), knob = $('rvol');
   let peekT = 0; const peek = ms => { box.classList.add('peek'); clearTimeout(peekT); if (ms) peekT = setTimeout(() => box.classList.remove('peek'), ms); };
-  const audio = new Audio(); audio.preload = 'none';
+  // Two players. aW runs through Web Audio, where a gain node does the fades, and that works on iPhones too, which ignore an
+  // audio element's own volume. Web Audio only hears a stream whose server allows it (CORS), so a station that doesn't
+  // plays on aP, the plain player, where the fades go through its volume (computers and Android).
+  const aW = new Audio(), aP = new Audio(); aW.preload = aP.preload = 'none'; aW.crossOrigin = 'anonymous';
+  let audio = aP, actx = null, gainN = null, plainFor = null;
+  const graph = () => { if (actx) { if (actx.state === 'suspended') actx.resume().catch(() => {}); return; }
+    try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); gainN = actx.createGain(); gainN.gain.value = 0; actx.createMediaElementSource(aW).connect(gainN).connect(actx.destination); } catch (e) { actx = null; gainN = null; } };
+  const level = () => audio === aW && gainN ? gainN.gain.value : audio.volume;
+  const setLevel = v => { if (audio === aW && gainN) { gainN.gain.value = v; aW.volume = 1; } else audio.volume = v; };
+  const load = src => { const useW = !!gainN && plainFor !== src; const next = useW ? aW : aP, other = useW ? aP : aW; if (!other.paused) other.pause(); other.removeAttribute('src'); audio = next; audio.src = src; };
   let vol = .7, userPaused = false, ducked = false, current = null, spinning = false, wantPlay = false, tries = 0;
   try { const v = parseFloat(localStorage.getItem('wmp-radio-vol')); if (v >= 0 && v <= 1) vol = v; } catch (e) {}
-  audio.volume = vol;
+  aP.volume = vol;
 
   // --- the globe (style A, Josiah 10-20): shaded white sphere, blue coastlines (Natural Earth, public domain), faint lat/long lattice
   const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
@@ -1353,7 +1362,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
     current = { ...s1 };
     box.classList.remove('tuning');
     show(current.title, [current.place, current.country].filter(Boolean).join(', ')); peek(5000);
-    audio.src = s1.src;
+    plainFor = null; load(s1.src);
     if (s1.uuid && RBHOST) fetch(RBHOST + '/json/url/' + s1.uuid).catch(() => {});   // Radio Browser's play counter, as its docs ask
     if (!userPaused && !ducked) start();
   }
@@ -1363,27 +1372,30 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // every start fades in and every stop fades out (Josiah 10-21). iPhones ignore an audio element's volume, so there
   // the sound starts and stops plainly; the fades play on desktop and Android.
   let fadeRAF = 0;
-  const fadeTo = (to, ms, done) => { cancelAnimationFrame(fadeRAF); const from = audio.volume, t0 = performance.now();
-    const f = now => { const k = Math.min(1, Math.max(0, (now - t0) / ms)), e = k * k * (3 - 2 * k); audio.volume = Math.max(0, Math.min(1, from + (to - from) * e)); if (k < 1) fadeRAF = requestAnimationFrame(f); else if (done) done(); };
+  const fadeTo = (to, ms, done) => { cancelAnimationFrame(fadeRAF); const from = level(), t0 = performance.now();
+    const f = now => { const k = Math.min(1, Math.max(0, (now - t0) / ms)), e = k * k * (3 - 2 * k); setLevel(Math.max(0, Math.min(1, from + (to - from) * e))); if (k < 1) fadeRAF = requestAnimationFrame(f); else if (done) done(); };
     fadeRAF = requestAnimationFrame(f); };
   function start() {
     wantPlay = true;
     arm();
-    if (audio.paused) { cancelAnimationFrame(fadeRAF); audio.volume = 0; }
+    graph();
+    if (gainN && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
+    if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); }
     audio.play().then(() => { fadeTo(vol, 2200); box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
       .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
   }
   function stop() { wantPlay = false; box.classList.add('paused'); playBtn.setAttribute('aria-label', 'Play'); fadeTo(0, 500, () => { if (!wantPlay) audio.pause(); }); }
   // a station that is off air: try another place
-  audio.addEventListener('error', () => { if (current && wantPlay) fail(); });   // a station that's down: set it aside and spin on to the next
-  audio.addEventListener('pause', () => { if (!ducked) box.classList.add('paused'); });
-  audio.addEventListener('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
+  const on = (ev, fn) => [aW, aP].forEach(a => a.addEventListener(ev, e => { if (e.target === audio) fn(e); }));
+  on('error', () => { if (!current || !wantPlay) return; if (audio === aW && plainFor !== current.src) { plainFor = current.src; load(current.src); start(); return; } fail(); });   // aW refused (no CORS): try plain; plain failed too: off air
+  on('pause', () => { if (!ducked) box.classList.add('paused'); });
+  on('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
 
   $('globe').addEventListener('click', e => { e.stopPropagation(); userPaused = false; tries = 0; tune(); });
   const toggle = e => { e.stopPropagation(); if (audio.paused) { userPaused = false; if (current) start(); else tune(); } else { userPaused = true; stop(); } };
   playBtn.addEventListener('click', toggle); $('rplay2').addEventListener('click', toggle);
   // volume knob: drag up or down, scroll, or arrow keys
-  const setVol = v => { vol = Math.min(1, Math.max(0, v)); if (typeof fadeRAF !== 'undefined') cancelAnimationFrame(fadeRAF); audio.volume = vol; knob.style.setProperty('--v', vol); knob.setAttribute('aria-valuenow', Math.round(vol * 100)); try { localStorage.setItem('wmp-radio-vol', String(vol)); } catch (e) {} };
+  const setVol = v => { vol = Math.min(1, Math.max(0, v)); if (typeof fadeRAF !== 'undefined') cancelAnimationFrame(fadeRAF); if (!audio.paused) setLevel(vol); else aP.volume = vol; knob.style.setProperty('--v', vol); knob.setAttribute('aria-valuenow', Math.round(vol * 100)); try { localStorage.setItem('wmp-radio-vol', String(vol)); } catch (e) {} };
   setVol(vol);
   let kd = null;
   knob.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); kd = { y: e.clientY, x: e.clientX, v: vol }; knob.setPointerCapture(e.pointerId); });
@@ -1400,13 +1412,13 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // unlocks the player for Safari by playing a tiny silent clip, so the station can start the moment it lands.
   const BLIP = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
   let unlocked = false;
-  const unlock = () => { if (unlocked) return; unlocked = true; if (current) return; const a0 = audio.src; audio.src = BLIP; audio.play().then(() => { audio.pause(); if (current) { audio.src = current.src; if (!userPaused && !ducked) start(); } }).catch(() => { unlocked = false; }); };
-  const kick = () => { if (!current) return unlock(); if (userPaused || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } unlocked = true; start(); };
+  const unlock = () => { graph(); if (unlocked) return; unlocked = true; if (current) return; [aW, aP].forEach(a => { a.src = BLIP; a.play().then(() => a.pause()).catch(() => {}); }); setTimeout(() => { if (current && audio.paused && !userPaused && !ducked) { load(current.src); start(); } }, 300); };
+  const kick = () => { graph(); if (!current) return unlock(); if (userPaused || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } unlocked = true; start(); };
   evs.forEach(e => addEventListener(e, kick, { capture: true, passive: true }));
 
   // a video in the player takes the sound; the radio comes back when it closes
   // a video playing takes the sound: the radio fades out, and fades back in when the video stops or closes
-  window.__radio = { audio, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
+  window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
   // first spin once the stops have faded in
   setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
 })();
