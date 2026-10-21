@@ -1,4 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><script>/* phone audition (10-21): #m=b shows the desktop build on a phone, laid out at 1280 px and scaled to the screen */
+if (/[#&]m=b/.test(location.hash)) document.querySelector('meta[name=viewport]').content = 'width=1280, viewport-fit=cover';</script>
 <title>Walker Motion Pictures · Corporate video</title>
 <meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
 <link rel="canonical" href="https://walkermotionpictures.com/">
@@ -573,6 +574,7 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 import * as THREE from 'three';
 import { CSS3DRenderer, CSS3DObject } from './CSS3DRenderer.js';
 
+const DESK3D = /[#&]m=c/.test(location.hash);   // phone audition: desktop camera and framing, phone-sized cards
 const G = 160;                                   // one grid cell (world units ≈ CSS px at the card plane)
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
@@ -590,7 +592,7 @@ const SPOTS = {
 };
 const OVER = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 function setOverview() {
-  const phone = innerWidth < 700;
+  const phone = innerWidth < 700 && !DESK3D;
   // phones (Josiah 10-21): pulled back and up so all six cards, now squared on the main grid lines, fit the narrow screen
   OVER.pos.set(0, (phone ? 30 : 16) * G, (phone ? 34 : 21) * G);
   OVER.look.set(0, (phone ? 5 : 3) * G, (phone ? -20 : -10) * G);
@@ -860,7 +862,7 @@ function viewFor(id) {
   const n = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.rotation.y);
   const w = c.el.offsetWidth, h = c.el.offsetHeight;
   const vf = THREE.MathUtils.degToRad(camera.fov), t = Math.tan(vf / 2), aspect = innerWidth / innerHeight;
-  const phone = innerWidth < 700;
+  const phone = innerWidth < 700 && !DESK3D;
   const usableH = 1 - (phone ? 0.26 : 0.2);                              // leave room for the header and the bottom bar
   const dW = (w / (phone ? 0.94 : 0.78)) / (2 * t * aspect), dH = (h / usableH) / (2 * t);
   // Crisp text: at distance ONE the card is drawn at exactly its own pixel size (1 world unit = 1 CSS px), so the browser
@@ -1131,7 +1133,7 @@ function frame(now) {
 }
 function resize() {
   const w = innerWidth, h = innerHeight;
-  camera.aspect = w / h; camera.fov = w < 700 ? 50 : 38; camera.updateProjectionMatrix();
+  camera.aspect = w / h; camera.fov = w < 700 && !DESK3D ? 50 : 38; camera.updateProjectionMatrix();
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
   if (!flight) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
