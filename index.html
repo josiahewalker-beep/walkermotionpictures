@@ -1190,6 +1190,17 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   const km = (a, b) => { const r = Math.PI / 180, dLa = (b[1] - a[1]) * r, dLo = (b[0] - a[0]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[1] * r) * Math.cos(b[1] * r) * Math.sin(dLo / 2) ** 2; return 12742 * Math.asin(Math.sqrt(h)); };
   async function rb(path) { for (const host of RB) { try { const r = await fetch(host + path); if (r.ok) return { host, data: await r.json() }; } catch (e) {} } throw new Error('Radio Browser unreachable'); }
   let RBHOST = null;
+  // the first spin of every visit lands on Chili Radio, Chiang Mai (Josiah 10-21); looked up by name so its stream address stays current
+  const toStation = x => ({ title: (x.name || 'Radio').trim().replace(/\s+/g, ' ').slice(0, 48), place: (x.state || '').trim(), country: (x.country || '').trim(), geo: [+x.geo_long, +x.geo_lat], src: x.url_resolved || x.url || '', uuid: x.stationuuid, clicks: x.clickcount || 0 });
+  const playable = x => { const url = x.url_resolved || x.url || '', codec = (x.codec || '').toUpperCase(); return /^https:/.test(url) && !/\.m3u8|\.pls|\.m3u(\?|$)/i.test(url) && /^(MP3|AAC|AAC\+|OGG)$/.test(codec); };
+  const FIRST = rb('/json/stations/byname/' + encodeURIComponent('Chili Radio') + '?hidebroken=true').then(x => {
+    RBHOST = RBHOST || x.host;
+    const hit = (x.data || []).filter(y => /thai/i.test(y.country || '') && playable(y)).sort((a, b) => (b.clickcount || 0) - (a.clickcount || 0))[0];
+    if (!hit) return null;
+    const st = toStation(hit); if (!st.place) st.place = 'Chiang Mai';
+    if (!(st.geo[0] || st.geo[1]) || isNaN(st.geo[0])) st.geo = [98.98, 18.79];   // Chiang Mai, if the directory has no map spot for it
+    return st;
+  }).catch(() => null);
   const directory = (async () => {
     const lists = await Promise.all(TAGS.map(t => rb('/json/stations/search?' + new URLSearchParams({ tag: t, has_geo_info: 'true', is_https: 'true', hidebroken: 'true', order: 'clickcount', reverse: 'true', limit: '80' })).then(x => { RBHOST = RBHOST || x.host; return x.data; }).catch(() => [])));
     const seen = new Set(), all = [];
@@ -1270,7 +1281,12 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   async function tune() {
     if (spinning) return;
     box.classList.add('tuning'); show('Tuning in…', ''); peek(0);
-    if (firstSpin) { firstSpin = false; await Promise.race([directory, new Promise(r => setTimeout(r, 2500))]); }
+    if (firstSpin) {
+      firstSpin = false;
+      const first = await Promise.race([FIRST, new Promise(r => setTimeout(() => r(null), 3000))]);
+      await Promise.race([directory, new Promise(r => setTimeout(r, 1000))]);
+      if (first) { last = first; return spinTo(first); }
+    }
     spinTo(draw());
   }
   function landed(s1) {
