@@ -1418,7 +1418,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
 
   // a video in the player takes the sound; the radio comes back when it closes
   // a video playing takes the sound: the radio fades out, and fades back in when the video stops or closes
-  window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
+  window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, get level() { return level(); }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
   // first spin once the stops have faded in
   setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
 })();
