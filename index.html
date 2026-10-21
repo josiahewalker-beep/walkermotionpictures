@@ -591,8 +591,9 @@ const SPOTS = {
 const OVER = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
 function setOverview() {
   const phone = innerWidth < 700;
-  OVER.pos.set(0, (phone ? 21 : 16) * G, (phone ? 29 : 21) * G);
-  OVER.look.set(0, 3 * G, (phone ? -9 : -10) * G);
+  // phones (Josiah 10-21): pulled back and up so all six cards, now squared on the main grid lines, fit the narrow screen
+  OVER.pos.set(0, (phone ? 30 : 16) * G, (phone ? 34 : 21) * G);
+  OVER.look.set(0, (phone ? 5 : 3) * G, (phone ? -20 : -10) * G);
 }
 
 // ---------- renderers ----------
@@ -1383,7 +1384,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // first spin once the stops have faded in
   setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
 })();
-window.__wmp = { go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
+window.__wmp = { setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
 </script>
 <script>
 // safety net: if anything stops the opening sequence, show the page anyway
