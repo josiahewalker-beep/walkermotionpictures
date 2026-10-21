@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><script>/* phone audition (10-21): #m=b shows the desktop build on a phone, laid out at 1280 px and scaled to the screen */
-if (/[#&]m=b/.test(location.hash)) document.querySelector('meta[name=viewport]').content = 'width=1280, viewport-fit=cover';</script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Walker Motion Pictures · Corporate video</title>
 <meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
 <link rel="canonical" href="https://walkermotionpictures.com/">
@@ -574,7 +573,6 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 import * as THREE from 'three';
 import { CSS3DRenderer, CSS3DObject } from './CSS3DRenderer.js';
 
-const DESK3D = /[#&]m=c/.test(location.hash);   // phone audition: desktop camera and framing, phone-sized cards
 const G = 160;                                   // one grid cell (world units ≈ CSS px at the card plane)
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = id => document.getElementById(id);
@@ -591,11 +589,14 @@ const SPOTS = {
   next:    { p: [0, 11, -40],  ry: 0 },
 };
 const OVER = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+const PHONE_BACK = +(location.hash.match(/back=([\d.]+)/) || [0, 2.2])[1];
 function setOverview() {
-  const phone = innerWidth < 700 && !DESK3D;
-  // phones (Josiah 10-21): pulled back and up so all six cards, now squared on the main grid lines, fit the narrow screen
-  OVER.pos.set(0, (phone ? 30 : 16) * G, (phone ? 34 : 21) * G);
-  OVER.look.set(0, (phone ? 5 : 3) * G, (phone ? -20 : -10) * G);
+  const phone = innerWidth < 700;
+  // phones (Josiah 10-21): the desktop bird's-eye view itself (same target, same angle), pulled straight back
+  // until all six cards fit the narrow screen; the grid's distance fade stretches by the same amount
+  OVER.look.set(0, 3 * G, -10 * G); OVER.pos.set(0, 16 * G, 21 * G);
+  const k = phone ? PHONE_BACK : 1;
+  OVER.pos.sub(OVER.look).multiplyScalar(k).add(OVER.look); WARP.uFogK.value = k;
 }
 
 // ---------- renderers ----------
@@ -612,9 +613,9 @@ const camera = new THREE.PerspectiveCamera(40, 1, 10, 20000);
 
 // ---------- the lattice ----------
 // The fabric: every line, node and glyph runs through one warp, so the black hole can bend all of it together.
-const WARP = { uHole: { value: new THREE.Vector3(0, 0, -13 * G) }, uFlow: { value: 0 }, uSink: { value: 0 }, uSwirl: { value: 0 }, uR: { value: 2.5 * G }, uFade: { value: 0 }, uFogCol: { value: new THREE.Color(0xf6f7f9) }, uStress: { value: 0 }, uStressCol: { value: new THREE.Color(0x4f66a3) } };
+const WARP = { uHole: { value: new THREE.Vector3(0, 0, -13 * G) }, uFlow: { value: 0 }, uSink: { value: 0 }, uSwirl: { value: 0 }, uR: { value: 2.5 * G }, uFade: { value: 0 }, uFogK: { value: 1 }, uFogCol: { value: new THREE.Color(0xf6f7f9) }, uStress: { value: 0 }, uStressCol: { value: new THREE.Color(0x4f66a3) } };
 const WARP_GLSL = `
-  uniform vec3 uHole; uniform float uFlow, uSink, uSwirl, uR;
+  uniform vec3 uHole; uniform float uFlow, uSink, uSwirl, uR, uFogK;
   varying float vEat;
   // The fabric flows toward the hole like material to a drain: every point travels inward by the same distance (uFlow), so a
   // line is eaten from its near end while the rest slides in behind it; what reaches the hole sinks and vanishes.
@@ -636,11 +637,11 @@ const WARP_GLSL = `
   }`;
 const lineMat = (color, opacity) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
   uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } }, WARP),
-  vertexShader: WARP_GLSL + `varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0, 9000.0, -mv.z); gl_Position = projectionMatrix * mv; }`,
+  vertexShader: WARP_GLSL + `varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_Position = projectionMatrix * mv; }`,
   fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { float dark = 1.0 - dot(uFogCol, vec3(0.333)); vec3 c = mix(mix(uColor, uStressCol, uStress), vec3(0.7, 0.78, 1.0), dark); gl_FragColor = vec4(mix(c, uFogCol, vFog * (1.0 - dark)), min(1.0, uOpacity * (1.0 + 1.3 * uStress + 1.2 * dark)) * (1.0 - uFade) * (1.0 - vFog * (1.0 - dark)) * vEat); }` });
 const pointMat = (color, opacity, size) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
   uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity }, uPx: { value: size }, uH: { value: innerHeight } }, WARP),
-  vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0, 9000.0, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
+  vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
   fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { if (length(gl_PointCoord - 0.5) > 0.5) discard; vec3 c = mix(uColor, uStressCol, uStress); gl_FragColor = vec4(mix(c, uFogCol, vFog), min(1.0, uOpacity * (1.0 + 1.3 * uStress)) * (1.0 - uFade) * (1.0 - vFog) * vEat); }` });
 const LINES = (function lattice() {
   const X = 18, Z0 = -48, Z1 = 14, YT = 12;   // reaches past the last card (z = -40)
@@ -720,7 +721,7 @@ const CODE = (() => {
       vSeed = aSeed;
       vec3 world = p + (uRight * (uv.x - 0.5) + uUp * (uv.y - 0.5)) * uSize;
       vec4 mv = modelViewMatrix * vec4(world, 1.0);
-      vFog = smoothstep(2600.0, 9000.0, -mv.z);
+      vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z);
       gl_Position = projectionMatrix * mv;
     }`;
   const frag = `
@@ -763,7 +764,7 @@ const CODE = (() => {
     geo.setAttribute('aSpacing', new THREE.InstancedBufferAttribute(sg, 1)); geo.setAttribute('aGap', new THREE.InstancedBufferAttribute(gp, 1));
     mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false,
       uniforms: { uTime: { value: 0 }, uSize: { value: V.size }, uTail: { value: T }, uFlicker: { value: V.flicker }, uRight: { value: new THREE.Vector3(1, 0, 0) }, uUp: { value: new THREE.Vector3(0, 1, 0) },
-        uAtlas: { value: atlas }, uCol1: { value: new THREE.Color(V.col[0]) }, uCol2: { value: new THREE.Color(V.col[1]) }, uHead: { value: new THREE.Color(V.head) }, uAlpha: { value: V.alpha }, uHole: WARP.uHole, uFlow: WARP.uFlow, uSink: WARP.uSink, uSwirl: WARP.uSwirl, uR: WARP.uR, uFade: WARP.uFade, uFogCol: WARP.uFogCol } });
+        uAtlas: { value: atlas }, uCol1: { value: new THREE.Color(V.col[0]) }, uCol2: { value: new THREE.Color(V.col[1]) }, uHead: { value: new THREE.Color(V.head) }, uAlpha: { value: V.alpha }, uHole: WARP.uHole, uFogK: WARP.uFogK, uFlow: WARP.uFlow, uSink: WARP.uSink, uSwirl: WARP.uSwirl, uR: WARP.uR, uFade: WARP.uFade, uFogCol: WARP.uFogCol } });
     mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.renderOrder = 1; scene.add(mesh);
   }
   const r = new THREE.Vector3(), u = new THREE.Vector3();
@@ -862,7 +863,7 @@ function viewFor(id) {
   const n = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.rotation.y);
   const w = c.el.offsetWidth, h = c.el.offsetHeight;
   const vf = THREE.MathUtils.degToRad(camera.fov), t = Math.tan(vf / 2), aspect = innerWidth / innerHeight;
-  const phone = innerWidth < 700 && !DESK3D;
+  const phone = innerWidth < 700;
   const usableH = 1 - (phone ? 0.26 : 0.2);                              // leave room for the header and the bottom bar
   const dW = (w / (phone ? 0.94 : 0.78)) / (2 * t * aspect), dH = (h / usableH) / (2 * t);
   // Crisp text: at distance ONE the card is drawn at exactly its own pixel size (1 world unit = 1 CSS px), so the browser
@@ -959,7 +960,7 @@ addEventListener('pointermove', e => {
   if (!down) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y; moved = Math.max(moved, Math.hypot(dx, dy));
   const k = 0.16, lim = current === 'overview' ? 40 : 24;
-  tYaw = THREE.MathUtils.clamp(down.yaw + dx * k, -lim, lim);                 // inverted (Josiah 10-20): drag right looks right
+  if (!down.touch) tYaw = THREE.MathUtils.clamp(down.yaw + dx * k, -lim, lim);   // touch swipes never turn the camera (phone keeps the desktop's centred framing)                 // inverted (Josiah 10-20): drag right looks right
   if (!down.touch) tPitch = THREE.MathUtils.clamp(down.pitch - dy * k * .7, -16, 14);
   else if (pan.max && Math.abs(dy) > Math.abs(dx)) { pan.y = Math.round(THREE.MathUtils.clamp(down.pan - dy * pan.k, 0, pan.max)); tYaw = down.yaw; }
   if (moved > 6) hideHint();
@@ -1133,7 +1134,7 @@ function frame(now) {
 }
 function resize() {
   const w = innerWidth, h = innerHeight;
-  camera.aspect = w / h; camera.fov = w < 700 && !DESK3D ? 50 : 38; camera.updateProjectionMatrix();
+  camera.aspect = w / h; camera.fov = 38;   // phones use the desktop lens too (Josiah 10-21: phone rebuilt on the desktop build) camera.updateProjectionMatrix();
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
   if (!flight) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
