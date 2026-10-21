@@ -1285,6 +1285,10 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // plays on aP, the plain player, where the fades go through its volume (computers and Android).
   const aW = new Audio(), aP = new Audio(); aW.preload = aP.preload = 'none'; aW.crossOrigin = 'anonymous';
   let audio = aP, actx = null, gainN = null, plainFor = null;
+  // iPhones lock an audio element's volume (set it to 0.5 and it reads back 1). There, a station only fades if it can run
+  // through Web Audio, so on a locked device the globe passes over stations that refuse Web Audio and keeps spinning
+  // until it lands on one that fades (Josiah 10-21). Unlocked devices fade either player and keep every station.
+  const VOL_LOCKED = /[#&]ioslock/.test(location.hash) || (() => { try { const t = new Audio(); t.volume = .5; return t.volume === 1; } catch (e) { return false; } })();   // #ioslock: QA stand-in for an iPhone
   const graph = () => { if (actx) { if (actx.state === 'suspended') actx.resume().catch(() => {}); return; }
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); gainN = actx.createGain(); gainN.gain.value = 0; actx.createMediaElementSource(aW).connect(gainN).connect(actx.destination); } catch (e) { actx = null; gainN = null; } };
   const level = () => audio === aW && gainN ? gainN.gain.value : audio.volume;
@@ -1368,7 +1372,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   }
   // no sound within 10 s of asking for it (and not held back by the browser): skip to the next station
   const arm = () => { clearTimeout(watchdog); watchdog = setTimeout(() => { if (wantPlay && audio.paused === false && audio.readyState < 3 && current) fail(); }, 10000); };
-  function fail() { if (!current) return; dead.add(STATIONS.find(x => x.src === current.src) || current); if (++tries < 6) { show('Off air, retuning…', ''); setTimeout(tune, 400); } }
+  function fail() { if (!current) return; dead.add(STATIONS.find(x => x.src === current.src) || current); if (++tries < 6) { show('Retuning…', ''); setTimeout(tune, 400); } }
   // every start fades in and every stop fades out (Josiah 10-21). iPhones ignore an audio element's volume, so there
   // the sound starts and stops plainly; the fades play on desktop and Android.
   let fadeRAF = 0;
@@ -1390,7 +1394,12 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   function stop() { wantPlay = false; box.classList.add('paused'); playBtn.setAttribute('aria-label', 'Play'); fadeTo(0, 500, () => { if (!wantPlay) audio.pause(); }); }
   // a station that is off air: try another place
   const on = (ev, fn) => [aW, aP].forEach(a => a.addEventListener(ev, e => { if (e.target === audio) fn(e); }));
-  on('error', () => { if (!current || !wantPlay) return; if (audio === aW && plainFor !== current.src) { plainFor = current.src; load(current.src); start(); return; } fail(); });   // aW refused (no CORS): try plain; plain failed too: off air
+  on('error', () => { if (!current || !wantPlay) return;
+    if (audio === aW && plainFor !== current.src) {
+      if (VOL_LOCKED && tries < 5) { fail(); return; }            // iPhone: this one can't fade, so spin on to one that can
+      plainFor = current.src; load(current.src); start(); return;  // elsewhere (or after five misses): play it on the plain player
+    }
+    fail(); });   // aW refused (no CORS): try plain; plain failed too: off air
   on('pause', () => { if (!ducked) box.classList.add('paused'); });
   on('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
 
