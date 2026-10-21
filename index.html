@@ -52,6 +52,12 @@ header > * { pointer-events:auto; }
 .brand { display:flex; align-items:center; gap:10px; border-radius:12px; padding:7px 13px 7px 8px; cursor:pointer; font:inherit; color:var(--ink); }
 .mark { width:24px; height:24px; flex:none; }
 .brand b { font-family:var(--head); font-weight:700; font-size:15.5px; letter-spacing:-.015em; white-space:nowrap; }
+.lead { display:flex; align-items:center; gap:8px; min-width:0; }
+.jw { display:inline-flex; align-items:baseline; gap:7px; border-radius:12px; padding:10px 13px; font-size:13px; font-weight:500; color:var(--ink); text-decoration:none; white-space:nowrap; }
+.jw span { color:var(--dim); font-weight:400; }
+.jw:hover { color:var(--accent); }
+@media (max-width:1080px) { .jw span { display:none; } }
+@media (max-width:620px) { .lead { flex-direction:column; align-items:flex-start; gap:6px; } .jw { padding:6px 11px; font-size:12px; border-radius:10px; } .brand b { font-size:14px; } nav.top button.cta { font-size:12.5px; padding:7px 10px; } }
 nav.top { display:flex; gap:2px; border-radius:12px; padding:4px; }
 nav.top button { font:inherit; font-size:13.5px; font-weight:500; color:var(--mid); background:none; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; white-space:nowrap; }
 nav.top button:hover { color:var(--ink); background:rgba(11,18,32,.05); }
@@ -392,6 +398,26 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 #list .wrap { max-width:68rem; margin:0 auto; display:grid; gap:22px; }
 #list .card { width:auto; cursor:default; }
 @media (prefers-reduced-motion:reduce) { .hint, .rail i, .rail span { transition:none; } }
+/* leave note: a grid line grows from the click, a card grows at its end */
+#tether { position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:40; overflow:visible; }
+#tether path { fill:none; stroke:var(--accent); stroke-width:1.25; vector-effect:non-scaling-stroke; }
+#tether .guide { stroke:rgba(47,91,255,.22); stroke-width:1; stroke-dasharray:2 4; }
+#tether rect { fill:#fff; stroke:var(--accent); stroke-width:1.25; }
+#scrim { position:fixed; inset:0; z-index:39; background:transparent; }
+#warn { position:fixed; z-index:41; width:min(21rem, calc(100vw - 32px)); background:#fff; color:var(--ink); border:1px solid var(--accent); border-radius:14px;
+  box-shadow:0 1px 2px rgba(11,18,32,.06), 0 18px 50px -18px rgba(11,18,32,.35); padding:18px 18px 16px; text-align:left; }
+#warn .ttl { font-size:11.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; display:flex; align-items:center; gap:8px; }
+#warn .ttl::before { content:''; width:6px; height:6px; border-radius:50%; background:#00b39b; box-shadow:0 0 0 3px rgba(0,179,155,.18); }
+#warn h2 { font-family:var(--head); font-weight:600; font-size:19px; line-height:1.2; letter-spacing:-.02em; margin:0 0 8px; }
+#warn p { margin:0; color:var(--mid); font-size:14.5px; line-height:1.5; }
+#warn em { font-style:italic; color:#e5484d; font-weight:500; }
+#warn .fine { margin-top:8px; font-size:13px; color:var(--dim); }
+.acts { display:flex; gap:8px; margin-top:16px; }
+.acts button, .acts a { flex:1; font:inherit; font-weight:500; font-size:14px; border-radius:9px; padding:10px 12px; min-height:42px; cursor:pointer; text-decoration:none; display:flex; align-items:center; justify-content:center; text-align:center; }
+.stay { background:var(--ink); color:#fff; border:0; }
+.stay:hover { background:var(--accent); }
+.risk { background:transparent; color:#e5484d; border:1px solid rgba(229,72,77,.35); }
+.risk:hover { background:rgba(229,72,77,.08); border-color:#e5484d; }
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
 </head><body class="intro">
@@ -401,10 +427,13 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 <div id="css" aria-label="Walker Motion Pictures. A 3D grid of sections: drag to look around, scroll or use the arrow keys to travel."></div>
 
 <header>
+<div class="lead">
   <button class="brand glass" type="button" data-go="overview" aria-label="Walker Motion Pictures. Show the whole grid">
     <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="23" height="23" rx="6.5" fill="#0b1220"/><path d="M6 9h12M6 15h12M9 6v12M15 6v12" stroke="#fff" stroke-opacity=".28" stroke-width="1"/><rect x="9" y="9" width="6" height="6" rx="1" fill="#2f5bff"/></svg>
     <b>Walker Motion Pictures</b>
   </button>
+  <a class="jw glass leave" href="https://josiahwalker.com/" data-dest="https://josiahwalker.com/">Josiahwalker.com <span>Narrative filmmaking</span></a>
+</div>
   <nav class="top glass" aria-label="Sections">
     <button type="button" data-go="work">Work</button>
     <button type="button" data-go="do">Selects</button>
@@ -431,6 +460,18 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 </aside>
 <p class="hint glass" id="hint"><kbd>Scroll</kbd> to travel · <kbd>Drag</kbd> to look around</p>
 <div class="ctl"><button type="button" class="glass" id="listbtn">List view</button><button type="button" class="glass bird" id="birdbtn" aria-label="Birdseye view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14 7 3h6l5 11H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.2 10.5h9.6M3.6 14 8 3M16.4 14 12 3" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/></svg><span>Birdseye</span></button><span class="count glass" id="count">01 / 05</span><button type="button" class="next" id="nextbtn">Next ↑</button><button type="button" class="glass" id="backbtn">↓ Back</button></div>
+<div id="scrim" hidden></div>
+<svg id="tether" hidden aria-hidden="true"><path class="guide" id="tguide" d=""/><path id="tline" d=""/><rect id="tnode" width="7" height="7" x="0" y="0"/><rect id="tjoint" width="7" height="7" x="0" y="0"/></svg>
+<div id="warn" role="dialog" aria-modal="true" aria-labelledby="warnh" aria-describedby="warnp" hidden>
+  <p class="ttl">Before you go</p>
+  <h2 id="warnh">Are you sure about this decision?</h2>
+  <p id="warnp">This will take you away from corporate video and into a narrative world full of mystery and&hellip; <em>murder</em>.</p>
+  <p class="fine">Click at your own risk&hellip;</p>
+  <div class="acts">
+    <button class="stay" type="button" id="stay">Stay here</button>
+    <a class="risk" id="risk" href="https://josiahwalker.com/">Enter at my own risk</a>
+  </div>
+</div>
 <div id="lb" hidden role="dialog" aria-modal="true" aria-label="Video player"><div class="frame" id="lbframe"></div><div class="bar"><span id="lbtitle"></span><button type="button" id="lbclose">Close · Esc</button></div></div>
 <div id="list" hidden><div class="listbar"><button type="button" class="next" id="backto3d">← Cool 3D view</button></div><div class="wrap" id="listwrap"></div></div>
 
@@ -1283,8 +1324,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
     box.classList.add('tuning'); show('Tuning in…', ''); peek(0);
     if (firstSpin) {
       firstSpin = false;
-      const first = await Promise.race([FIRST, new Promise(r => setTimeout(() => r(null), 3000))]);
-      await Promise.race([directory, new Promise(r => setTimeout(r, 1000))]);
+      const first = await Promise.race([FIRST, new Promise(r => setTimeout(() => r(null), 2500))]);
       if (first) { last = first; return spinTo(first); }
     }
     spinTo(draw());
@@ -1330,7 +1370,12 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
 
   // Browsers hold sound until the visitor interacts: the first click, tap or key anywhere starts the station.
   const evs = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
-  const kick = () => { if (userPaused || !current || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } start(); };
+  // A brand-new site gets no sound until the visitor's first click, tap or key (every browser's rule). That first touch also
+  // unlocks the player for Safari by playing a tiny silent clip, so the station can start the moment it lands.
+  const BLIP = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+  let unlocked = false;
+  const unlock = () => { if (unlocked) return; unlocked = true; if (current) return; const a0 = audio.src; audio.src = BLIP; audio.play().then(() => { audio.pause(); if (current) { audio.src = current.src; if (!userPaused && !ducked) start(); } }).catch(() => { unlocked = false; }); };
+  const kick = () => { if (!current) return unlock(); if (userPaused || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } unlocked = true; start(); };
   evs.forEach(e => addEventListener(e, kick, { capture: true, passive: true }));
 
   // a video in the player takes the sound; the radio comes back when it closes
@@ -1343,5 +1388,87 @@ window.__wmp = { go, step, get current() { return current; }, get flight() { ret
 <script>
 // safety net: if anything stops the opening sequence, show the page anyway
 setTimeout(() => document.body.classList.remove('intro', 'intro-c'), 6000);
+</script>
+<script>
+(() => {
+  const warn = document.getElementById('warn'), risk = document.getElementById('risk'), stay = document.getElementById('stay');
+  const svg = document.getElementById('tether'), line = document.getElementById('tline'), guide = document.getElementById('tguide');
+  const node = document.getElementById('tnode'), joint = document.getElementById('tjoint'), scrim = document.getElementById('scrim');
+  const INCH = 96, EASE = 'cubic-bezier(.22,.9,.24,1)';
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let open = false, anims = [], opener = null;
+
+  function place(x, y) {
+    const vw = innerWidth, vh = innerHeight, w = warn.offsetWidth, h = warn.offsetHeight, m = 16;
+    // The card sits about an inch below the click (above it if there is no room), its edge near the click's column.
+    let below = y + INCH + h + m <= vh || y < vh / 2;
+    let top = below ? y + INCH : y - INCH - h;
+    top = Math.max(m, Math.min(vh - h - m, top));
+    let left = x - 28; if (x > vw / 2) left = x - w + 28;
+    left = Math.max(m, Math.min(vw - w - m, left));
+    // The line leaves the click straight down (or up) like a grid rule, turns once if the card is offset, and meets the card's edge.
+    const ey = below ? top : top + h;
+    const ex = Math.max(left + 18, Math.min(left + w - 18, x));
+    const midY = y + (ey - y) * 0.55;
+    const d = ex === x ? `M${x},${y} L${x},${ey}` : `M${x},${y} L${x},${midY} L${ex},${midY} L${ex},${ey}`;
+    return { top, left, d, ex, ey, below };
+  }
+
+  function show(x, y, href) {
+    if (open) return; open = true; risk.href = href;
+    warn.hidden = false; warn.style.visibility = 'hidden';
+    const g = place(x, y);
+    warn.style.top = g.top + 'px'; warn.style.left = g.left + 'px';
+    warn.style.transformOrigin = `${g.ex - g.left}px ${g.below ? 0 : warn.offsetHeight}px`;
+    line.setAttribute('d', g.d);
+    guide.setAttribute('d', `M${x},0 L${x},${innerHeight} M0,${y} L${innerWidth},${y}`);
+    node.setAttribute('x', x - 3.5); node.setAttribute('y', y - 3.5);
+    joint.setAttribute('x', g.ex - 3.5); joint.setAttribute('y', g.ey - 3.5);
+    svg.removeAttribute('hidden'); scrim.hidden = false; warn.style.visibility = '';
+    const len = line.getTotalLength();
+    line.style.strokeDasharray = len; line.style.strokeDashoffset = still ? 0 : len;
+    anims.forEach(a => a.cancel()); anims = [];
+    if (still) { stay.focus(); return; }
+    const T = 380;
+    anims.push(guide.animate([{ opacity: 0 }, { opacity: 1, offset: .3 }, { opacity: 0 }], { duration: 900, easing: 'ease-out', fill: 'forwards' }));
+    anims.push(node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'ease-out', fill: 'both' }));
+    anims.push(line.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: T, delay: 80, easing: EASE, fill: 'both' }));
+    anims.push(joint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: 80 + T - 60, fill: 'both' }));
+    const r = 14;
+    const from = g.below ? `inset(0 ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 100% ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`
+                         : `inset(100% ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 0 ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`;
+    anims.push(warn.animate([{ clipPath: from, opacity: .4, transform: 'scale(.96)' }, { clipPath: `inset(0 0 0 0 round ${r}px)`, opacity: 1, transform: 'scale(1)' }],
+      { duration: 460, delay: 80 + T - 40, easing: EASE, fill: 'both' }));
+    [...warn.children].forEach((c, i) => anims.push(c.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: 80 + T + 160 + i * 45, easing: 'ease-out', fill: 'both' })));
+    setTimeout(() => open && stay.focus({ preventScroll: true }), 80 + T + 200);
+  }
+
+  function hide() {
+    if (!open) return; open = false;
+    const done = () => { warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; anims.forEach(a => a.cancel()); anims = []; if (opener) opener.focus({ preventScroll: true }); };
+    if (still) return done();
+    const len = line.getTotalLength();
+    warn.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.97)' }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
+    joint.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' });
+    node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, delay: 200, fill: 'forwards' });
+    const a = line.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: len }], { duration: 240, delay: 100, easing: 'ease-in', fill: 'forwards' });
+    a.onfinish = done;
+  }
+
+  document.querySelectorAll('.leave').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); opener = a;
+    let x = e.clientX, y = e.clientY;
+    if (!x && !y) { const r = a.getBoundingClientRect(); x = r.left + r.width / 2; y = r.bottom; }   // keyboard: from the link itself
+    show(x, y, a.dataset.dest || a.getAttribute('href'));
+  }));
+  stay.addEventListener('click', hide);
+  scrim.addEventListener('click', hide);
+  addEventListener('keydown', e => {
+    if (!open) return; e.stopImmediatePropagation();
+    if (e.key === 'Escape') { e.preventDefault(); hide(); }
+    if (e.key === 'Tab') { const f = [stay, risk], i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
+  }, true);
+  addEventListener('resize', () => { if (open) { anims.forEach(a => a.finish && a.finish()); warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; open = false; } });
+})();
 </script>
 </body></html>
