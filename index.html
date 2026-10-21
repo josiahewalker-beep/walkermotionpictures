@@ -1372,15 +1372,18 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // every start fades in and every stop fades out (Josiah 10-21). iPhones ignore an audio element's volume, so there
   // the sound starts and stops plainly; the fades play on desktop and Android.
   let fadeRAF = 0;
+  // Fades are the volume knob turning itself (Josiah 10-21): the knob sweeps down to silence and back up to your setting,
+  // and the sound follows it step by step.
+  const showKnob = v => { knob.style.setProperty('--v', v); };
   const fadeTo = (to, ms, done) => { cancelAnimationFrame(fadeRAF); const from = level(), t0 = performance.now();
-    const f = now => { const k = Math.min(1, Math.max(0, (now - t0) / ms)), e = k * k * (3 - 2 * k); setLevel(Math.max(0, Math.min(1, from + (to - from) * e))); if (k < 1) fadeRAF = requestAnimationFrame(f); else if (done) done(); };
+    const f = now => { const k = Math.min(1, Math.max(0, (now - t0) / ms)), e = k * k * (3 - 2 * k), x = Math.max(0, Math.min(1, from + (to - from) * e)); setLevel(x); showKnob(x); if (k < 1) fadeRAF = requestAnimationFrame(f); else if (done) done(); };
     fadeRAF = requestAnimationFrame(f); };
   function start() {
     wantPlay = true;
     arm();
     graph();
     if (gainN && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
-    if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); }
+    if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); showKnob(0); }
     audio.play().then(() => { fadeTo(vol, 2200); box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
       .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
   }
