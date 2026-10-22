@@ -25,19 +25,19 @@ UP = np.array([0, 0, 1.0])
 VARIANTS = {
     # young: single trunk ~3 m, one or two terminal rosettes, fur nearly to the ground
     'a': dict(seed=11, height=3.0, trunk_len=2.1, trunk_lean=0.06, levels=1, nfork=(2, 2), p_branch=1.0,
-              seg_len=(0.45, 0.75), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.07, r_exp=0.42, flare=0.3,
+              seg_len=(0.45, 0.75), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.07, r_exp=0.42, flare=0.15, r_trunk=0.14, fur_z=0.5,
               fur_len=2.6, budget=60000, live_n=520),
     # ~5 m, forks into 2–4 branches
     'b': dict(seed=4, height=5.0, trunk_len=2.5, trunk_lean=0.08, levels=2, nfork=(2, 3), p_branch=0.6,
-              seg_len=(1.0, 1.5), tilt=(38, 60), up_pull=0.9, kink=0.16, r_tip=0.07, r_exp=0.55, flare=0.4,
+              seg_len=(1.0, 1.5), tilt=(38, 60), up_pull=0.9, kink=0.16, r_tip=0.07, r_exp=0.55, flare=0.2, r_trunk=0.18, fur_z=1.0,
               fur_len=2.6, budget=68000, live_n=480),
     # mature ~7 m, many branches, classic silhouette
     'c': dict(seed=21, height=7.0, trunk_len=2.5, trunk_lean=0.07, levels=4, nfork=(2, 3), p_branch=0.8,
-              seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.5,
+              seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.25, r_trunk=0.25, fur_z=1.2,
               fur_len=2.3, budget=69000, live_n=300),
     # old ~9 m, broad crown, thick trunk
     'd': dict(seed=37, height=9.0, trunk_len=2.6, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
-              seg_len=(0.9, 1.3), tilt=(42, 66), up_pull=0.6, kink=0.2, r_tip=0.07, r_exp=0.56, flare=0.65,
+              seg_len=(0.9, 1.3), tilt=(42, 66), up_pull=0.6, kink=0.2, r_tip=0.07, r_exp=0.56, flare=0.3, r_trunk=0.38, fur_z=1.5,
               fur_len=2.5, budget=69500, live_n=220),
 }
 
@@ -144,6 +144,15 @@ def finish_skeleton(branches, root, P):
             z = b.pts[:, 2]
             r = r * (1 + P['flare'] * np.exp(-z / 0.35))
         b.r = r
+    # pipe-model radii overshoot for yuccas (wood is fibrous, not secondary-thickened like an oak):
+    # compress so the trunk base radius (before flare) equals r_trunk, tips stay at r_tip
+    r0 = root.r[root.pts[:, 2] > 0.5].max() if (root.pts[:, 2] > 0.5).any() else root.r.max()
+    g = math.log(P['r_trunk'] / P['r_tip']) / max(math.log(r0 / P['r_tip']), 1e-6)
+    for b in branches:
+        z = b.pts[:, 2]
+        fl = (1 + P['flare'] * np.exp(-z / 0.35)) if b.parent is None else 1.0
+        base = b.r / fl
+        b.r = P['r_tip'] * np.maximum(base / P['r_tip'], 1e-3) ** g * fl
     return branches
 
 
@@ -191,7 +200,10 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     # ragged skirt edge: boundary s varies around the stem by ±0.25 m
     ph = rng.uniform(0, 6.28, 3)
     edge = fur_len + 0.12 + 0.13 * np.sin(A * 2 + ph[0]) + 0.08 * np.sin(A * 3 + ph[1]) + 0.05 * np.sin(A * 5 + ph[2])
+    zfur = P['fur_z'] + (edge - fur_len - 0.12) * 1.2                     # ragged lower edge of the trunk skirt
     furness = smoothstep(edge + 0.02, edge - 0.40, s[:, None])        # 0 bark → 1 full thatch (per vertex)
+    if b.depth <= 1:
+        furness = np.maximum(furness, smoothstep(zfur - 0.05, zfur + 0.4, p[:, 2:3]))
     core_extra = (0.10 if lod else 0.05) * furness
     rad = r[:, None] + core_extra
     if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
@@ -305,19 +317,30 @@ def add_blades(part, V, uv_t, tris_t, t_t, normals_hint, colors, svals, uv_off=N
              c=np.concatenate([C.reshape(-1, 3), S.reshape(-1, 1)], 1), uv=UV.reshape(-1, 2))
 
 
+def fur_weight(b, s, P):
+    """0..1 amount of dead-leaf skirt at distances-from-tip s on branch b: young wood (s < fur_len) always,
+    plus the upper trunk and first limbs above fur_z (the classic shaggy skirt from ~1 m up)."""
+    w = smoothstep(P['fur_len'] + 0.35, P['fur_len'] - 0.1, s)
+    if b.depth <= 1:
+        z = sample_curve(b, s)[0][:, 2]
+        w = np.maximum(w, smoothstep(P['fur_z'] - 0.15, P['fur_z'] + 0.45, z))
+    return w
+
+
 def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
     """Phyllotaxis spiral of leaves along branch b, classified by distance from tip."""
     s0 = b.s[-1]                      # s at this branch's tip end (0 for terminal branches)
     s1 = b.s[0]
     fur_len = P['fur_len']
     straggle = 0.35
-    s_hi = min(s1, fur_len + straggle)
+    s_hi = s1
     if s_hi <= s0:
         return
-    # sample s by integrating density
+    # sample s by integrating density (dead blades per m² of skirt surface → per metre ∝ circumference)
     grid = np.linspace(s0, s_hi, 400)
-    dens = np.where(grid < LIVE, dens_live, np.where(grid < DEAD, dens_live * 0.6, dens_fur))
-    dens = dens * np.where(grid > fur_len, smoothstep(fur_len + straggle, fur_len - 0.1, grid) * 0.6, 1.0)
+    rr = sample_curve(b, grid)[3]
+    circ = (rr + 0.05) / 0.12
+    dens = np.where(grid < LIVE, dens_live, np.where(grid < DEAD, dens_live * 0.6, dens_fur * circ * fur_weight(b, grid, P)))
     if not b.children:
         pass
     else:
@@ -474,17 +497,19 @@ def build_tree(name, P, lod=False, seed_override=None):
     # density from budget
     fur_length = 0.0
     for b in branches:
-        s0, s1 = b.s[-1], b.s[0]
-        lo = max(s0, DEAD); hi = min(s1, P['fur_len'] + 0.15)
-        fur_length += max(0.0, hi - lo)
+        g = np.linspace(max(b.s[-1], DEAD), max(b.s[0], DEAD), 200)
+        if g[-1] > g[0]:
+            rr = sample_curve(b, g)[3]
+            w = fur_weight(b, g, P) * (rr + 0.05) / 0.12
+            fur_length += float(np.sum((w[1:] + w[:-1]) * 0.5 * np.diff(g)))
     if lod:
-        live_n, leaf_tris, blade_tris, budget = 70, 1, 1, 7600
+        live_n, leaf_tris, blade_tris, budget = int(min(70, 2600 / len(tips))), 1, 1, 7600
     else:
         live_n, leaf_tris, blade_tris, budget = P['live_n'], 2, 1.8, P['budget']
     dens_live = live_n / LIVE
     live_tris = len(tips) * (live_n + live_n * 0.6 * (DEAD - LIVE) / LIVE * 0 + 0.6 * dens_live * (DEAD - LIVE)) * leaf_tris
     remain = budget - tube_tris - live_tris
-    dens_fur = max(40.0, remain / blade_tris / max(fur_length, 0.1))
+    dens_fur = max(2.0, remain / blade_tris / max(fur_length, 0.1))
     for b in branches:
         leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=lod)
     if not lod:

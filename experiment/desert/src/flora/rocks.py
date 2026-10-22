@@ -15,8 +15,8 @@ from common import nrm, smoothstep, srgb, Part, bpy_reset, build_object, make_ma
 
 ROCKS = {
     #      size (x, y, z) metres                  seed  joint cuts  exfoliation
-    'a': dict(size=(2.5, 1.9, 1.55), seed=1, cuts=2, exfol=0.9, sink=0.12, tex=2048, tris=4000),
-    'b': dict(size=(1.6, 1.25, 1.05), seed=2, cuts=3, exfol=0.7, sink=0.10, tex=2048, tris=4000),
+    'a': dict(size=(2.5, 1.9, 1.55), seed=1, cuts=2, exfol=0.9, sink=0.12, tex=1024, tris=4000),
+    'b': dict(size=(1.6, 1.25, 1.05), seed=2, cuts=3, exfol=0.7, sink=0.10, tex=1024, tris=4000),
     'c': dict(size=(0.95, 0.8, 0.55), seed=3, cuts=1, exfol=0.5, sink=0.08, tex=1024, tris=3000),
     'd': dict(size=(0.55, 0.45, 0.32), seed=4, cuts=2, exfol=0.3, sink=0.06, tex=1024, tris=2000),
     'e': dict(size=(0.30, 0.26, 0.19), seed=5, cuts=1, exfol=0.2, sink=0.05, tex=512, tris=1200),

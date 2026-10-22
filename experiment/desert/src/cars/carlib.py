@@ -403,3 +403,18 @@ class Parts:
         self.nodes.setdefault(node, []).append(dict(V=V, F=F, N=np.asarray(N, float), mat=mat, UV=UV, COL=COL, flat=flat))
     def tris(self, node=None):
         return sum(len(p['F']) for n, L in self.nodes.items() if node in (None, n) for p in L)
+
+def project_to_surface(field, V, iters=4, h=0.0015):
+    """Newton-project vertices onto field == 0."""
+    V = V.copy()
+    for _ in range(iters):
+        x, s, z = V[:, 0], V[:, 1], V[:, 2]
+        f0 = field(x, s, z)
+        g = np.stack([field(x + h, s, z) - field(x - h, s, z), field(x, s + h, z) - field(x, s - h, z),
+                      field(x, s, z + h) - field(x, s, z - h)], 1) / (2 * h)
+        g2 = np.maximum((g * g).sum(1), 1e-6)
+        step = (f0 / g2)[:, None] * g
+        sl = np.linalg.norm(step, axis=1, keepdims=True)
+        step = step * np.minimum(1, 0.02 / np.maximum(sl, 1e-12))
+        V -= step
+    return V

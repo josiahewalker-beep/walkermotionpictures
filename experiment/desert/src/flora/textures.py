@@ -49,9 +49,9 @@ def bark(size=1024, seed=3):
     hgt = ndimage.gaussian_filter(hgt, 0.7, mode='wrap')
     nmap = height_to_normal(hgt * 14.0)
     # albedo: weathered grey plate tops, warm brown-grey sides, near-black furrows
-    top = np.array([0.185, 0.170, 0.150])
-    side = np.array([0.140, 0.122, 0.102])
-    furrow = np.array([0.070, 0.058, 0.048])
+    top = np.array([0.33, 0.30, 0.26])
+    side = np.array([0.25, 0.22, 0.185])
+    furrow = np.array([0.12, 0.10, 0.085])
     t = np.clip(hgt / max(hgt.max(), 1e-6), 0, 1)[..., None]
     col = furrow + (side - furrow) * smoothstep(0.05, 0.35, t) + (top - side) * smoothstep(0.45, 0.9, t)
     col = col * (1 + 0.12 * fine[..., None] + 0.14 * fib[..., None] + 0.10 * big[..., None])
