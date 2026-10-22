@@ -705,15 +705,16 @@ const CODE = (() => {
   };
   const vert = `
     attribute vec3 aA; attribute vec3 aB; attribute float aPhase; attribute float aSpeed; attribute float aSeed; attribute float aRank; attribute float aSpacing; attribute float aGap;
-    uniform float uTime, uSize, uTail, uFlicker; uniform vec3 uRight, uUp;
+    uniform float uTime, uSize, uScale, uTail, uFlicker; uniform vec3 uRight, uUp;
     ` + WARP_GLSL + `
     varying vec2 vUv; varying float vAlpha; varying float vSeed; varying float vHead; varying float vFog;
     float hash(float n) { return fract(sin(n) * 43758.5453123); }
     void main() {
       // one cycle = the line, plus room for the whole tail to leave, plus a gap: the train enters and exits one glyph at a time
-      float cyc = 1.0 + uTail * aSpacing + aGap;
+      float spc = aSpacing * uScale;
+      float cyc = 1.0 + uTail * spc + aGap;
       float h = mod(aPhase * cyc + uTime * aSpeed, cyc);
-      float t = h - aRank * aSpacing;
+      float t = h - aRank * spc;
       vHead = step(aRank, 0.5);
       float on = step(0.0, t) * step(t, 1.0);
       vAlpha = on * pow(1.0 - aRank / uTail, 1.6);
@@ -722,7 +723,7 @@ const CODE = (() => {
       vec2 cell = vec2(mod(g, 8.0), 7.0 - floor(g / 8.0));
       vUv = (uv + cell) / 8.0;
       vSeed = aSeed;
-      vec3 world = p + (uRight * (uv.x - 0.5) + uUp * (uv.y - 0.5)) * uSize;
+      vec3 world = p + (uRight * (uv.x - 0.5) + uUp * (uv.y - 0.5)) * uSize * uScale;
       vec4 mv = modelViewMatrix * vec4(world, 1.0);
       vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z);
       gl_Position = projectionMatrix * mv;
@@ -766,14 +767,16 @@ const CODE = (() => {
     geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(sd, 1)); geo.setAttribute('aRank', new THREE.InstancedBufferAttribute(rk, 1));
     geo.setAttribute('aSpacing', new THREE.InstancedBufferAttribute(sg, 1)); geo.setAttribute('aGap', new THREE.InstancedBufferAttribute(gp, 1));
     mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false,
-      uniforms: { uTime: { value: 0 }, uSize: { value: V.size }, uTail: { value: T }, uFlicker: { value: V.flicker }, uRight: { value: new THREE.Vector3(1, 0, 0) }, uUp: { value: new THREE.Vector3(0, 1, 0) },
-        uAtlas: { value: atlas }, uCol1: { value: new THREE.Color(V.col[0]) }, uCol2: { value: new THREE.Color(V.col[1]) }, uHead: { value: new THREE.Color(V.head) }, uAlpha: { value: V.alpha }, uHole: WARP.uHole, uFogK: WARP.uFogK, uFlow: WARP.uFlow, uSink: WARP.uSink, uSwirl: WARP.uSwirl, uR: WARP.uR, uFade: WARP.uFade, uFogCol: WARP.uFogCol } });
+      uniforms: { uTime: { value: 0 }, uSize: { value: V.size }, uScale: { value: 1 }, uTail: { value: T }, uFlicker: { value: V.flicker }, uRight: { value: new THREE.Vector3(1, 0, 0) }, uUp: { value: new THREE.Vector3(0, 1, 0) },
+        uAtlas: { value: atlas }, uCol1: { value: new THREE.Color(V.col[0]) }, uCol2: { value: new THREE.Color(V.col[1]) }, uHead: { value: new THREE.Color(V.head) }, uAlpha: { value: V.alpha * (innerWidth < 700 ? 1.6 : 1) }, uHole: WARP.uHole, uFogK: WARP.uFogK, uFlow: WARP.uFlow, uSink: WARP.uSink, uSwirl: WARP.uSwirl, uR: WARP.uR, uFade: WARP.uFade, uFogCol: WARP.uFogCol } });
     mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.renderOrder = 1; scene.add(mesh);
   }
   const r = new THREE.Vector3(), u = new THREE.Vector3();
   function tick(now) {
     if (!mat) return;
     mat.uniforms.uTime.value = now / 1000;
+    // keep the glyphs the same size on screen whatever the lens: the phone overview widens to ~90°, which shrank them to dots (Josiah 10-21)
+    mat.uniforms.uScale.value = (innerWidth < 700 ? 1.6 : 1) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2));
     camera.matrixWorld.extractBasis(r, u, new THREE.Vector3()); mat.uniforms.uRight.value.copy(r); mat.uniforms.uUp.value.copy(u);
   }
   return { build, tick, VARIANTS, get variant() { return variant; } };
@@ -1289,11 +1292,12 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // through Web Audio, so on a locked device the globe passes over stations that refuse Web Audio and keeps spinning
   // until it lands on one that fades (Josiah 10-21). Unlocked devices fade either player and keep every station.
   const VOL_LOCKED = /[#&]ioslock/.test(location.hash) || (() => { try { const t = new Audio(); t.volume = .5; return t.volume === 1; } catch (e) { return false; } })();   // #ioslock: QA stand-in for an iPhone
-  const graph = () => { if (actx) { if (actx.state === 'suspended') actx.resume().catch(() => {}); return; }
+  let waLive = false;   // true once Web Audio was started inside a real click or tap (anywhere else it would start muted)
+  const graph = () => { waLive = true; if (actx) { if (actx.state === 'suspended') actx.resume().catch(() => {}); return; }
     try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); gainN = actx.createGain(); gainN.gain.value = 0; actx.createMediaElementSource(aW).connect(gainN).connect(actx.destination); } catch (e) { actx = null; gainN = null; } };
   const level = () => audio === aW && gainN ? gainN.gain.value : audio.volume;
   const setLevel = v => { if (audio === aW && gainN) { gainN.gain.value = v; aW.volume = 1; } else audio.volume = v; };
-  const load = src => { const useW = !!gainN && plainFor !== src; const next = useW ? aW : aP, other = useW ? aP : aW; if (!other.paused) other.pause(); other.removeAttribute('src'); audio = next; audio.src = src; };
+  const load = src => { const useW = !!gainN && waLive && plainFor !== src; const next = useW ? aW : aP, other = useW ? aP : aW; if (!other.paused) other.pause(); other.removeAttribute('src'); audio = next; audio.src = src; };
   let vol = .7, userPaused = false, ducked = false, current = null, spinning = false, wantPlay = false, tries = 0;
   try { const v = parseFloat(localStorage.getItem('wmp-radio-vol')); if (v >= 0 && v <= 1) vol = v; } catch (e) {}
   aP.volume = vol;
@@ -1385,8 +1389,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   function start() {
     wantPlay = true;
     arm();
-    graph();
-    if (gainN && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
+    if (gainN && waLive && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
     if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); showKnob(0); }
     audio.play().then(() => { fadeTo(vol, 2200); box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
       .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
@@ -1403,8 +1406,8 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   on('pause', () => { if (!ducked) box.classList.add('paused'); });
   on('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
 
-  $('globe').addEventListener('click', e => { e.stopPropagation(); userPaused = false; tries = 0; tune(); });
-  const toggle = e => { e.stopPropagation(); if (audio.paused) { userPaused = false; if (current) start(); else tune(); } else { userPaused = true; stop(); } };
+  $('globe').addEventListener('click', e => { e.stopPropagation(); graph(); userPaused = false; tries = 0; tune(); });
+  const toggle = e => { e.stopPropagation(); graph(); if (audio.paused) { userPaused = false; if (current) start(); else tune(); } else { userPaused = true; stop(); } };
   playBtn.addEventListener('click', toggle); $('rplay2').addEventListener('click', toggle);
   // volume knob: drag up or down, scroll, or arrow keys
   const setVol = v => { vol = Math.min(1, Math.max(0, v)); if (typeof fadeRAF !== 'undefined') cancelAnimationFrame(fadeRAF); if (!audio.paused) setLevel(vol); else aP.volume = vol; knob.style.setProperty('--v', vol); knob.setAttribute('aria-valuenow', Math.round(vol * 100)); try { localStorage.setItem('wmp-radio-vol', String(vol)); } catch (e) {} };
