@@ -594,7 +594,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const shrubs = [cra, crb, bua].filter(Boolean).map(prep);
     if (shrubs.length) {
       const sets = shrubs.map(() => []), dummy = new THREE.Matrix4().makeScale(0, 0, 0);
-      placed.bush.forEach(b => { if (!near(b.x, b.z, 70) || !ahead(b.x, b.z) || b.sight) return; const v = Math.floor(hash(b.x, b.z) * shrubs.length);
+      placed.bush.forEach(b => { if (b.sight && near(b.x, b.z, 70)) { b.im.setMatrixAt(b.i, dummy); b.im.instanceMatrix.needsUpdate = true; return; }   // the low blockout lumps in the sightline go; bare sand reads truer
+        if (!near(b.x, b.z, 70) || !ahead(b.x, b.z)) return; const v = Math.floor(hash(b.x, b.z) * shrubs.length);
         sets[v].push(mtx(b.x, b.z, b.rot, M * (0.55 + b.s * 1.4))); b.im.setMatrixAt(b.i, dummy); b.im.instanceMatrix.needsUpdate = true; });
       const g = new THREE.Group(); g.userData.kind = 'asset'; sets.forEach((st, v) => st.length && g.add(instance(shrubs[v], st))); world.add(g); done.push('shrubs');
     }

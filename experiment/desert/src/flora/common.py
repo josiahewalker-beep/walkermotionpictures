@@ -235,6 +235,8 @@ def export_glb(path, image_format='JPEG'):
                               export_image_format=image_format, export_image_quality=88,
                               export_vertex_color='MATERIAL', export_all_vertex_colors=False, export_normals=True,
                               export_tangents=False, export_materials='EXPORT')
+    from quantize import quantize
+    quantize(path)
     return path
 
 
