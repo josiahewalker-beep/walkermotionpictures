@@ -722,7 +722,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       return { pos: c.position.clone(), look: c.position.clone().addScaledVector(dir, 2000), dist: (lo + hi) / 2 };
     },
     // the picked shot: frame the camera, lay the road relative to it, build the world
-    heroShot(s, aspect = innerWidth / innerHeight) {
+    heroShot(s, aspect = REF_ASPECT) {
       const f = api.frame({ ...s, aspect });
       const to = C.clone().sub(f.pos); to.y = 0; to.normalize();
       const viewAz = Math.atan2(to.x, -to.z) * 180 / Math.PI, left = new THREE.Vector3(to.z, 0, -to.x);
@@ -734,7 +734,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     },
     // build the heroPose world up front, hidden, so a click can fly straight in
     prepareHero(s, m = 0) {
-      mode = m; const aspect = innerWidth / innerHeight, f = api.frame({ ...s, aspect });
+      mode = m; const aspect = REF_ASPECT, f = api.frame({ ...s, aspect });
       const to = C.clone().sub(f.pos); to.y = 0; to.normalize();
       const viewAz = Math.atan2(to.x, -to.z) * 180 / Math.PI, left = new THREE.Vector3(to.z, 0, -to.x);
       const P = new THREE.Vector3(f.pos.x, 0, f.pos.z).addScaledVector(to, s.roadAhead * M).addScaledVector(left, (s.roadLeft || 0) * M);
@@ -745,11 +745,12 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       for (const o of scene.children) if (o !== root && o.material && !o.material.isShaderMaterial) [].concat(o.material).forEach(x => { x.toneMapped = false; x.needsUpdate = true; });   // the grid's own pieces keep their look
       build(s.look, { P, az: viewAz + s.roadTurn }, [], f.pos, view); viewInfo = view;
       REV.uOrigin.value.set(C.x, 0, C.z - 70); REV.uCam.value.copy(f.pos);
-      heroPose = { pos: f.pos, look: f.look, fov: s.fov };
+      heroPose = { pos: f.pos, look: f.look, baseFov: s.fov, get fov() { return heroFov(s.fov); } };
       root.visible = false; api.ready = true;
       bakeEnv(); api.assets = applyAssets();
       return heroPose;
     },
+    get landedFov() { return heroPose ? heroPose.fov : null; },   // the landing lens for the current window shape
     get flying() { return !!fly && fly.dir > 0; }, get inside() { return inside; },
     approachFrom(pos, look, fov, dur = 6.5) {
       api.stop(); root.visible = true; inside = false; aux = null; useHaze();
@@ -808,6 +809,14 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   return api;
 }
 
+// The desert, the billboard and the landing camera are fixed in the world, composed once at 16:9 (the approved golden-hour
+// frame). A window of another shape only changes the lens: wider screens keep the height and see more desert at the sides;
+// narrower ones widen the lens until the same width of the scene fits, and see more sky and ground. Nothing else moves.
+export const REF_ASPECT = 16 / 9;
+export function heroFov(baseFov, aspect = innerWidth / innerHeight) {
+  if (aspect >= REF_ASPECT) return baseFov;
+  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * REF_ASPECT / aspect));
+}
 // Josiah 10-21: picked framing A + Golden hour, tightened so the slide reads (render I1). Board lowered to 2.8 m clearance,
 // road moved 8 m out from the camera so the double yellow stays in the bottom-left corner.
 export const HERO_SHOT = { look: 'golden', clear: 2.8, theta: 22, h: 1.1, fov: 38, ux: 0.28, uy: 0.24, fw: 0.56, roadAhead: 8, roadTurn: -64, row: 20 };

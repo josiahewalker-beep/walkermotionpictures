@@ -1,4 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><script>/* desert experiment on wide screens (Josiah 10-22: phones land on the plain slide for now) */
+if (!/nodesert/.test(location.hash) && innerWidth >= 700 && innerWidth > innerHeight) document.documentElement.classList.add('desert-on');</script>
 <title>Experiment · Walker Motion Pictures</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
@@ -285,6 +286,15 @@ p { margin:0; color:var(--mid); }
 .vid .big ~ .pl { left:6%; top:62%; margin:0; }   /* play button sits under the title, off her face */
 @media (max-width:700px) { .vid .big { font-size:27px; bottom:46%; } .vid .big ~ .pl { top:60%; width:44px; height:44px; } .vid .big ~ .pl::after { left:17px; top:13px; border-left-width:13px; border-top-width:9px; border-bottom-width:9px; } }
 @media (min-width:701px) and (max-height:820px) { .vid .big { font-size:42px; } }
+/* desert experiment: the intro slide is the billboard's face, a fixed size in the world. It keeps its reference layout on
+   every window (no narrow or short-screen variants), so the billboard always fits it; the lens does the fitting instead */
+html.desert-on .card[data-id="hero"] { width:var(--w); padding:34px 34px 30px; }
+html.desert-on .card[data-id="hero"] .hero { gap:44px; }
+html.desert-on .card[data-id="hero"] .hero h1 { margin-bottom:24px; }
+html.desert-on .card[data-id="hero"] .hero .sub { font-size:18px; margin-bottom:30px; }
+html.desert-on .card[data-id="hero"] .hero .kick { margin-bottom:22px; }
+html.desert-on .card[data-id="hero"] .chip { margin-bottom:18px; }
+html.desert-on .card[data-id="hero"] .vid .big { font-size:50px; }
 
 /* Portfolio selects */
 .sel { margin:24px 0 22px; }
@@ -1190,7 +1200,9 @@ function frame(now) {
 }
 function resize() {
   const w = innerWidth, h = innerHeight;
-  camera.aspect = w / h; camera.fov = (current === 'overview' || current === 'flying') ? overFov() : BASE_FOV; camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
+  camera.aspect = w / h; camera.fov = (current === 'overview' || current === 'flying') ? overFov() : BASE_FOV;
+  if (window.__desert && window.__desert.inside && window.__desert.landedFov) camera.fov = window.__desert.landedFov;   // landed in the desert: only the lens follows the window
+  camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
   if (!flight && !(window.__desert && (window.__desert.inside || window.__desert.flying))) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
@@ -1200,7 +1212,7 @@ requestAnimationFrame(frame);
 // Opening move: a beat on the whole grid, then the camera travels in to the intro.
 const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.slice(1) : '');
 // desert experiment: on by default here (#nodesert turns it off); #desert-a / #desert-b pick the other build styles
-const DESERT_ON = !/nodesert/.test(location.hash);
+const DESERT_ON = document.documentElement.classList.contains('desert-on');   // phones (and upright screens) land on the plain slide for now (Josiah 10-22)
 // Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
 {
   const first = cards[startAt] ? startAt : 'hero', body = document.body;
@@ -1495,7 +1507,7 @@ if (DESERT_ON) import('./desert.js').then(m => {
   if (window.__desertManualClock) D.clock.manual = true;
   if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
   // #desert: the site holds on the bird's-eye view; clicking the first slide flies in and builds the world (#desert-b, #desert-c: other build styles)
-  const phone = innerWidth < 700, shot = phone ? { ...m.HERO_SHOT, ux: 0.08, uy: 0.30, fw: 0.9, fh: 0.56 } : m.HERO_SHOT;
+  const shot = m.HERO_SHOT;
   const style = ({ a: 0, b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] ?? 2;     // build C (cell by cell) is the default
   D.prepareHero(shot, style);
 });
