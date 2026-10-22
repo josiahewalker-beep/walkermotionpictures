@@ -621,8 +621,12 @@ const camera = new THREE.PerspectiveCamera(40, 1, 10, 20000);
 
 // ---------- the lattice ----------
 // The fabric: every line, node and glyph runs through one warp, so the black hole can bend all of it together.
-const WARP = { uHole: { value: new THREE.Vector3(0, 0, -13 * G) }, uFlow: { value: 0 }, uSink: { value: 0 }, uSwirl: { value: 0 }, uR: { value: 2.5 * G }, uFade: { value: 0 }, uFogK: { value: 1 }, uFogCol: { value: new THREE.Color(0xf6f7f9) }, uStress: { value: 0 }, uStressCol: { value: new THREE.Color(0x4f66a3) } };
+const WARP = { uHole: { value: new THREE.Vector3(0, 0, -13 * G) }, uFlow: { value: 0 }, uSink: { value: 0 }, uSwirl: { value: 0 }, uR: { value: 2.5 * G }, uFade: { value: 0 }, uFogK: { value: 1 }, uFogCol: { value: new THREE.Color(0xf6f7f9) }, uStress: { value: 0 }, uStressCol: { value: new THREE.Color(0x4f66a3) },
+  uDesR: { value: -1 }, uDesO: { value: new THREE.Vector3() }, uDesAmp: { value: 0 }, uDesGlow: { value: 0 } };   // desert experiment: a front moving out through the fabric
 const WARP_GLSL = `
+  uniform float uDesR, uDesAmp; uniform vec3 uDesO; varying float vDesD;
+  // desert experiment: a crest rolls out through the fabric from the billboard; the lattice hands over to the world behind it
+  vec3 desFx(vec3 p) { float d = length(p.xz - uDesO.xz); vDesD = d; if (uDesR > 0.0) { float w = 0.1 * uDesR + 220.0; p.y += uDesAmp * exp(-pow((d - uDesR) / w, 2.0)); } return p; }
   uniform vec3 uHole; uniform float uFlow, uSink, uSwirl, uR, uFogK;
   varying float vEat;
   // The fabric flows toward the hole like material to a drain: every point travels inward by the same distance (uFlow), so a
@@ -645,12 +649,12 @@ const WARP_GLSL = `
   }`;
 const lineMat = (color, opacity) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
   uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } }, WARP),
-  vertexShader: WARP_GLSL + `varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_Position = projectionMatrix * mv; }`,
-  fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { float dark = 1.0 - dot(uFogCol, vec3(0.333)); vec3 c = mix(mix(uColor, uStressCol, uStress), vec3(0.7, 0.78, 1.0), dark); gl_FragColor = vec4(mix(c, uFogCol, vFog * (1.0 - dark)), min(1.0, uOpacity * (1.0 + 1.3 * uStress + 1.2 * dark)) * (1.0 - uFade) * (1.0 - vFog * (1.0 - dark)) * vEat); }` });
+  vertexShader: WARP_GLSL + `varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(desFx(warp(position)), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform float uDesR, uDesGlow; varying float vDesD; uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { float dark = 1.0 - dot(uFogCol, vec3(0.333)); vec3 c = mix(mix(uColor, uStressCol, uStress), vec3(0.7, 0.78, 1.0), dark); gl_FragColor = vec4(mix(c, uFogCol, vFog * (1.0 - dark)), min(1.0, uOpacity * (1.0 + 1.3 * uStress + 1.2 * dark)) * (1.0 - uFade) * (1.0 - vFog * (1.0 - dark)) * vEat); if (uDesR > 0.0) { float desG = uDesGlow * exp(-pow((vDesD - uDesR) / (0.08 * uDesR + 160.0), 2.0)); gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2, 0.38, 1.0), min(1.0, desG)); gl_FragColor.a = gl_FragColor.a * smoothstep(uDesR * 0.8, uDesR, vDesD) + desG * 0.75 * vEat; } }` });
 const pointMat = (color, opacity, size) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
   uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity }, uPx: { value: size }, uH: { value: innerHeight } }, WARP),
-  vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
-  fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { if (length(gl_PointCoord - 0.5) > 0.5) discard; vec3 c = mix(uColor, uStressCol, uStress); gl_FragColor = vec4(mix(c, uFogCol, vFog), min(1.0, uOpacity * (1.0 + 1.3 * uStress)) * (1.0 - uFade) * (1.0 - vFog) * vEat); }` });
+  vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(desFx(warp(position)), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform float uDesR, uDesGlow; varying float vDesD; uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { if (length(gl_PointCoord - 0.5) > 0.5) discard; vec3 c = mix(uColor, uStressCol, uStress); gl_FragColor = vec4(mix(c, uFogCol, vFog), min(1.0, uOpacity * (1.0 + 1.3 * uStress)) * (1.0 - uFade) * (1.0 - vFog) * vEat); if (uDesR > 0.0) { float desG = uDesGlow * exp(-pow((vDesD - uDesR) / (0.08 * uDesR + 160.0), 2.0)); gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.2, 0.38, 1.0), min(1.0, desG)); gl_FragColor.a = gl_FragColor.a * smoothstep(uDesR * 0.8, uDesR, vDesD) + desG * 0.75 * vEat; } }` });
 const LINES = (function lattice() {
   const X = 18, Z0 = -48, Z1 = 14, YT = 12;   // reaches past the last card (z = -40)
   const floor = [], major = [], cage = [], nodes = [];
@@ -1191,7 +1195,7 @@ const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.s
 // Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
 {
   const first = cards[startAt] ? startAt : 'hero', body = document.body;
-  if (still) { body.classList.remove('intro', 'intro-c'); go(first); }
+  if (still) { body.classList.remove('intro', 'intro-c'); if (!/desert/.test(location.hash) || startAt) go(first); }
   else {
     requestAnimationFrame(() => requestAnimationFrame(() => { body.classList.add('intro-c'); body.classList.remove('intro'); }));
     setTimeout(() => {
@@ -1199,7 +1203,7 @@ const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.s
       body.classList.remove('intro-c');
       setTimeout(() => { for (const k in cards) cards[k].el.style.transitionDelay = ''; }, 2200);
     }, 1400);
-    setTimeout(() => go(first), 2500);
+    setTimeout(() => { if (!/desert/.test(location.hash) || startAt) go(first); }, 2500);   // desert experiment: hold on the bird's-eye view
   }
 }
 // headline auditions: #h=1..4 (Portfolio selects), #k=1..4 (intro); combine with &
@@ -1477,7 +1481,8 @@ window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, s
 window.__wmp.lookAt = () => lookNow(); window.__wmp.fov = () => camera.fov;
 window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
 if (/desert/.test(location.hash)) import('./desert.js').then(m => {
-  const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear, gridFade: v => { WARP.uFade.value = v; } });
+  const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear, gridFade: v => { WARP.uFade.value = v; },
+    gridDes: (r, amp, glow, o) => { WARP.uDesR.value = r; WARP.uDesAmp.value = amp; WARP.uDesGlow.value = glow; WARP.uDesO.value.copy(o); } });
   if (window.__desertManualClock) D.clock.manual = true;
   if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
   // #desert: the site holds on the bird's-eye view; clicking the first slide flies in and builds the world (#desert-b, #desert-c: other build styles)

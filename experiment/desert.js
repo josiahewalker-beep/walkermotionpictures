@@ -29,25 +29,21 @@ export const LOOKS = {
   },
 };
 
-export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer, clear, gridFade = () => {} }) {
+export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer, clear, gridFade = () => {}, gridDes = () => {} }) {
   const hero = cssCards[heroId], C = hero.obj.position.clone();
   const W = hero.el.offsetWidth, H = hero.el.offsetHeight;
   const bottom = C.y - H / 2, clearance = (clear || window.__clear || 3.8) * M, Y0 = bottom - clearance;     // ground sits ~3.8 m under the face
   const root = new THREE.Group(); root.name = 'desert';
-  // the desert draws on its own canvas, above the grid and below the slides, so it can bloom out of the slide in screen space
-  const dScene = new THREE.Scene(); dScene.add(root);
-  const dCanvas = document.createElement('canvas'); dCanvas.id = 'desert-world'; dCanvas.setAttribute('aria-hidden', 'true');
-  Object.assign(dCanvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%', pointerEvents: 'none' });
-  (document.getElementById('css') || document.body).before(dCanvas);
-  const dr = new THREE.WebGLRenderer({ canvas: dCanvas, alpha: true, antialias: true }); dr.setPixelRatio(renderer.getPixelRatio()); dr.setClearColor(0x000000, 0);
-  dr.shadowMap.enabled = true; dr.shadowMap.type = THREE.PCFSoftShadowMap;
-  const dSize = () => dr.setSize(innerWidth, innerHeight, false); dSize(); addEventListener('resize', dSize);
+  // the desert lives in the site's own scene so it sits in depth with the grid it grows out of
+  scene.add(root);
+  let fogBefore = null, hazeFog = null;
+  const useHaze = () => { if (fogBefore === null) fogBefore = scene.fog; scene.fog = hazeFog; };
   let world = null, lookKey = 'mojave', road = null, cars = [], skyMat = null, trees = [], viewInfo = null;
   const hidden = [];
 
   // ---------- build-in: every desert material shares these uniforms, read in the haze chunk below ----------
   // uMode 0 = grid becomes ground, 1 = streaming pop-in, 2 = draw distance. uRev 0 → 1 over the approach.
-  const REV = { uRev: { value: 1 }, uMode: { value: 0 }, uOrigin: { value: new THREE.Vector3() }, uCam: { value: new THREE.Vector3() }, uR: { value: 1e7 }, uVoid: { value: new THREE.Color(0xf6f7f9) } };
+  const REV = { uRev: { value: 1 }, uMode: { value: 0 }, uOrigin: { value: new THREE.Vector3() }, uCam: { value: new THREE.Vector3() }, uR: { value: 1e7 }, uVoid: { value: new THREE.Color(0xf6f7f9) }, uFloor: { value: 0 } };
   // bloom: the world opens out of the slide in screen space and fills the frame exactly at landing. uVar 0 frame bleed, 1 light bloom, 2 tile resolve
   const BLOOM = { uBloom: { value: 1 }, uVar: { value: 0 }, uEdge: { value: [0, 1, 2, 3].map(() => new THREE.Vector3()) }, uCenter: { value: new THREE.Vector2() },
     uRq: { value: 1 }, uRr: { value: 1 }, uBTime: { value: 0 }, uPx: { value: 1 }, uGlow: { value: new THREE.Color(0xffd29a) } };
@@ -81,6 +77,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       return false;
     }`;
   const revHook = m => { m.defines = { ...(m.defines || {}), DESERT_REV: '' }; m.onBeforeCompile = sh => Object.assign(sh.uniforms, REV, BLOOM); m.customProgramCacheKey = () => 'desert-rev'; return m; };
+  const groundHook = m => { m.defines = { ...(m.defines || {}), DESERT_GROUND: '' }; m.customProgramCacheKey = () => 'desert-rev-ground'; return m; };
+  const DEPTH = revHook(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking })), DEPTH_G = groundHook(revHook(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking })));
   const mat = (c, o = {}) => revHook(new THREE.MeshStandardMaterial({ color: c, roughness: 1, metalness: 0, flatShading: true, ...o }));
 
   // ---------- sky dome ----------
@@ -88,13 +86,11 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const s = new THREE.Vector3(...L.sun).normalize();
     skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
       uniforms: { zen: { value: new THREE.Color(L.zenith) }, hor: { value: new THREE.Color(L.horizon) }, haze: { value: new THREE.Color(L.haze) }, sun: { value: s }, sunCol: { value: new THREE.Color(L.sunCol) },
-        uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid, ...BLOOM },
+        uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid },
       vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
       fragmentShader: `uniform vec3 zen, hor, haze, sun, sunCol, uVoid; uniform float uT, uStar, uSkyRev; varying vec3 vD;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-        ${BLOOM_GLSL}
         void main(){
-          if (bloomOut(gl_FragCoord.xy)) discard;
           vec3 d = normalize(vD); float h = clamp(d.y, 0.0, 1.0);
           vec3 c = mix(hor, zen, pow(h, 0.45));
           c = mix(c, haze, (1.0 - smoothstep(0.0, 0.09, h)) * 0.55);              // soft haze band sitting on the horizon
@@ -108,7 +104,6 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
             float st = smoothstep(0.17, 0.0, r) * b * tw * smoothstep(0.12, 0.5, d.y) * (1.0 - min(1.0, pow(g, 3.0) * 3.0));
             c += vec3(1.0, 0.96, 0.9) * st * uStar * 1.1;
           }
-          c = mix(c, bloomTint.rgb, bloomTint.a);
           gl_FragColor = vec4(mix(uVoid, c, uSkyRev), 1.0); }` });
     const d = new THREE.Mesh(new THREE.SphereGeometry(95000, 64, 32), skyMat); d.position.set(C.x, Y0, C.z); d.renderOrder = -10; d.frustumCulled = false; return d;
   }
@@ -116,51 +111,111 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   // ---------- haze: exponential, thicker near the ground, warmer toward the sun ----------
   // Replaces three's exp2 fog path for this scene, so the board stays clear and each band of desert behind it fades a step further
   const HAZE_H = 30 * M, HAZE_DENSITY = 2.0e-5;
+  let commonOrig = null;
   function installHaze(L) {
     const S = THREE.ShaderChunk, sd = new THREE.Vector3(...L.sun).normalize(), sc = new THREE.Color(L.sunCol), f = v => v.toFixed(6);
+    if (commonOrig === null) commonOrig = S.common;
+    // shared by vertex and fragment, and by the shadow depth pass, so the build shapes the shadows too
+    S.common = commonOrig + `
+#ifdef DESERT_REV
+ uniform float uRev; uniform int uMode; uniform vec3 uOrigin; uniform vec3 uCam; uniform float uR; uniform vec3 uVoid; uniform float uFloor;
+ varying float vDK; varying float vG;
+#endif`;
+    // the world is built outward from the billboard's foot through the grid's own cells (160 units, aligned with the lattice).
+    // vDK: 0 at the front, 1 settled. Props use their own origin so they arrive whole; ground, road and ranges (DESERT_GROUND) per point.
+    S.project_vertex = `#ifdef DESERT_REV
+ vec4 dwp = vec4( transformed, 1.0 );
+ #ifdef USE_INSTANCING
+  dwp = instanceMatrix * dwp;
+ #endif
+ dwp = modelMatrix * dwp;
+ #ifdef DESERT_GROUND
+  vec3 dOrg = dwp.xyz;
+ #else
+  #ifdef USE_INSTANCING
+   vec3 dOrg = ( modelMatrix * instanceMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz;
+  #else
+   vec3 dOrg = ( modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz;
+  #endif
+ #endif
+ vDK = uRev >= 0.9999 ? 1.0 : clamp( ( uR - length( dOrg.xz - uOrigin.xz ) ) / ( 0.25 * uR + 300.0 ), 0.0, 1.0 );
+ vG = 1.0;
+ if ( uRev < 0.9999 ) {
+  #ifndef DESERT_GROUND
+   if ( uMode == 0 ) vG = smoothstep( 0.0, 1.0, vDK );
+   else if ( uMode == 2 ) { float ct = fract( sin( dot( floor( dOrg.xz / 160.0 ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.35; vG = smoothstep( ct, ct + 0.45, vDK ); }
+   dwp.y = mix( uFloor, dwp.y, vG );                      // props rise up out of the grid's floor
+  #else
+   if ( uMode == 0 ) dwp.y = mix( uFloor, dwp.y, smoothstep( 0.0, 1.0, vDK ) );   // ground and ranges lift out of the fabric
+  #endif
+ }
+ vec4 mvPosition = viewMatrix * dwp;
+ gl_Position = projectionMatrix * mvPosition;
+#else
+ vec4 mvPosition = vec4( transformed, 1.0 );
+ #ifdef USE_BATCHING
+  mvPosition = batchingMatrix * mvPosition;
+ #endif
+ #ifdef USE_INSTANCING
+  mvPosition = instanceMatrix * mvPosition;
+ #endif
+ mvPosition = modelViewMatrix * mvPosition;
+ gl_Position = projectionMatrix * mvPosition;
+#endif`;
     S.fog_pars_vertex = '#ifdef USE_FOG\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  varying vec3 vFogWP;\n #endif\n#endif';
-    S.fog_vertex = '#ifdef USE_FOG\n vFogDepth = - mvPosition.z;\n #ifdef FOG_EXP2\n  vec4 fogWP = vec4( transformed, 1.0 );\n  #ifdef USE_INSTANCING\n   fogWP = instanceMatrix * fogWP;\n  #endif\n  vFogWP = ( modelMatrix * fogWP ).xyz;\n #endif\n#endif';
-    S.fog_pars_fragment = '#ifdef USE_FOG\n uniform vec3 fogColor;\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  uniform float fogDensity;\n  varying vec3 vFogWP;\n #else\n  uniform float fogNear;\n  uniform float fogFar;\n #endif\n #ifdef DESERT_REV\n  uniform float uRev; uniform int uMode; uniform vec3 uOrigin; uniform vec3 uCam; uniform float uR; uniform vec3 uVoid;\n' + BLOOM_GLSL.replace(/\n/g, ' ') + '\n #endif\n#endif';
-    S.fog_fragment = `#ifdef USE_FOG
+    S.fog_vertex = `#ifdef USE_FOG
+ vFogDepth = - mvPosition.z;
  #ifdef FOG_EXP2
   #ifdef DESERT_REV
-  if ( bloomOut( gl_FragCoord.xy ) ) discard;
+   vFogWP = dwp.xyz;
+  #else
+   vec4 fogWP = vec4( transformed, 1.0 );
+   #ifdef USE_INSTANCING
+    fogWP = instanceMatrix * fogWP;
+   #endif
+   vFogWP = ( modelMatrix * fogWP ).xyz;
   #endif
+ #endif
+#endif`;
+    S.fog_pars_fragment = '#ifdef USE_FOG\n uniform vec3 fogColor;\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  uniform float fogDensity;\n  varying vec3 vFogWP;\n #else\n  uniform float fogNear;\n  uniform float fogFar;\n #endif\n#endif';
+    S.fog_fragment = `#ifdef USE_FOG
+ #ifdef FOG_EXP2
   float fogH = exp( - max( vFogWP.y - (${f(Y0)}), 0.0 ) / ${f(HAZE_H)} );
   float fogFactor = 1.0 - exp( - fogDensity * vFogDepth * ( 0.45 + 0.55 * fogH ) );
   float fogSun = pow( max( dot( normalize( vFogWP - cameraPosition ), vec3( ${f(sd.x)}, ${f(sd.y)}, ${f(sd.z)} ) ), 0.0 ), 4.0 );
   vec3 fogC = mix( fogColor, vec3( ${f(sc.r)}, ${f(sc.g)}, ${f(sc.b)} ), fogSun * 0.5 );
   #ifdef DESERT_REV
   if ( uRev < 0.9999 ) {
-   if ( uMode == 0 ) {
-    // grid becomes ground: a front spreads out from the billboard; ahead of it nothing, at it only the grid's lines, behind it fill, then shade
-    float rd = length( vFogWP.xz - uOrigin.xz ), band = 0.22 * uR + 280.0, k = clamp( ( uR - rd ) / band, 0.0, 1.0 );
-    if ( k <= 0.0 ) discard;
-    vec3 gp = vFogWP / 160.0, gw = abs( fract( gp - 0.5 ) - 0.5 ) / max( fwidth( gp ), vec3( 1e-4 ) );
-    float ln = 1.0 - clamp( min( min( gw.x, gw.y ), gw.z ) - 0.6, 0.0, 1.0 );
-    vec3 lineC = vec3( 0.36, 0.47, 0.86 );
-    if ( k < 0.3 ) { if ( ln < 0.5 ) discard; gl_FragColor.rgb = lineC; }
-    else { float fk = smoothstep( 0.3, 1.0, k ); gl_FragColor.rgb = mix( mix( uVoid * 0.9, gl_FragColor.rgb, fk ), lineC, ln * ( 1.0 - fk ) * 0.85 ); }
-    fogC = mix( uVoid, fogC, smoothstep( 0.5, 1.0, uRev ) );
-   } else if ( uMode == 1 ) {
-    // streaming pop-in: tiles, bigger with distance, arrive nearest the landing spot first; each shows a grey placeholder before its final look
-    float d0 = length( vFogWP.xz - uCam.xz ), lv = floor( log2( max( d0 / 3200.0, 1.0 ) ) ), tsz = 650.0 * exp2( lv );
-    vec2 tile = floor( vFogWP.xz / tsz ); float th = fract( sin( dot( tile + lv * 17.0, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
-    float d1 = length( ( tile + 0.5 ) * tsz - uCam.xz ), tt = 0.8 * pow( clamp( d1 / 90000.0, 0.0, 1.0 ), 0.4 ) + 0.17 * th;
-    if ( uRev < tt ) discard;
-    if ( uRev < tt + 0.07 ) { float l = dot( gl_FragColor.rgb, vec3( 0.3, 0.59, 0.11 ) ); gl_FragColor.rgb = vec3( 0.5 + l * 0.7 ) * vec3( 0.92, 0.94, 1.0 ); }
-    fogC = mix( uVoid, fogC, smoothstep( 0.6, 1.0, uRev ) );
-   } else {
-    // draw distance: the world is all there, behind a wall of the site's white that pulls back to the horizon
-    fogC = mix( uVoid, fogC, smoothstep( 0.35, 1.0, uRev ) );
-    fogFactor = max( fogFactor, smoothstep( uR * 0.4, uR, vFogDepth ) );
+   float fk = vDK;
+   #ifdef DESERT_GROUND
+    fk = clamp( ( uR - length( vFogWP.xz - uOrigin.xz ) ) / ( 0.25 * uR + 300.0 ), 0.0, 1.0 );
+   #endif
+   vec3 gp = vFogWP / 160.0 + vec3( 0.0, 0.5, 0.0 ), gw = abs( fract( gp - 0.5 ) - 0.5 ) / max( fwidth( gp ), vec3( 1e-4 ) );   // horizontal lines sit half a cell off the floor, so surfaces lying on it don't all light up
+   float lnFar = 1.0 - smoothstep( 0.12, 0.35, max( max( fwidth( gp.x ), fwidth( gp.y ) ), fwidth( gp.z ) ) );   // dense lines far away fade instead of blurring solid
+   float ln = ( 1.0 - clamp( min( min( gw.x, gw.y ), gw.z ) - 0.6, 0.0, 1.0 ) ) * lnFar;
+   vec2 cf = abs( fract( gp.xz - 0.5 ) - 0.5 ) / max( fwidth( gp.xz ), vec2( 1e-4 ) );
+   float edge = ( 1.0 - clamp( min( cf.x, cf.y ) - 0.8, 0.0, 1.0 ) ) * lnFar;
+   vec3 lineC = vec3( 0.24, 0.40, 0.96 ), paleC = uVoid * 0.94;
+   if ( uMode == 0 ) {            // rise: surfaces come up out of the fabric as pale grid-lined sheets, then take their colour
+    if ( fk <= 0.0 ) discard;
+    gl_FragColor.rgb = mix( mix( paleC, lineC, ln * 0.9 ), gl_FragColor.rgb, smoothstep( 0.12, 0.75, fk ) );
+   } else if ( uMode == 1 ) {     // drape: the grid's lines settle onto every surface first, then the fill comes in behind them
+    if ( fk <= 0.0 ) discard;
+    if ( fk < 0.3 ) { if ( ln < 0.5 ) discard; gl_FragColor.rgb = lineC; }
+    else { float s2 = smoothstep( 0.3, 1.0, fk ); gl_FragColor.rgb = mix( mix( paleC, gl_FragColor.rgb, s2 ), lineC, ln * ( 1.0 - s2 ) * 0.85 ); }
+   } else {                       // cells: each grid cell switches on with its outline lit, props grow up inside their cell
+    float g = vG;
+    #ifdef DESERT_GROUND
+     float ct = fract( sin( dot( floor( gp.xz ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.35;
+     g = smoothstep( ct, ct + 0.45, fk );
+    #endif
+    if ( g <= 0.002 ) discard;
+    gl_FragColor.rgb = mix( mix( paleC, lineC, max( edge, ln * 0.6 ) ), gl_FragColor.rgb, smoothstep( 0.05, 0.85, g ) );
    }
+   fogC = mix( uVoid, fogC, smoothstep( 0.6, 1.0, uRev ) );
   }
   #endif
   gl_FragColor.rgb = mix( gl_FragColor.rgb, fogC, fogFactor );
-  #ifdef DESERT_REV
-  gl_FragColor.rgb = mix( gl_FragColor.rgb, bloomTint.rgb, bloomTint.a );
-  #endif
  #else
   float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
   gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
@@ -183,7 +238,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       t.copy(a).lerp(b, 0.5 + 0.5 * Math.sin(x * 0.0011 + z * 0.0013 + n)); col.push(t.r, t.g, t.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
-    const m = new THREE.Mesh(g, revHook(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true })));
+    const m = new THREE.Mesh(g, groundHook(revHook(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }))));
     m.position.set(C.x, Y0, C.z); m.receiveShadow = true; return m;
   }
   function range(L, R, hMin, hMax, color, seed, mesa) {
@@ -202,7 +257,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
         pos.push(cx * rr, y, sz * rr); }
       if (i < N) for (let j = 0; j < rows - 1; j++) { const k = i * rows + j, k2 = (i + 1) * rows + j; idx.push(k, k + 1, k2, k2, k + 1, k2 + 1); } }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-    const m = new THREE.Mesh(g.toNonIndexed(), mat(color, { side: THREE.DoubleSide })); m.geometry.computeVertexNormals(); m.position.set(C.x, Y0, C.z); return m;
+    const m = new THREE.Mesh(g.toNonIndexed(), groundHook(mat(color, { side: THREE.DoubleSide }))); m.geometry.computeVertexNormals(); m.position.set(C.x, Y0, C.z); return m;
   }
 
   // ---------- road ----------
@@ -211,7 +266,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const lane = 3.7 * M, shoulderW = 1.4 * M, len = 140000;
     const g = new THREE.Group();
     const strip = (w, off, color, y, dash) => {
-      if (!dash) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), mat(color, { polygonOffset: true, polygonOffsetFactor: -y, polygonOffsetUnits: -y }));
+      if (!dash) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), groundHook(mat(color, { polygonOffset: true, polygonOffsetFactor: -y, polygonOffsetUnits: -y })));
         m.rotation.x = -Math.PI / 2; m.rotation.z = -Math.atan2(dir.x, -dir.z); m.position.set(P.x + n.x * off, Y0 + y, P.z + n.z * off); m.receiveShadow = true; g.add(m); return; }
     };
     strip(2 * lane + 2 * shoulderW + 1.2 * M, 0, L.shoulder, 0.6);      // gravel shoulder band
@@ -462,35 +517,26 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     world.add(sun, sun.target, new THREE.HemisphereLight(L.zenith, L.sand[0], L.hemi)); fgLights(L, sun);
     cars = carDefs.map((cd, i) => { const c = car(L.car[i % L.car.length], cd.kind); const p = road.at(cd.s, cd.side); c.position.copy(p);
       c.rotation.y = Math.atan2(road.dir.x, road.dir.z) + (cd.side > 0 ? 0 : Math.PI); world.add(c); return c; });
+    world.traverse(o => { if (o.isMesh && o.material && o.material.defines && 'DESERT_REV' in o.material.defines) o.customDepthMaterial = 'DESERT_GROUND' in o.material.defines ? DEPTH_G : DEPTH; });
     root.add(world);
-    dScene.fog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
+    hazeFog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
   }
 
   // ---------- the approach: slower curved flight from wherever the camera is into the hero frame, building the world as it comes ----------
   let heroPose = null, fly = null, mode = 0, aux = null, inside = false;
   const ease = t => t * t * t * (t * (t * 6 - 15) + 10);
   const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-  const slideCorners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => new THREE.Vector3(C.x + x * W / 2, C.y + y * H / 2, C.z));
-  function updateBloom() {      // the slide's outline on screen in device pixels, as four outward edges, and how far the bloom must grow to fill the frame
-    camera.updateMatrixWorld(); const w = innerWidth, h = innerHeight, px = dr.getPixelRatio(); BLOOM.uPx.value = px;
-    let pts = slideCorners.map(v => { const q = v.clone().project(camera); return new THREE.Vector2((q.x * 0.5 + 0.5) * w * px, (q.y * 0.5 + 0.5) * h * px); });
-    let area = 0; for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4]; area += a.x * b.y - b.x * a.y; } if (area < 0) pts = pts.reverse();
-    const edges = BLOOM.uEdge.value, ctr = new THREE.Vector2();
-    for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4], n = new THREE.Vector2(b.y - a.y, -(b.x - a.x)).normalize(); edges[i].set(n.x, n.y, n.dot(a)); ctr.add(a); }
-    ctr.multiplyScalar(0.25); BLOOM.uCenter.value.copy(ctr);
-    let rq = 0, rr = 0; for (const c of [[0, 0], [w * px, 0], [0, h * px], [w * px, h * px]]) { const v = new THREE.Vector2(...c);
-      rq = Math.max(rq, Math.max(...edges.map(e => e.x * v.x + e.y * v.y - e.z))); rr = Math.max(rr, v.distanceTo(ctr)); }
-    BLOOM.uRq.value = rq; BLOOM.uRr.value = rr;
-  }
   function setReveal(p) {
-    REV.uRev.value = 1; BLOOM.uBloom.value = p; BLOOM.uVar.value = mode;
-    if (skyMat) skyMat.uniforms.uSkyRev.value = 1;
-    const gf = smooth(0.9, 1, p); gridFade(gf);
+    const R = p >= 1 ? 1e7 : 300 * Math.pow(320, p);              // out from the billboard's foot to the horizon, exactly at landing
+    REV.uRev.value = p; REV.uMode.value = mode; REV.uR.value = R;
+    if (skyMat) skyMat.uniforms.uSkyRev.value = smooth(0.8, 1, p);
+    gridDes(p >= 1 || p <= 0 ? -1 : R, mode === 0 ? 150 : mode === 1 ? 45 : 0, mode === 2 ? 1 : 0.8, REV.uOrigin.value);
+    const gf = smooth(0.92, 1, p); gridFade(gf);
     if (!aux) aux = scene.children.filter(o => o.material && o.material.transparent && !o.material.isShaderMaterial && o.visible).map(o => ({ o, a: o.material.opacity }));
     for (const x of aux) x.o.material.opacity = x.a * (1 - gf);
     for (const k in cssCards) if (k !== heroId) { const e = cssCards[k].obj.element; e.style.transition = 'none'; e.style.opacity = String(1 - smooth(0, 0.45, p)); }
   }
-  const bloomAt = t => Math.pow(Math.min(1, Math.max(0, (t - 0.03) / 0.97)), 1.4);    // grows the whole flight; full frame only on landing
+  const bloomAt = t => Math.pow(Math.min(1, Math.max(0, (t - 0.03) / 0.97)), 1.15);
   function pose(t) {
     const e = ease(t), [P0, P1, P2, P3] = fly.P, u = 1 - e;
     const pos = P0.clone().multiplyScalar(u * u * u).addScaledVector(P1, 3 * u * u * e).addScaledVector(P2, 3 * u * e * e).addScaledVector(P3, e * e * e);
@@ -502,7 +548,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     enter(key, roadDef, carDefs, eye, view) {
       for (const o of scene.children) if (o !== root && o.visible) { hidden.push(o); o.visible = false; }
       for (const k in cssCards) if (k !== heroId) cssCards[k].obj.element.style.opacity = '0';
-      root.visible = true; BLOOM.uBloom.value = 1;
+      root.visible = true; REV.uRev.value = 1;
+      useHaze();
+      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       camera.far = 200000; camera.near = 10; camera.updateProjectionMatrix();
       build(key, roadDef, carDefs, eye, view); viewInfo = view;
     },
@@ -542,14 +590,15 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       const fwd = f.look.clone().sub(f.pos); fwd.y = 0; fwd.normalize();
       const view = { eye: f.pos.clone(), fwd, right: new THREE.Vector3(-fwd.z, 0, fwd.x), row: (s.row || 20) * M, tanH: Math.tan(THREE.MathUtils.degToRad(s.fov / 2)) * aspect };
       camera.far = 200000; camera.updateProjectionMatrix();
+      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       build(s.look, { P, az: viewAz + s.roadTurn }, [], f.pos, view); viewInfo = view;
-      REV.uOrigin.value.set(C.x, Y0, C.z - 70); REV.uCam.value.copy(f.pos);
+      REV.uOrigin.value.set(C.x, 0, C.z - 70); REV.uCam.value.copy(f.pos);
       heroPose = { pos: f.pos, look: f.look, fov: s.fov };
       root.visible = false; api.ready = true; return heroPose;
     },
     get flying() { return !!fly && fly.dir > 0; }, get inside() { return inside; },
     approachFrom(pos, look, fov, dur = 6.5) {
-      api.stop(); root.visible = true; inside = false; aux = null;
+      api.stop(); root.visible = true; inside = false; aux = null; useHaze();
       const vd = heroPose.look.clone().sub(heroPose.pos).normalize(), up = new THREE.Vector3(0, 1, 0);
       fly = { dir: 1, t: 0, dur, L0: look.clone(), L1: heroPose.look.clone(), f0: fov, f1: heroPose.fov,
         P: [pos.clone(), pos.clone().lerp(heroPose.pos, 0.35).addScaledVector(up, 500), heroPose.pos.clone().addScaledVector(vd, -900).addScaledVector(up, 380), heroPose.pos.clone()] };
@@ -570,9 +619,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     tick(dt) {
       BLOOM.uBTime.value += dt;
       if (fly && fly.dir < 0) { fly.t = Math.min(1, fly.t + dt / fly.dur); setReveal(fly.from * (1 - smooth(0, 1, fly.t)));
-        if (fly.t >= 1) { fly = null; root.visible = false; gridFade(0); for (const x of aux || []) x.o.material.opacity = x.a; for (const k in cssCards) cssCards[k].obj.element.style.opacity = ''; } }
+        if (fly.t >= 1) { fly = null; root.visible = false; gridFade(0); gridDes(-1, 0, 0, REV.uOrigin.value); if (fogBefore !== null) { scene.fog = fogBefore; fogBefore = null; } for (const x of aux || []) x.o.material.opacity = x.a; for (const k in cssCards) cssCards[k].obj.element.style.opacity = ''; } }
       if (!clock.manual) update(dt);
-      if (root.visible) { if (BLOOM.uBloom.value < 1) updateBloom(); dr.render(dScene, camera); } else if (dr.info.render.frame) dr.clear();
     },
     step(dt) { update(dt); },
   };

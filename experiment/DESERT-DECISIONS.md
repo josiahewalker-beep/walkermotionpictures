@@ -20,3 +20,8 @@
 - 10-21 Josiah: the world should bloom out of the slide being approached and only fill the screen on landing. Three variants built
   (screen-space, desert on its own canvas between the grid and the slides): #desert-a frame bleed, #desert-b light bloom, #desert-c tile resolve.
   Superseded: the earlier world-space build styles (grid-to-ground, streaming, draw distance) remain in code behind uRev but are unused.
+- 10-21 Josiah: the screen-space bloom didn't read as coming out of the 3D grid. Rebuilt in world space, in the site's own scene so it sits
+  in depth with the lattice: a front travels out from the billboard's foot through the grid's own 160-unit cells and reaches the horizon
+  exactly at landing; the lattice ripples/glows at the front and hands over to the world behind it. Variants: #desert-a rise out of the
+  fabric (crest wave, surfaces lift from the floor), #desert-b the grid drapes (lines settle onto surfaces, then fill), #desert-c cell by
+  cell (floor cells switch on outlined, props grow up in their cells). The intro no longer auto-flies to the first slide in desert mode.
