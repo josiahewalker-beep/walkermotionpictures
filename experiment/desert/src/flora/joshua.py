@@ -445,11 +445,11 @@ def fur_emit(part, V, uvt, trt, tt, gi, flare, out_dir, Nr, ss, rng, m):
     dark = rng.random(n) < 0.15
     tone[dark] *= 0.6
     warm = rng.normal(0, 0.025, n)
-    col = np.array([0.43, 0.395, 0.335])[None, :] * tone[:, None]
+    col = np.array([0.43, 0.375, 0.29])[None, :] * tone[:, None]
     col[:, 0] += warm; col[:, 2] -= warm * 0.7
     under = 0.85 + 0.15 * smoothstep(0.08, 0.5, flare[gi])      # flatter blades are under-layers: darker
     col *= under[:, None]
-    col = col / 0.48 * 1.3                              # calibrated: visible fur ≈ 0.35–0.42 linear after AO
+    col = col / 0.48 * 1.05                             # calibrated: visible fur ≈ 0.30–0.35 linear after AO
     ao_t = 0.70 + 0.30 * smoothstep(0.0, 0.7, tt)
     C = col[:, None, :] * ao_t[None, :, None]
     uvo = np.c_[rng.random(n), rng.random(n)]          # each blade samples a narrow strip of the thatch texture
@@ -524,11 +524,11 @@ def build_tree(name, P, lod=False, seed_override=None):
 
 def materials(lod=False):
     bark = make_material('bark', base=os.path.join(TEXCACHE, 'bark_albedo.jpg'),
-                         normal=os.path.join(TEXCACHE, 'bark_normal.jpg'), normal_strength=1.0, rough=0.92)
+                         normal=os.path.join(TEXCACHE, 'bark_normal.jpg'), normal_strength=1.0, rough=0.95, spec=0.25)
     fur = make_material('fur', base=os.path.join(TEXCACHE, 'thatch_albedo.jpg'),
                         normal=None if lod else os.path.join(TEXCACHE, 'thatch_normal.jpg'),
-                        rough=0.9, double=True)
-    leaf = make_material('leaf', base=os.path.join(TEXCACHE, 'leaf_albedo.png'), rough=0.72, double=True)
+                        rough=1.0, double=True, spec=0.2)
+    leaf = make_material('leaf', base=os.path.join(TEXCACHE, 'leaf_albedo.png'), rough=0.6, double=True, spec=0.45)
     return dict(bark=bark, fur=fur, leaf=leaf)
 
 

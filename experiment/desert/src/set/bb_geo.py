@@ -357,7 +357,7 @@ def build(seed=3):
         box(P, (sx * (FX + 0.12), DECK_Y + 0.04, CW_Z1 / 2 + 0.02), (0.006, 0.17, CW_Z1 + 0.02), tag=23)
     for x in np.linspace(-FX, FX, 13):
         hexbolt(R, (x, DECK_Y + 0.07, CW_Z1 + 0.054), (0, 0, 1), r=0.007, head=0.006, tag=3, src=0.9)
-        PERCH.append((np.array([x, DECK_Y + 0.155, CW_Z1 + 0.05]), 0.25, 1.0))
+        PERCH.append((np.array([x, DECK_Y + 0.155, CW_Z1 + 0.05]), 0.15, 0.6))
     # grating (bar grating, bearing bars across the walkway, cross rods along it)
     gx0, gx1 = -FX - 0.1, FX + 0.1
     nb = int((gx1 - gx0) / 0.032)
@@ -485,7 +485,7 @@ def build(seed=3):
                 p = L(-lw / 2 + lw * (i + 0.5) / gx, -lh / 2 + lh * (j + 0.5) / gy, fz + 0.006)
                 sv = [p + L(0.03, -0.02, 0) - ctr, p + L(-0.025, 0.03, 0.004) - ctr, p + L(0.02, 0.035, -0.003) - ctr]
                 bucket('glass').add(sv, [[0, 1, 2], [2, 1, 0]], 56)
-        PERCH.append((L(0, h / 2 + 0.01, 0.0), 0.3, 1.6))
+        PERCH.append((L(0, h / 2 + 0.01, 0.0), 0.2, 1.0))
         # conduit drop into the fixture
         cyl(G, a0 + [0.10, -0.02, 0.0], a0 + [0.10, -0.02, -0.1], 0.011, n=8, tag=57)
 

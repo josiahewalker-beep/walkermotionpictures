@@ -192,7 +192,7 @@ def bursage(S, rng):
             p[2] = min(p[2], H * math.sqrt(max(0.0, 1 - (p[0] ** 2 + p[1] ** 2) / R ** 2)) + 0.02)
             pts.append(p.copy())
         pts = np.array(pts)
-        stem_tube(stems, pts, 0.005, 0.0025, 3, np.array([0.42, 0.40, 0.36]))
+        stem_tube(stems, pts, 0.004, 0.002, 3, np.array([0.30, 0.29, 0.26]))
         tips.append(pts)
     return stems, leaves, tips
 
@@ -203,13 +203,13 @@ def foliage_bursage(S, rng, leaves, n_cards):
         # points over a squashed hemisphere shell (outer 30%)
         az = rng.uniform(0, 2 * math.pi); u = rng.random() ** 0.6
         el = math.asin(u)
-        rr = rng.uniform(0.55, 0.92)
+        rr = rng.uniform(0.5, 0.95)
         p = np.array([R * rr * math.cos(el) * math.cos(az), R * rr * math.cos(el) * math.sin(az), H * rr * math.sin(el)])
         out = nrm(np.array([p[0] / R ** 2, p[1] / R ** 2, p[2] / H ** 2]))
         nv = nrm(out + rng.normal(0, 0.7, 3))
         up = nrm(out + np.array([0, 0, 0.6]) + rng.normal(0, 0.4, 3))
         sz = rng.uniform(0.09, 0.15)
-        col = np.array([0.33, 0.33, 0.27]) * rng.uniform(0.85, 1.12)
+        col = np.array([0.30, 0.31, 0.24]) * rng.uniform(0.85, 1.12)
         card(leaves, p - up * sz * 0.4, nv, up, sz, sz, col)
 
 
@@ -238,7 +238,7 @@ def build(name):
         foliage_creosote(S, rng, leaves, tips, n_cards)
     else:
         stems, leaves, tips = bursage(S, rng)
-        n_cards = min((S['budget'] - stems.ntris) // 2, 1400)
+        n_cards = min((S['budget'] - stems.ntris) // 2, 2400)
         foliage_bursage(S, rng, leaves, n_cards)
     parts = {'bark': stems, 'leaf': leaves}
     bake_ao(parts, cell=0.04 if S['kind'] == 'bursage' else 0.06)

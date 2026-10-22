@@ -184,7 +184,7 @@ def load_image(path, noncolor=False):
 
 
 def make_material(name, base=None, normal=None, normal_strength=1.0, rough=0.8, double=False, vcol=True,
-                  alpha_clip=None, color=(1, 1, 1), rough_tex=None):
+                  alpha_clip=None, color=(1, 1, 1), rough_tex=None, spec=None):
     import bpy
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -193,6 +193,8 @@ def make_material(name, base=None, normal=None, normal_strength=1.0, rough=0.8, 
     bs = nt.nodes['Principled BSDF']
     bs.inputs['Roughness'].default_value = rough
     bs.inputs['Metallic'].default_value = 0.0
+    if spec is not None:                       # exported as KHR_materials_specular (0.5 = default F0 0.04)
+        bs.inputs['Specular IOR Level'].default_value = spec
     bs.inputs['Base Color'].default_value = (*color, 1)
     col_out = None
     if base is not None:

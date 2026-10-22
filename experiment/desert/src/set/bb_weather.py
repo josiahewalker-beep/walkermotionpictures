@@ -92,9 +92,9 @@ def droppings(P, N, used, perch, seed=9):
         near_top = (dist < r) * smoothstep(0.2, 0.7, nz[ii])
         drip = (dz > 0) * (dz < 0.5) * np.exp(-(np.hypot(q[:, 0] - c[0], q[:, 1] - c[1]) / (r * 0.8)) ** 2) * (1 - nz[ii].clip(0, 1)) * 0.6
         acc[ii] = np.maximum(acc[ii], d * np.maximum(near_top, drip))
-    splat = fbm(pts, 0.012, seed, oct=2)
-    blob = smoothstep(1.0, 1.6, splat + 1.2 * acc - 0.6)
-    acc = np.clip(blob * np.clip(acc * 1.5, 0, 1), 0, 1)
+    splat = fbm(pts, 0.006, seed, oct=2)
+    blob = smoothstep(1.5, 1.9, splat + 0.7 * acc - 0.3)
+    acc = np.clip(blob * np.clip(acc * 1.2, 0, 1), 0, 1) * 0.85
     out[idx[:, 0], idx[:, 1]] = acc
     return out
 
