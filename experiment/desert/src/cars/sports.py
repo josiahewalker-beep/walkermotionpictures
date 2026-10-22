@@ -85,7 +85,7 @@ HOOD = np.concatenate([np.array(HOOD), np.array(HOOD)[::-1][1:-1] * [-1, 1]])
 fn_hood = D.proj_fn(HOOD, 'top', domain=lambda V: (V[:, 2] > 0.55) & (V[:, 1] > 0.4), n_per=8, mirror=False)
 DECK = [(0.0, -1.78), (0.60, -1.80), (0.64, -1.95), (0.62, -2.21), (0.62, -2.45), (0.0, -2.45)]
 DECK = np.concatenate([np.array(DECK), np.array(DECK)[::-1][1:-1] * [-1, 1]])
-fn_deck = D.proj_fn(DECK, 'top', domain=lambda V: (V[:, 2] > 0.86) & (V[:, 1] < -1.6), n_per=8, mirror=False)
+fn_deck = D.proj_fn(DECK, 'top', domain=lambda V: (V[:, 2] > 0.918) & (V[:, 1] < -1.6), n_per=8, mirror=False)
 FUEL = [(-1.40, 0.73), (-1.40, 0.83), (-1.55, 0.83), (-1.55, 0.73)]
 fn_fuel = D.proj_fn(catmull_closed(np.array([(-1.40, 0.735), (-1.40, 0.825), (-1.405, 0.83), (-1.545, 0.83), (-1.55, 0.825), (-1.55, 0.735), (-1.545, 0.73), (-1.405, 0.73)]), 4),
                     'side', domain=lambda V: V[:, 0] > 0.5, n_per=3, mirror=False)
@@ -102,8 +102,8 @@ fn_grille = D.proj_fn(mirror_half(GRILLE), 'front', domain=front_dom, n_per=8, m
 INTAKE = [(0.62, 0.43), (0.78, 0.455), (0.86, 0.43), (0.87, 0.30), (0.80, 0.215), (0.64, 0.215), (0.585, 0.30)]
 fn_intake = D.proj_fn(INTAKE, 'front', domain=front_dom, n_per=8)
 rear_dom = lambda V: V[:, 1] < -1.95
-TAIL = [(0.0, 0.873), (0.50, 0.876), (0.74, 0.888), (0.88, 0.905), (0.935, 0.90), (0.945, 0.865), (0.92, 0.832),
-        (0.86, 0.818), (0.72, 0.838), (0.50, 0.856), (0.0, 0.859)]
+TAIL = [(0.0, 0.880), (0.50, 0.884), (0.74, 0.894), (0.88, 0.908), (0.935, 0.902), (0.945, 0.862), (0.92, 0.826),
+        (0.86, 0.810), (0.72, 0.826), (0.50, 0.846), (0.0, 0.850)]
 TAIL = np.concatenate([np.array(TAIL), np.array(TAIL)[::-1][1:-1] * [-1, 1]])
 fn_tail = D.proj_fn(TAIL, 'rear', domain=rear_dom, n_per=8, mirror=False)
 RPLATE = [(0.0, 0.705), (0.17, 0.705), (0.185, 0.69), (0.185, 0.525), (0.17, 0.51), (0.0, 0.51)]
@@ -167,7 +167,7 @@ labels = {
     'tail_bez': dict(mat='trim_black', depth=0.0, col=0.9),
     'rplate': dict(mat='trim_black', depth=0.014, wall='paint', wall_col=0.5, col=0.6),
     'handle': dict(mat='chrome', depth=0.0035, wall='trim_black', wall_col=0.3),
-    'marker_f': dict(mat='light_front', depth=0.002, col=(1.0, 0.45, 0.05)),
+    'marker_f': dict(mat='light_marker', depth=0.002),
     'marker_r': dict(mat='light_rear', depth=0.002),
     'lower': dict(mat='trim_black', depth=0.0, col=0.75),
     'well': dict(mat='trim_black', depth=0.0, col=0.25),
@@ -238,7 +238,7 @@ def build():
     mats = CB.base_materials((0.45, 0.02, 0.02), (0.13, 0.13, 0.14), rim_rough=0.3)
     mats['plate']['tex_arr'] = D.plate_texture('7ABC123')
     mats['brake']['tex_arr'] = W.disc_texture(0.19)
-    mats['brake']['color'] = (0.9, 0.9, 0.9)
+    mats['brake']['color'] = (0.4, 0.4, 0.4)
     CB.export(parts, mats, OUT, cent)
 
 def add_lamp_internals(parts):

@@ -34,11 +34,11 @@ VARIANTS = {
     # mature ~7 m, many branches, classic silhouette
     'c': dict(seed=21, height=7.0, trunk_len=2.5, trunk_lean=0.07, levels=4, nfork=(2, 3), p_branch=0.8,
               seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.25, r_trunk=0.25, fur_z=1.2,
-              fur_len=2.3, budget=69000, live_n=300),
+              fur_len=2.3, budget=69000, live_n=240),
     # old ~9 m, broad crown, thick trunk
     'd': dict(seed=37, height=9.0, trunk_len=2.6, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
               seg_len=(0.9, 1.3), tilt=(42, 66), up_pull=0.6, kink=0.2, r_tip=0.07, r_exp=0.56, flare=0.3, r_trunk=0.38, fur_z=1.5,
-              fur_len=2.5, budget=69500, live_n=220),
+              fur_len=2.5, budget=69500, live_n=170),
 }
 
 LIVE = 0.30      # living rosette length along the stem (m)
@@ -202,9 +202,9 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     edge = fur_len + 0.12 + 0.13 * np.sin(A * 2 + ph[0]) + 0.08 * np.sin(A * 3 + ph[1]) + 0.05 * np.sin(A * 5 + ph[2])
     zfur = P['fur_z'] + (edge - fur_len - 0.12) * 1.2                     # ragged lower edge of the trunk skirt
     furness = smoothstep(edge + 0.02, edge - 0.40, s[:, None])        # 0 bark → 1 full thatch (per vertex)
-    if b.depth <= 1:
-        furness = np.maximum(furness, smoothstep(zfur - 0.05, zfur + 0.4, p[:, 2:3]))
-    core_extra = (0.075 if lod else 0.05) * furness
+    furness = np.maximum(furness, smoothstep(zfur - 0.05, zfur + 0.4, p[:, 2:3]))
+    lump = 1 + 0.35 * np.sin(A * 3 + ph[0] + arc[:, None] * 2.1) * np.sin(arc[:, None] * 3.7 + ph[1])
+    core_extra = (0.085 if lod else 0.07) * furness * lump
     rad = r[:, None] + core_extra
     if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
         rad = rad * (0.25 + 0.75 * smoothstep(0.0, 0.16, s))[:, None]
@@ -230,13 +230,13 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
         if len(q) == 0:
             continue
         tris = np.concatenate([np.stack([q, q + 1, q + W], -1), np.stack([q + 1, q + W + 1, q + W], -1)])
-        tile = 0.32 if fur else 0.55
+        tile = 0.9 if fur else 0.55
         nu = max(1, round(circ / tile))
         U = np.tile(ang / (2 * math.pi) * nu, n_r + 1)
         V = np.repeat(arc / tile, W)
         tone = np.ones((len(v_all), 3))
         if fur:
-            tone *= np.array([0.80, 0.75, 0.68]) * (0.6 + 0.4 * furness.ravel())[:, None]   # core sits under the blades
+            tone *= np.array([0.62, 0.56, 0.48]) * (0.7 + 0.3 * furness.ravel())[:, None]   # core = shaded under-layer
             g = smoothstep(DEAD, 0.0, sv)[:, None]
             tone = tone * (1 - g) + g * np.array([0.30, 0.34, 0.22])
         else:
@@ -325,7 +325,7 @@ def fur_weight(b, s, P):
     """0..1 amount of dead-leaf skirt at distances-from-tip s on branch b: young wood (s < fur_len) always,
     plus the upper trunk and first limbs above fur_z (the classic shaggy skirt from ~1 m up)."""
     w = smoothstep(P['fur_len'] + 0.35, P['fur_len'] - 0.1, s)
-    if b.depth <= 1:
+    if True:
         z = sample_curve(b, s)[0][:, 2]
         w = np.maximum(w, smoothstep(P['fur_z'] - 0.15, P['fur_z'] + 0.45, z))
     return w
@@ -425,7 +425,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         L = rng.uniform(0.16, 0.30, m)
         W = rng.uniform(0.012, 0.022, m) * (1.6 if lod else 1.0)
         bend = rng.uniform(-0.02, 0.10, m)          # most tips curl outward a little
-        lift = (r[idx] + 0.035)
+        lift = (r[idx] + 0.035 + 0.035 * fur_weight(b, ss, P))
         base = p[idx] + Nr[idx] * lift[:, None] + T[idx] * (L * 0.15)[:, None]
         droop = np.tile([0, 0, -1.0], (m, 1)) * rng.uniform(0.0, 0.12, m)[:, None]
         if lod:
@@ -549,7 +549,7 @@ def materials(lod=False):
     bark = make_material('bark', base=T('bark_albedo.jpg'),
                          normal=T('bark_normal.jpg'), normal_strength=1.0, rough=0.95, spec=0.25)
     fur = make_material('fur', base=T('thatch_albedo.jpg'),
-                        normal=None if lod else os.path.join(TEXCACHE, 'thatch_normal.jpg'),
+                        normal=None if lod else os.path.join(TEXCACHE, 'thatch_normal.jpg'), normal_strength=1.6,
                         rough=1.0, double=True, spec=0.2)
     leaf = make_material('leaf', base=T('leaf_albedo.png'), rough=0.6, double=True, spec=0.45)
     return dict(bark=bark, fur=fur, leaf=leaf)

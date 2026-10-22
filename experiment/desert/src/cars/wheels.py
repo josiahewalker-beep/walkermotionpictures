@@ -2,7 +2,7 @@
 brake disc + hat, caliper. Local wheel frame: a = axial (outboard +), (y, z) radial; returned in model frame via place().
 """
 import numpy as np
-from carlib import (revolve, mc_mesh, decimate, field_normals, fix_winding, normalize, smin, smax, sstep,
+from carlib import (project_to_surface, revolve, mc_mesh, decimate, field_normals, fix_winding, normalize, smin, smax, sstep,
                     vertex_normals)
 
 def tyre_profile(r_out, r_bead, width, grooves=4, sidewall_bulge=0.012):
@@ -145,12 +145,13 @@ def rim_field(style):
         return d
     return field
 
-def rim_mesh(style, res=0.0022, target=5500):
+def rim_mesh(style, res=0.0022, target=6500):
     R = style['r_lip'] + 0.01; aw = style['width'] / 2 + 0.012
     f = rim_field(style)
     fld = lambda X, Y, Z: f(X, Y, Z)
     V, F = mc_mesh(fld, (-aw, -R, -R), (aw, R, R), res, slab=16)
     V, F = decimate(V, F, target)
+    V = project_to_surface(fld, V, iters=4, h=0.0008)
     N = field_normals(fld, V, h=0.0012)
     F = fix_winding(V, F, N)
     return V, F, N
@@ -238,7 +239,7 @@ def add_wheels(parts, axles, track_half, r_out, r_bead, width, rim_style, disc_r
         rr = np.linalg.norm(Vr[:, 1:], axis=1)
         ca = np.ones((len(Vr), 3))
         # baked cavity darkening toward the inboard barrel, brake dust tint on the face
-        ca *= (0.35 + 0.65 * sstep(-0.10, 0.06, Vr[:, 0]))[:, None]
+        ca *= (0.12 + 0.88 * sstep(-0.08, 0.08, Vr[:, 0]))[:, None]
         dust = 0.18 * sstep(0.15, 0.25, rr)
         ca = ca * (1 - dust[:, None]) + dust[:, None] * np.array([0.55, 0.45, 0.33])
         parts.add(node, Vm, Fr if side > 0 else Fr[:, ::-1], 'rim', N=Nm, COL=np.c_[ca, np.ones(len(ca))])

@@ -150,7 +150,7 @@ labels = {
     'tbar': dict(mat='chrome', depth=0.0),
     'rplate': dict(mat='trim_black', depth=0.014, wall='paint', wall_col=0.5, col=0.6),
     'handle': dict(mat='chrome', depth=0.004, wall='trim_black', wall_col=0.3),
-    'marker_f': dict(mat='light_front', depth=0.002, col=(1.0, 0.45, 0.05)),
+    'marker_f': dict(mat='light_marker', depth=0.002),
     'lower': dict(mat='trim_black', depth=0.0, col=0.7),
     'clad': dict(mat='trim_black', depth=0.0, col=0.75),
     'well': dict(mat='trim_black', depth=0.0, col=0.25),
@@ -298,7 +298,7 @@ def build():
     mats['plate']['tex_arr'] = D.plate_texture('8MVN417')
     mats['brake']['tex_arr'] = W.disc_texture(0.165)
     mats['glass']['color'] = (0.025, 0.028, 0.03)
-    mats['brake']['color'] = (0.9, 0.9, 0.9)
+    mats['brake']['color'] = (0.4, 0.4, 0.4)
     CB.export(parts, mats, OUT, cent)
 
 if __name__ == '__main__':

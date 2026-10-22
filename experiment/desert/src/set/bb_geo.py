@@ -212,7 +212,7 @@ def build(seed=3):
     corners = [(-FX, FACE_Y0), (FX, FACE_Y0), (FX, FY1), (-FX, FY1)]
     # sweep a closed rectangle path; the profile's 'a' axis must point outward: use up=(0,0,1) and order CCW seen from +z
     path = [(x, y, zfr) for x, y in corners]
-    prof_sw = [(-a, b) for a, b in prof]      # B = T x N points inward for CCW path → negate a for outward
+    prof_sw = [(a, b) for a, b in prof]       # with up=(0,0,1) on a CCW path, +a points outward
     sweep(G, prof_sw[::-1], path, up=(0, 0, 1), closed=True, caps=False, tag=2)
     # staples / small bolts along the frame front lip (only on the border, outside the face rectangle)
     for k in range(70):
