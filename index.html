@@ -1013,7 +1013,8 @@ function hideHint() { $('hint').style.opacity = 0; }
 document.querySelectorAll('header [data-go], #rail [data-go]').forEach(b => b.addEventListener('click', () => { closeList(); go(b.dataset.go); }));
 // Back: the previous stop, the camera pulling straight back along a line (no grid route); from the intro it pulls back to the bird's-eye view
 $('backbtn').addEventListener('click', () => step(-1, { straight: true }));
-$('nextbtn').addEventListener('click', () => { if (pan.max && pan.y < pan.max - 1) { pan.y = Math.round(Math.min(pan.max, pan.y + innerHeight * 0.6 * pan.k)); return; } step(1); });
+$('nextbtn').addEventListener('click', () => { if (innerWidth > 700 && pan.max && pan.y < pan.max - 1) {   // phones (Josiah 10-21): Next always goes straight to the next stop
+  pan.y = Math.round(Math.min(pan.max, pan.y + innerHeight * 0.6 * pan.k)); return; } step(1); });
 $('listbtn').addEventListener('click', () => $('list').hidden ? openList() : closeList());
 $('backto3d').addEventListener('click', closeList);
 $('birdbtn').addEventListener('click', () => { closeList(); go('overview'); });
