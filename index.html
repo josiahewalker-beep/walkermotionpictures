@@ -22,6 +22,7 @@
 html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--ink); font-family:var(--body); -webkit-text-size-adjust:100%; }
 a { color:inherit; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
 #void, #gl, #css { position:fixed; inset:0; }
+#gl { width:100%; height:100%; display:block; }   /* Josiah 10-22: on Retina screens the canvas showed at its 2x pixel size, so only its top-left quarter was visible and the grid sat off-centre and crooked */
 #void { background:var(--bg); }
 body.ending::after { opacity:var(--glow, 1); }
 body::after { transition:none; }
