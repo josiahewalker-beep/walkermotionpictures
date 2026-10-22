@@ -86,9 +86,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const s = new THREE.Vector3(...L.sun).normalize();
     skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
       uniforms: { zen: { value: new THREE.Color(L.zenith) }, hor: { value: new THREE.Color(L.horizon) }, haze: { value: new THREE.Color(L.haze) }, sun: { value: s }, sunCol: { value: new THREE.Color(L.sunCol) },
-        uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid },
+        uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid, uRev: REV.uRev, uMode: REV.uMode },
       vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 zen, hor, haze, sun, sunCol, uVoid; uniform float uT, uStar, uSkyRev; varying vec3 vD;
+      fragmentShader: `uniform vec3 zen, hor, haze, sun, sunCol, uVoid; uniform float uT, uStar, uSkyRev, uRev; uniform int uMode; varying vec3 vD;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         void main(){
           vec3 d = normalize(vD); float h = clamp(d.y, 0.0, 1.0);
@@ -103,6 +103,15 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
             float tw = 0.6 + 0.4 * sin(uT * (1.1 + 2.6 * hash(cell + 5.2)) + hs * 60.0);
             float st = smoothstep(0.17, 0.0, r) * b * tw * smoothstep(0.12, 0.5, d.y) * (1.0 - min(1.0, pow(g, 3.0) * 3.0));
             c += vec3(1.0, 0.96, 0.9) * st * uStar * 1.1;
+          }
+          // build C: the sky arrives in cells too, three degrees square, from the horizon up, each outlined in the grid's blue as it lands
+          if (uMode == 2 && uRev < 0.9999) {
+            vec2 sc = vec2(atan(d.z, d.x), asin(clamp(d.y, -1.0, 1.0))) * 57.2958 / 3.0, cell = floor(sc);
+            float order = clamp(cell.y * 3.0 / 30.0, 0.0, 1.0) * 0.7 + hash(cell + 9.1) * 0.3;     // spread over the sky the frame actually sees
+            float t = clamp((uRev - 0.45) / 0.55, 0.0, 1.0), g = smoothstep(order * 0.85, order * 0.85 + 0.15, t);
+            if (g <= 0.002) discard;
+            vec2 cf = abs(fract(sc - 0.5) - 0.5) / max(fwidth(sc), vec2(1e-4)); float edge = 1.0 - clamp(min(cf.x, cf.y) - 0.8, 0.0, 1.0);
+            c = mix(mix(uVoid * 0.94, vec3(0.24, 0.40, 0.96), edge), c, smoothstep(0.05, 0.85, g));
           }
           gl_FragColor = vec4(mix(uVoid, c, uSkyRev), 1.0); }` });
     const d = new THREE.Mesh(new THREE.SphereGeometry(95000, 64, 32), skyMat); d.position.set(C.x, Y0, C.z); d.renderOrder = -10; d.frustumCulled = false; return d;
@@ -529,7 +538,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   function setReveal(p) {
     const R = p >= 1 ? 1e7 : 300 * Math.pow(320, p);              // out from the billboard's foot to the horizon, exactly at landing
     REV.uRev.value = p; REV.uMode.value = mode; REV.uR.value = R;
-    if (skyMat) skyMat.uniforms.uSkyRev.value = smooth(0.8, 1, p);
+    if (skyMat) skyMat.uniforms.uSkyRev.value = mode === 2 ? 1 : smooth(0.8, 1, p);
     gridDes(p >= 1 || p <= 0 ? -1 : R, mode === 0 ? 150 : mode === 1 ? 45 : 0, mode === 2 ? 1 : 0.8, REV.uOrigin.value);
     const gf = smooth(0.92, 1, p); gridFade(gf);
     if (!aux) aux = scene.children.filter(o => o.material && o.material.transparent && !o.material.isShaderMaterial && o.visible).map(o => ({ o, a: o.material.opacity }));

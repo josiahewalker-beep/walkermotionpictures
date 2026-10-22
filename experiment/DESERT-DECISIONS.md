@@ -25,3 +25,4 @@
   exactly at landing; the lattice ripples/glows at the front and hands over to the world behind it. Variants: #desert-a rise out of the
   fabric (crest wave, surfaces lift from the floor), #desert-b the grid drapes (lines settle onto surfaces, then fill), #desert-c cell by
   cell (floor cells switch on outlined, props grow up in their cells). The intro no longer auto-flies to the first slide in desert mode.
+- 10-21 Josiah (deck comment): build C — the sky fills in by cells too: 3° cells from the horizon up, outlined in the grid's blue, finishing at landing.
