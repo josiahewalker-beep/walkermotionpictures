@@ -136,7 +136,7 @@ def creosote(S, rng):
                 p = p + d * (L / segs)
                 pts.append(p.copy())
             pts = np.array(pts)
-            col = np.array([0.10, 0.095, 0.085]) * rng.uniform(0.85, 1.2)
+            col = np.array([0.16, 0.15, 0.135]) * rng.uniform(0.8, 1.2)
             stem_tube(stems, pts, r, r * 0.5, 4 if depth == 0 else 3, col) if depth < 2 else stem_tube(stems, pts[::2], r, r * 0.5, 3, col)
             # forks
             if depth < 2:
@@ -155,7 +155,7 @@ def foliage_creosote(S, rng, leaves, tips, budget_cards):
     cand = []
     for pts, depth in tips:
         m = len(pts)
-        for i in range(int(m * 0.45), m):
+        for i in range(int(m * 0.55), m):
             cand.append((pts[i], pts[min(i + 1, m - 1)] - pts[max(i - 1, 0)], i / m))
     rng.shuffle(cand)
     w = np.array([c[2] ** 2 for c in cand]); w /= w.sum()
@@ -165,10 +165,10 @@ def foliage_creosote(S, rng, leaves, tips, budget_cards):
         t = nrm(t)
         nrmv = nrm(perp(t[None])[0] * 1.0 + np.cross(t, perp(t[None])[0]) * rng.normal(0, 1.2) + rng.normal(0, 0.4, 3))
         up = nrm(t + rng.normal(0, 0.5, 3) + np.array([0, 0, 0.4]))
-        sz = rng.uniform(0.14, 0.24) * (S['height'] / 1.5) ** 0.5
+        sz = rng.uniform(0.10, 0.18) * (S['height'] / 1.5) ** 0.5
         hue = rng.random()
-        col = np.array([0.15, 0.17, 0.06]) * (1 - hue) + np.array([0.20, 0.21, 0.07]) * hue
-        col *= rng.uniform(0.8, 1.15)
+        col = np.array([0.17, 0.18, 0.06]) * (1 - hue) + np.array([0.25, 0.24, 0.07]) * hue
+        col *= rng.uniform(0.85, 1.15)
         card(leaves, p + rng.normal(0, 0.03, 3), nrmv, up, sz, sz, col)
 
 
@@ -231,7 +231,7 @@ def build(name):
     rng = np.random.default_rng(S['seed'])
     if S['kind'] == 'creosote':
         stems, leaves, tips = creosote(S, rng)
-        n_cards = (S['budget'] - stems.ntris) // 2
+        n_cards = min((S['budget'] - stems.ntris) // 2, int(S['stems'] * 34))
         foliage_creosote(S, rng, leaves, tips, n_cards)
     else:
         stems, leaves, tips = bursage(S, rng)

@@ -25,20 +25,20 @@ UP = np.array([0, 0, 1.0])
 VARIANTS = {
     # young: single trunk ~3 m, one or two terminal rosettes, fur nearly to the ground
     'a': dict(seed=11, height=3.0, trunk_len=2.45, trunk_lean=0.06, levels=1, nfork=(1, 2), p_branch=0.55,
-              seg_len=(0.55, 0.8), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.055, r_exp=0.42, flare=0.25,
+              seg_len=(0.55, 0.8), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.07, r_exp=0.42, flare=0.3,
               fur_len=2.6, budget=60000, live_n=520),
     # ~5 m, forks into 2–4 branches
     'b': dict(seed=4, height=5.0, trunk_len=2.5, trunk_lean=0.08, levels=2, nfork=(2, 3), p_branch=0.6,
-              seg_len=(1.0, 1.5), tilt=(38, 60), up_pull=0.9, kink=0.16, r_tip=0.06, r_exp=0.45, flare=0.35,
-              fur_len=2.0, budget=68000, live_n=480),
+              seg_len=(1.0, 1.5), tilt=(38, 60), up_pull=0.9, kink=0.16, r_tip=0.07, r_exp=0.55, flare=0.4,
+              fur_len=2.6, budget=68000, live_n=480),
     # mature ~7 m, many branches, classic silhouette
     'c': dict(seed=21, height=7.0, trunk_len=2.5, trunk_lean=0.07, levels=4, nfork=(2, 3), p_branch=0.8,
-              seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.06, r_exp=0.47, flare=0.45,
-              fur_len=1.7, budget=69000, live_n=400),
+              seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.5,
+              fur_len=2.3, budget=69000, live_n=400),
     # old ~9 m, broad crown, thick trunk
     'd': dict(seed=37, height=9.0, trunk_len=2.9, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
-              seg_len=(1.1, 1.6), tilt=(45, 72), up_pull=0.6, kink=0.2, r_tip=0.065, r_exp=0.5, flare=0.6,
-              fur_len=1.6, budget=69500, live_n=300),
+              seg_len=(1.1, 1.6), tilt=(45, 72), up_pull=0.6, kink=0.2, r_tip=0.068, r_exp=0.56, flare=0.65,
+              fur_len=2.2, budget=69500, live_n=300),
 }
 
 LIVE = 0.30      # living rosette length along the stem (m)
@@ -127,9 +127,9 @@ def finish_skeleton(branches, root, P):
         if not b.children:
             s_end = 0.0
         else:
-            s_end = min(s_assign(c) for c in b.children)
+            s_end = max(s_assign(c) for c in b.children)
         b.s = s_end + (b.length - b.arc)
-        return b.s[0] - 0.05
+        return b.s[0]
     s_assign(root)
 
     for b in branches:
@@ -319,7 +319,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
     dens = np.where(grid < LIVE, dens_live, np.where(grid < DEAD, dens_live * 0.6, dens_fur))
     dens = dens * np.where(grid > fur_len, smoothstep(fur_len + straggle, fur_len - 0.1, grid) * 0.6, 1.0)
     if not b.children:
-        dens = dens * smoothstep(-0.01, 0.025, grid)      # the very apex
+        pass
     else:
         dens = np.where(grid < DEAD, 0, dens)              # no rosette at a fork
     cum = np.r_[0, np.cumsum((dens[1:] + dens[:-1]) * 0.5 * np.diff(grid))]
@@ -343,7 +343,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
     if len(idx):
         ss = s[idx]
         q = ss / LIVE
-        theta = np.where(ss < LIVE, np.radians(8 + 102 * q ** 0.85),
+        theta = np.where(ss < LIVE, np.radians(4 + 106 * q ** 0.8),
                          np.radians(110 + 45 * (ss - LIVE) / (DEAD - LIVE)))
         theta = theta + np.radians(rng.normal(0, 9, len(idx)))
         d = np.cos(theta)[:, None] * T[idx] + np.sin(theta)[:, None] * Nr[idx]
@@ -352,7 +352,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         # adaxial (upper, channelled) side of the leaf: perpendicular to d in the (T, Nr) plane
         out_dir = nrm(-np.sin(theta)[:, None] * T[idx] + np.cos(theta)[:, None] * Nr[idx])
         wdir = nrm(np.cross(d, out_dir))
-        L = rng.uniform(0.18, 0.34, len(idx)) * (0.45 + 0.55 * smoothstep(0.0, 0.07, ss))
+        L = rng.uniform(0.18, 0.34, len(idx)) * (0.35 + 0.65 * smoothstep(0.0, 0.06, ss))
         if lod:
             L *= 1.05
         W = rng.uniform(0.010, 0.014, len(idx)) * (1 + 0.15 * (L > 0.28))
@@ -388,7 +388,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
     if len(idx):
         ss = s[idx]
         m = len(idx)
-        flare = np.radians(np.where(rng.random(m) < 0.2, rng.uniform(28, 60, m), rng.uniform(10, 30, m)))
+        flare = np.radians(np.where(rng.random(m) < 0.10, rng.uniform(22, 45, m), rng.uniform(4, 16, m)))
         # pointing back down the branch, flared out from the stem
         d = -np.cos(flare)[:, None] * T[idx] + np.sin(flare)[:, None] * Nr[idx]
         d = nrm(d + np.array([0, 0, -0.35]) * (1 - np.abs(T[idx][:, 2:3])) + Wd[idx] * rng.normal(0, 0.15, m)[:, None])
@@ -396,8 +396,8 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         wdir = nrm(np.cross(d, out_dir))
         L = rng.uniform(0.16, 0.30, m)
         W = rng.uniform(0.012, 0.022, m) * (1.6 if lod else 1.0)
-        bend = rng.uniform(-0.05, 0.16, m)          # most tips curl outward a little
-        lift = (r[idx] + 0.03)
+        bend = rng.uniform(-0.02, 0.10, m)          # most tips curl outward a little
+        lift = (r[idx] + 0.035)
         base = p[idx] + Nr[idx] * lift[:, None] + T[idx] * (L * 0.15)[:, None]
         droop = np.tile([0, 0, -1.0], (m, 1)) * rng.uniform(0.0, 0.06, m)[:, None]
         rows = [(0.0, 1.0)] if lod else [(0.0, 1.0), (0.6, 0.75)]

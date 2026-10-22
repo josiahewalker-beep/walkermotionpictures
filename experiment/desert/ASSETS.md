@@ -51,3 +51,11 @@ browser, so realism has to come from geometry detail, honest PBR values and good
 - Keep Blender runs headless (`python3 script.py` with `import bpy`), factory settings, no GPU.
 - Local server for previews: `http://localhost:8765/experiment/desert/preview/harness.html?...` (start it with
   `cd /home/claude/walkermotionpictures && python3 -m http.server 8765` if it isn't answering).
+
+## FLORA (provisional — in progress, filenames are final, contents keep improving overnight)
+- `assets/joshua_{a,b,c,d}.glb` (+ `_lod1`), `creosote_{a,b}.glb`, `bursage_a.glb`, `rock_{a..e}.glb`.
+- One mesh node per asset, origin at the trunk/footprint base on y = 0, metres, +Y up.
+- Joshua materials: `bark` (texture + normal), `fur` (double-sided, dead-leaf thatch), `leaf` (double-sided).
+  Vertex colours COLOR_0 carry per-blade tint and baked AO: keep vertex colours enabled (alpha is always 1).
+- Shrubs: `bark` (stems), `leaf` (alphaMode MASK, cutoff 0.5, double-sided). Rocks: `rock` (albedo + normal, single-sided).
+- Final numbers, tri counts and LOD notes follow when the pass is done.

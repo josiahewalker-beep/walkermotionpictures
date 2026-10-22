@@ -125,7 +125,7 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     H, W = used.shape
     up = N[..., 2]
     ao = np.clip(AO[..., 0], 0, 1)
-    edge = np.clip((1 - E[..., 0]) * 6, 0, 1)
+    edge = E
     convex = edge * smoothstep(0.55, 0.85, ao)
     lo = fbm(P, 0.35, seed, oct=5)
     mid = fbm(P, 0.06, seed + 50, oct=4)
@@ -208,7 +208,7 @@ def weather_steel(P, N, AO, E, used, sources, perch, seed=21):
 def weather_concrete(P, N, AO, E, used, seed=31):
     up = N[..., 2]
     ao = np.clip(AO[..., 0], 0, 1)
-    edge = np.clip((1 - E[..., 0]) * 6, 0, 1)
+    edge = E
     lo = fbm(P, 0.3, seed, oct=5); mid = fbm(P, 0.05, seed + 40, oct=4); hi = fbm(P, 0.006, seed + 80, oct=2)
     col = np.array([0.38, 0.35, 0.31]) * (1 + 0.08 * lo + 0.05 * mid + 0.07 * hi)[..., None]
     agg = smoothstep(1.0, 1.6, fbm(P, 0.008, seed + 120, oct=2))

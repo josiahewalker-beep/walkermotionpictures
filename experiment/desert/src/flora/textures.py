@@ -36,7 +36,7 @@ def bark(size=1024, seed=3):
     # anisotropic plates: vertical furrows deep and continuous, horizontal cracks shallower
     edge = (f2 - f1)
     vfur = np.abs(tile_noise(h, w, beta=2.4, ax=0.15, ay=4.0, seed=seed + 30))   # long vertical fissures
-    plates = smoothstep(0.0, 0.03, edge) * smoothstep(0.05, 0.45, vfur)
+    plates = smoothstep(0.0, 0.018, edge) * smoothstep(0.02, 0.3, vfur)
     # second, finer crack network inside plates
     g1, g2, _ = worley(h, w, 26, 40, seed + 1, stretch_y=1.6)
     cracks = smoothstep(0.0, 0.012, g2 - g1)
@@ -49,12 +49,12 @@ def bark(size=1024, seed=3):
     hgt = ndimage.gaussian_filter(hgt, 0.7, mode='wrap')
     nmap = height_to_normal(hgt * 14.0)
     # albedo: weathered grey plate tops, warm brown-grey sides, near-black furrows
-    top = np.array([0.205, 0.195, 0.175])
-    side = np.array([0.135, 0.115, 0.095])
-    furrow = np.array([0.045, 0.038, 0.032])
+    top = np.array([0.185, 0.170, 0.150])
+    side = np.array([0.140, 0.122, 0.102])
+    furrow = np.array([0.070, 0.058, 0.048])
     t = np.clip(hgt / max(hgt.max(), 1e-6), 0, 1)[..., None]
     col = furrow + (side - furrow) * smoothstep(0.05, 0.35, t) + (top - side) * smoothstep(0.45, 0.9, t)
-    col = col * (1 + 0.10 * fine[..., None] + 0.08 * fib[..., None])
+    col = col * (1 + 0.12 * fine[..., None] + 0.14 * fib[..., None] + 0.10 * big[..., None])
     # sparse pale lichen / mineral crust patches
     lich = smoothstep(1.4, 2.2, tile_noise(h, w, beta=2.6, seed=seed + 9)) * smoothstep(0.5, 0.8, t[..., 0])
     col = col * (1 - lich[..., None] * 0.35) + lich[..., None] * 0.35 * np.array([0.30, 0.29, 0.22])

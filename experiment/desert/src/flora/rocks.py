@@ -81,6 +81,11 @@ class RockShape:
             az = rng.uniform(0, 2 * math.pi); el = rng.uniform(-0.15, 0.6)
             n = np.array([math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)])
             self.cuts.append((n, rng.uniform(0.62, 0.8)))
+        self.planes = []
+        for i in range(rng.integers(1, 3)):
+            az = rng.uniform(0, 2 * math.pi); el = rng.uniform(-0.3, 0.3)
+            n = np.array([math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)])
+            self.planes.append((n, rng.uniform(-0.35, 0.35) * self.size.mean()))
 
     def base_radius(self, d):
         # superellipsoid-ish rounded block
@@ -99,21 +104,26 @@ class RockShape:
         return r
 
     def detail(self, p):
-        """Displacement (metres, along normal) at surface points p (in metres)."""
+        """Displacement (metres, along normal) at surface points p. Returns (h, crack_mask, spall_mask)."""
         sc = self.size.mean()
-        h = 0.020 * sc * self.nz.fbm(p / sc, 3.0, oct=4)
-        # grus / granular pitting
-        h += 0.004 * self.nz.fbm(p, 40.0 / max(sc, 0.3) ** 0.3, oct=3)
-        # exfoliation shells: terraced steps on upper surfaces
-        if self.R['exfol'] > 0:
-            t = (p[:, 2] / (0.22 * sc) + 0.8 * self.nz.fbm(p / sc + 3.3, 1.5, oct=2))
-            step = t - np.floor(t)
-            h += self.R['exfol'] * 0.018 * sc * smoothstep(0.82, 0.97, step)
-        # cracks: thin ridged-noise grooves
-        c = np.abs(self.nz.fbm(p / sc + 11.1, 2.2, oct=3))
-        h -= 0.022 * sc * (1 - smoothstep(0.0, 0.05, c)) * self.R['exfol']
-        return h, c
-
+        nz = self.nz
+        h = 0.022 * sc * nz.fbm(p / sc, 2.6, oct=4)
+        # coarse grus / granular pitting (grains 3–8 mm)
+        h += 0.0035 * nz.fbm(p, 55.0, oct=2)
+        h -= 0.003 * np.clip(nz(p + 1.7, 140.0) - 0.8, 0, None)
+        # exfoliation: patches where an outer shell (~1.5 cm) has spalled off; sharp lip, fresher stone inside
+        sp = nz.fbm(p / sc + 3.3, 1.8, oct=3) + 0.25 * nz(p, 12.0)
+        spall = smoothstep(0.42, 0.50, sp) * self.R['exfol']
+        h -= 0.015 * min(sc, 1.0) * spall
+        # joint fractures: a few near-planar cracks (distance to warped planes), only partly open
+        crack = np.zeros(len(p))
+        for i, (n, off) in enumerate(self.planes):
+            dist = p @ n - off + 0.03 * sc * nz(p / sc + 40 + i, 2.0)
+            open_ = smoothstep(0.0, 0.5, nz(p / sc + 50 + i, 1.2))
+            w = 0.006 + 0.004 * sc
+            crack = np.maximum(crack, (1 - smoothstep(0.0, w, np.abs(dist))) * open_)
+        h -= 0.02 * min(sc, 1.0) * crack
+        return h, crack, spall
 
 def build_rock(key):
     R = ROCKS[key]
@@ -129,7 +139,7 @@ def build_rock(key):
     P[:, 2] = P[:, 2] - zmin - sink
     P[:, 2] = np.where(P[:, 2] < -sink * 0.5, -sink * 0.5 + (P[:, 2] + sink * 0.5) * 0.2, P[:, 2])
     # add large-scale part of detail into the low poly
-    h, _ = shape.detail(P)
+    h, _, _ = shape.detail(P)
     nrm_v = vertex_normals(P, F)
     P = P + nrm_v * h[:, None] * 0.5
     # drop faces fully below ground
@@ -267,10 +277,10 @@ def bake(shape, P, F, N, UV, tex, sink):
     t = tu.reshape(-1, 3)[idx]; bt = tv.reshape(-1, 3)[idx]
     # detail height + numeric gradient along T and B (world units)
     eps = 0.003 * max(shape.size.mean(), 0.15)
-    h0, crack = shape.detail(p)
+    h0, crack, spall = shape.detail(p)
     tn = nrm(t - n * np.sum(t * n, 1, keepdims=True)); bn = nrm(np.cross(n, tn))
     bn = bn * np.sign(np.sum(bn * bt, 1, keepdims=True))
-    hu, _ = shape.detail(p + tn * eps); hv, _ = shape.detail(p + bn * eps)
+    hu = shape.detail(p + tn * eps)[0]; hv = shape.detail(p + bn * eps)[0]
     dhu = (hu - h0) / eps; dhv = (hv - h0) / eps
     ts = nrm(np.c_[-dhu, -dhv, np.ones_like(dhu)])
     # colour
@@ -293,14 +303,18 @@ def bake(shape, P, F, N, UV, tex, sink):
     streak = nz.fbm(np.c_[p[:, 0] * 3, p[:, 1] * 3, p[:, 2] * 0.4] / sc, 2.0, oct=3)
     varnish = smoothstep(0.0, 0.9, streak + 0.4 * (0.3 - up)) * smoothstep(0.8, -0.2, up)
     col = col * (1 - 0.65 * varnish[:, None]) + np.array([0.09, 0.055, 0.035]) * 0.65 * varnish[:, None]
-    # lichens: chartreuse-yellow and grey-green crusts on upper/north faces, patchy
-    lich_m = nz.fbm(p / sc * 2 + 21, 2.2, oct=4)
-    lich = smoothstep(0.55, 0.85, lich_m) * smoothstep(-0.2, 0.4, up)
-    lich_col = np.where((nz(p, 3.0) > 0)[:, None], np.array([0.38, 0.40, 0.12]), np.array([0.30, 0.32, 0.27]))
-    col = col * (1 - 0.8 * lich[:, None]) + lich_col * 0.8 * lich[:, None]
-    # cavity / AO: cracks and exfoliation lips darker; underside darker
-    cav = (1 - smoothstep(0.0, 0.06, crack)) * shape.R['exfol']
-    col *= (1 - 0.6 * cav)[:, None]
+    # fresher, paler stone where the shell spalled; the old weathered rind is warmer/darker
+    col = col * (1 - 0.35 * spall[:, None]) + np.array([0.50, 0.42, 0.33]) * 0.35 * spall[:, None]
+    # lichens: small, muted crusts — yellow-green on tops, grey-green, rare orange dots
+    up_ok = smoothstep(-0.1, 0.5, up)
+    l1 = smoothstep(0.62, 0.78, nz.fbm(p / sc * 2 + 21, 2.4, oct=4) + 0.3 * nz(p, 30.0)) * up_ok
+    l2 = smoothstep(0.70, 0.85, nz.fbm(p / sc * 2 + 31, 2.4, oct=4) + 0.3 * nz(p, 25.0)) * up_ok
+    l3 = smoothstep(1.6, 2.1, nz(p, 18.0)) * up_ok
+    col = col * (1 - 0.6 * l1[:, None]) + np.array([0.30, 0.29, 0.13]) * 0.6 * l1[:, None]
+    col = col * (1 - 0.6 * l2[:, None]) + np.array([0.27, 0.28, 0.25]) * 0.6 * l2[:, None]
+    col = col * (1 - 0.7 * l3[:, None]) + np.array([0.42, 0.17, 0.05]) * 0.7 * l3[:, None]
+    # cavity: cracks dark, spall lips shadowed
+    col *= (1 - 0.65 * crack)[:, None]
     hs = h0 / (0.02 * sc + 1e-6)
     col *= np.clip(0.85 + 0.15 * hs, 0.6, 1.1)[:, None]
     col *= (0.55 + 0.45 * smoothstep(-0.9, 0.3, up))[:, None]

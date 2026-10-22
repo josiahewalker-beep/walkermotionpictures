@@ -142,6 +142,7 @@ def build_object(name, parts, materials):
         off += len(v)
     V = np.concatenate(V); T = np.concatenate(T); N = np.concatenate(N); C = np.concatenate(C)
     UV = np.concatenate(UV); M = np.concatenate(M)
+    C[:, 3] = 1.0          # three.js multiplies vertex alpha into the fragment alpha: keep it opaque
     # fill missing normals from face normals (area-weighted)
     zero = np.linalg.norm(N, axis=1) < 1e-9
     if zero.any():
