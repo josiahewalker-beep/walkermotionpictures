@@ -29,26 +29,72 @@ export const LOOKS = {
   },
 };
 
-export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer, clear }) {
+export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer, clear, gridFade = () => {} }) {
   const hero = cssCards[heroId], C = hero.obj.position.clone();
   const W = hero.el.offsetWidth, H = hero.el.offsetHeight;
   const bottom = C.y - H / 2, clearance = (clear || window.__clear || 3.8) * M, Y0 = bottom - clearance;     // ground sits ~3.8 m under the face
   const root = new THREE.Group(); root.name = 'desert';
+  // the desert draws on its own canvas, above the grid and below the slides, so it can bloom out of the slide in screen space
+  const dScene = new THREE.Scene(); dScene.add(root);
+  const dCanvas = document.createElement('canvas'); dCanvas.id = 'desert-world'; dCanvas.setAttribute('aria-hidden', 'true');
+  Object.assign(dCanvas.style, { position: 'fixed', inset: '0', width: '100%', height: '100%', pointerEvents: 'none' });
+  (document.getElementById('css') || document.body).before(dCanvas);
+  const dr = new THREE.WebGLRenderer({ canvas: dCanvas, alpha: true, antialias: true }); dr.setPixelRatio(renderer.getPixelRatio()); dr.setClearColor(0x000000, 0);
+  dr.shadowMap.enabled = true; dr.shadowMap.type = THREE.PCFSoftShadowMap;
+  const dSize = () => dr.setSize(innerWidth, innerHeight, false); dSize(); addEventListener('resize', dSize);
   let world = null, lookKey = 'mojave', road = null, cars = [], skyMat = null, trees = [], viewInfo = null;
   const hidden = [];
 
-  const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, metalness: 0, flatShading: true, ...o });
+  // ---------- build-in: every desert material shares these uniforms, read in the haze chunk below ----------
+  // uMode 0 = grid becomes ground, 1 = streaming pop-in, 2 = draw distance. uRev 0 → 1 over the approach.
+  const REV = { uRev: { value: 1 }, uMode: { value: 0 }, uOrigin: { value: new THREE.Vector3() }, uCam: { value: new THREE.Vector3() }, uR: { value: 1e7 }, uVoid: { value: new THREE.Color(0xf6f7f9) } };
+  // bloom: the world opens out of the slide in screen space and fills the frame exactly at landing. uVar 0 frame bleed, 1 light bloom, 2 tile resolve
+  const BLOOM = { uBloom: { value: 1 }, uVar: { value: 0 }, uEdge: { value: [0, 1, 2, 3].map(() => new THREE.Vector3()) }, uCenter: { value: new THREE.Vector2() },
+    uRq: { value: 1 }, uRr: { value: 1 }, uBTime: { value: 0 }, uPx: { value: 1 }, uGlow: { value: new THREE.Color(0xffd29a) } };
+  const BLOOM_GLSL = `
+    uniform float uBloom, uRq, uRr, uBTime, uPx; uniform int uVar; uniform vec3 uEdge[4]; uniform vec2 uCenter; uniform vec3 uGlow;
+    vec4 bloomTint;
+    float bHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float bNoise(float x) { float i = floor(x), f = fract(x); return mix(bHash(vec2(i, 3.7)), bHash(vec2(i + 1.0, 3.7)), f * f * (3.0 - 2.0 * f)); }
+    float quadSd(vec2 p) { float d = -1e9; for (int i = 0; i < 4; i++) d = max(d, dot(uEdge[i].xy, p) - uEdge[i].z); return d; }
+    bool bloomOut(vec2 p) {
+      bloomTint = vec4(0.0);
+      if (uBloom >= 0.9999) return false;
+      float fade = 1.0 - uBloom;
+      if (uVar == 0) {
+        float sd = quadSd(p), R = uBloom * uRq;
+        if (sd > R) return true;
+        bloomTint = vec4(1.0, 0.97, 0.92, (1.0 - smoothstep(0.0, 3.0 * uPx, R - sd)) * 0.9 * fade);
+      } else if (uVar == 1) {
+        vec2 d = p - uCenter; float r = length(d) / uRr, a = atan(d.y, d.x);
+        float wob = (bNoise(a * 2.5 + uBTime * 0.6) - 0.5) * 0.12 + (bNoise(a * 7.0 - uBTime) - 0.5) * 0.05;
+        float R = uBloom * 1.03 + wob * fade, th = 0.06 * fade * bHash(floor(p / (2.0 * uPx)) + floor(uBTime * 24.0));
+        if (r > R - th) return true;
+        bloomTint = vec4(uGlow, (1.0 - smoothstep(0.0, 0.14 * fade + 1e-3, R - r)) * 0.8 * fade);
+      } else {
+        float cs = 30.0 * uPx; vec2 cell = floor(p / cs), cc = (cell + 0.5) * cs;
+        float sd = quadSd(cc) + (bHash(cell) - 0.5) * 0.16 * uRq, R = uBloom * uRq * 1.1;
+        if (sd > R) return true;
+        vec2 f = fract(p / cs) * cs; float ln = step(min(min(f.x, f.y), min(cs - f.x, cs - f.y)), 1.2 * uPx);
+        bloomTint = vec4(mix(vec3(0.94, 0.95, 0.97), vec3(0.36, 0.47, 0.86), ln), (1.0 - smoothstep(0.0, 0.1 * uRq, R - sd)) * mix(0.45, 1.0, ln) * fade);
+      }
+      return false;
+    }`;
+  const revHook = m => { m.defines = { ...(m.defines || {}), DESERT_REV: '' }; m.onBeforeCompile = sh => Object.assign(sh.uniforms, REV, BLOOM); m.customProgramCacheKey = () => 'desert-rev'; return m; };
+  const mat = (c, o = {}) => revHook(new THREE.MeshStandardMaterial({ color: c, roughness: 1, metalness: 0, flatShading: true, ...o }));
 
   // ---------- sky dome ----------
   function sky(L) {
     const s = new THREE.Vector3(...L.sun).normalize();
     skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
       uniforms: { zen: { value: new THREE.Color(L.zenith) }, hor: { value: new THREE.Color(L.horizon) }, haze: { value: new THREE.Color(L.haze) }, sun: { value: s }, sunCol: { value: new THREE.Color(L.sunCol) },
-        uT: { value: 0 }, uStar: { value: 0 } },
+        uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid, ...BLOOM },
       vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-      fragmentShader: `uniform vec3 zen, hor, haze, sun, sunCol; uniform float uT, uStar; varying vec3 vD;
+      fragmentShader: `uniform vec3 zen, hor, haze, sun, sunCol, uVoid; uniform float uT, uStar, uSkyRev; varying vec3 vD;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        ${BLOOM_GLSL}
         void main(){
+          if (bloomOut(gl_FragCoord.xy)) discard;
           vec3 d = normalize(vD); float h = clamp(d.y, 0.0, 1.0);
           vec3 c = mix(hor, zen, pow(h, 0.45));
           c = mix(c, haze, (1.0 - smoothstep(0.0, 0.09, h)) * 0.55);              // soft haze band sitting on the horizon
@@ -62,7 +108,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
             float st = smoothstep(0.17, 0.0, r) * b * tw * smoothstep(0.12, 0.5, d.y) * (1.0 - min(1.0, pow(g, 3.0) * 3.0));
             c += vec3(1.0, 0.96, 0.9) * st * uStar * 1.1;
           }
-          gl_FragColor = vec4(c, 1.0); }` });
+          c = mix(c, bloomTint.rgb, bloomTint.a);
+          gl_FragColor = vec4(mix(uVoid, c, uSkyRev), 1.0); }` });
     const d = new THREE.Mesh(new THREE.SphereGeometry(95000, 64, 32), skyMat); d.position.set(C.x, Y0, C.z); d.renderOrder = -10; d.frustumCulled = false; return d;
   }
 
@@ -73,14 +120,47 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const S = THREE.ShaderChunk, sd = new THREE.Vector3(...L.sun).normalize(), sc = new THREE.Color(L.sunCol), f = v => v.toFixed(6);
     S.fog_pars_vertex = '#ifdef USE_FOG\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  varying vec3 vFogWP;\n #endif\n#endif';
     S.fog_vertex = '#ifdef USE_FOG\n vFogDepth = - mvPosition.z;\n #ifdef FOG_EXP2\n  vec4 fogWP = vec4( transformed, 1.0 );\n  #ifdef USE_INSTANCING\n   fogWP = instanceMatrix * fogWP;\n  #endif\n  vFogWP = ( modelMatrix * fogWP ).xyz;\n #endif\n#endif';
-    S.fog_pars_fragment = '#ifdef USE_FOG\n uniform vec3 fogColor;\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  uniform float fogDensity;\n  varying vec3 vFogWP;\n #else\n  uniform float fogNear;\n  uniform float fogFar;\n #endif\n#endif';
+    S.fog_pars_fragment = '#ifdef USE_FOG\n uniform vec3 fogColor;\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  uniform float fogDensity;\n  varying vec3 vFogWP;\n #else\n  uniform float fogNear;\n  uniform float fogFar;\n #endif\n #ifdef DESERT_REV\n  uniform float uRev; uniform int uMode; uniform vec3 uOrigin; uniform vec3 uCam; uniform float uR; uniform vec3 uVoid;\n' + BLOOM_GLSL.replace(/\n/g, ' ') + '\n #endif\n#endif';
     S.fog_fragment = `#ifdef USE_FOG
  #ifdef FOG_EXP2
+  #ifdef DESERT_REV
+  if ( bloomOut( gl_FragCoord.xy ) ) discard;
+  #endif
   float fogH = exp( - max( vFogWP.y - (${f(Y0)}), 0.0 ) / ${f(HAZE_H)} );
   float fogFactor = 1.0 - exp( - fogDensity * vFogDepth * ( 0.45 + 0.55 * fogH ) );
   float fogSun = pow( max( dot( normalize( vFogWP - cameraPosition ), vec3( ${f(sd.x)}, ${f(sd.y)}, ${f(sd.z)} ) ), 0.0 ), 4.0 );
   vec3 fogC = mix( fogColor, vec3( ${f(sc.r)}, ${f(sc.g)}, ${f(sc.b)} ), fogSun * 0.5 );
+  #ifdef DESERT_REV
+  if ( uRev < 0.9999 ) {
+   if ( uMode == 0 ) {
+    // grid becomes ground: a front spreads out from the billboard; ahead of it nothing, at it only the grid's lines, behind it fill, then shade
+    float rd = length( vFogWP.xz - uOrigin.xz ), band = 0.22 * uR + 280.0, k = clamp( ( uR - rd ) / band, 0.0, 1.0 );
+    if ( k <= 0.0 ) discard;
+    vec3 gp = vFogWP / 160.0, gw = abs( fract( gp - 0.5 ) - 0.5 ) / max( fwidth( gp ), vec3( 1e-4 ) );
+    float ln = 1.0 - clamp( min( min( gw.x, gw.y ), gw.z ) - 0.6, 0.0, 1.0 );
+    vec3 lineC = vec3( 0.36, 0.47, 0.86 );
+    if ( k < 0.3 ) { if ( ln < 0.5 ) discard; gl_FragColor.rgb = lineC; }
+    else { float fk = smoothstep( 0.3, 1.0, k ); gl_FragColor.rgb = mix( mix( uVoid * 0.9, gl_FragColor.rgb, fk ), lineC, ln * ( 1.0 - fk ) * 0.85 ); }
+    fogC = mix( uVoid, fogC, smoothstep( 0.5, 1.0, uRev ) );
+   } else if ( uMode == 1 ) {
+    // streaming pop-in: tiles, bigger with distance, arrive nearest the landing spot first; each shows a grey placeholder before its final look
+    float d0 = length( vFogWP.xz - uCam.xz ), lv = floor( log2( max( d0 / 3200.0, 1.0 ) ) ), tsz = 650.0 * exp2( lv );
+    vec2 tile = floor( vFogWP.xz / tsz ); float th = fract( sin( dot( tile + lv * 17.0, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
+    float d1 = length( ( tile + 0.5 ) * tsz - uCam.xz ), tt = 0.8 * pow( clamp( d1 / 90000.0, 0.0, 1.0 ), 0.4 ) + 0.17 * th;
+    if ( uRev < tt ) discard;
+    if ( uRev < tt + 0.07 ) { float l = dot( gl_FragColor.rgb, vec3( 0.3, 0.59, 0.11 ) ); gl_FragColor.rgb = vec3( 0.5 + l * 0.7 ) * vec3( 0.92, 0.94, 1.0 ); }
+    fogC = mix( uVoid, fogC, smoothstep( 0.6, 1.0, uRev ) );
+   } else {
+    // draw distance: the world is all there, behind a wall of the site's white that pulls back to the horizon
+    fogC = mix( uVoid, fogC, smoothstep( 0.35, 1.0, uRev ) );
+    fogFactor = max( fogFactor, smoothstep( uR * 0.4, uR, vFogDepth ) );
+   }
+  }
+  #endif
   gl_FragColor.rgb = mix( gl_FragColor.rgb, fogC, fogFactor );
+  #ifdef DESERT_REV
+  gl_FragColor.rgb = mix( gl_FragColor.rgb, bloomTint.rgb, bloomTint.a );
+  #endif
  #else
   float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
   gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
@@ -103,7 +183,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       t.copy(a).lerp(b, 0.5 + 0.5 * Math.sin(x * 0.0011 + z * 0.0013 + n)); col.push(t.r, t.g, t.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
-    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }));
+    const m = new THREE.Mesh(g, revHook(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true })));
     m.position.set(C.x, Y0, C.z); m.receiveShadow = true; return m;
   }
   function range(L, R, hMin, hMax, color, seed, mesa) {
@@ -259,7 +339,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       const h = new THREE.Mesh(new THREE.CylinderGeometry(wheelR * 0.55 * M, wheelR * 0.55 * M, 0.285 * M, 8), rim); h.rotation.z = Math.PI / 2; pv.add(h);
       g.add(pv); spin.push(pv);
     }
-    const lamp = (c, z, y, w, e) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w * M, 0.08 * M, 0.06 * M), new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: e, roughness: .5 }));
+    const lamp = (c, z, y, w, e) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w * M, 0.08 * M, 0.06 * M), revHook(new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: e, roughness: .5 })));
       b.position.set(0, y * M, z * M); g.add(b); };
     lamp(0xff2a1a, lights.rear[0], lights.rear[1], width * 0.86, 0.9); lamp(0xfff4e0, lights.front[0], lights.front[1], width * 0.8, 0.6);
     g.userData = { spin, wheelR: wheelR * M }; return g;
@@ -383,16 +463,46 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     cars = carDefs.map((cd, i) => { const c = car(L.car[i % L.car.length], cd.kind); const p = road.at(cd.s, cd.side); c.position.copy(p);
       c.rotation.y = Math.atan2(road.dir.x, road.dir.z) + (cd.side > 0 ? 0 : Math.PI); world.add(c); return c; });
     root.add(world);
-    scene.fog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
+    dScene.fog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
   }
 
+  // ---------- the approach: slower curved flight from wherever the camera is into the hero frame, building the world as it comes ----------
+  let heroPose = null, fly = null, mode = 0, aux = null, inside = false;
+  const ease = t => t * t * t * (t * (t * 6 - 15) + 10);
+  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const slideCorners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, y]) => new THREE.Vector3(C.x + x * W / 2, C.y + y * H / 2, C.z));
+  function updateBloom() {      // the slide's outline on screen in device pixels, as four outward edges, and how far the bloom must grow to fill the frame
+    camera.updateMatrixWorld(); const w = innerWidth, h = innerHeight, px = dr.getPixelRatio(); BLOOM.uPx.value = px;
+    let pts = slideCorners.map(v => { const q = v.clone().project(camera); return new THREE.Vector2((q.x * 0.5 + 0.5) * w * px, (q.y * 0.5 + 0.5) * h * px); });
+    let area = 0; for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4]; area += a.x * b.y - b.x * a.y; } if (area < 0) pts = pts.reverse();
+    const edges = BLOOM.uEdge.value, ctr = new THREE.Vector2();
+    for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4], n = new THREE.Vector2(b.y - a.y, -(b.x - a.x)).normalize(); edges[i].set(n.x, n.y, n.dot(a)); ctr.add(a); }
+    ctr.multiplyScalar(0.25); BLOOM.uCenter.value.copy(ctr);
+    let rq = 0, rr = 0; for (const c of [[0, 0], [w * px, 0], [0, h * px], [w * px, h * px]]) { const v = new THREE.Vector2(...c);
+      rq = Math.max(rq, Math.max(...edges.map(e => e.x * v.x + e.y * v.y - e.z))); rr = Math.max(rr, v.distanceTo(ctr)); }
+    BLOOM.uRq.value = rq; BLOOM.uRr.value = rr;
+  }
+  function setReveal(p) {
+    REV.uRev.value = 1; BLOOM.uBloom.value = p; BLOOM.uVar.value = mode;
+    if (skyMat) skyMat.uniforms.uSkyRev.value = 1;
+    const gf = smooth(0.9, 1, p); gridFade(gf);
+    if (!aux) aux = scene.children.filter(o => o.material && o.material.transparent && !o.material.isShaderMaterial && o.visible).map(o => ({ o, a: o.material.opacity }));
+    for (const x of aux) x.o.material.opacity = x.a * (1 - gf);
+    for (const k in cssCards) if (k !== heroId) { const e = cssCards[k].obj.element; e.style.transition = 'none'; e.style.opacity = String(1 - smooth(0, 0.45, p)); }
+  }
+  const bloomAt = t => Math.pow(Math.min(1, Math.max(0, (t - 0.03) / 0.97)), 1.4);    // grows the whole flight; full frame only on landing
+  function pose(t) {
+    const e = ease(t), [P0, P1, P2, P3] = fly.P, u = 1 - e;
+    const pos = P0.clone().multiplyScalar(u * u * u).addScaledVector(P1, 3 * u * u * e).addScaledVector(P2, 3 * u * e * e).addScaledVector(P3, e * e * e);
+    const look = fly.L0.clone().lerp(fly.L1, ease(Math.min(1, t / 0.92)));
+    return { pos, look, fov: fly.f0 + (fly.f1 - fly.f0) * e };
+  }
   const api = {
     root, Y0, W, H, C, LOOKS, clock,
     enter(key, roadDef, carDefs, eye, view) {
       for (const o of scene.children) if (o !== root && o.visible) { hidden.push(o); o.visible = false; }
       for (const k in cssCards) if (k !== heroId) cssCards[k].obj.element.style.opacity = '0';
-      if (!root.parent) scene.add(root);
-      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 1);
+      root.visible = true; BLOOM.uBloom.value = 1;
       camera.far = 200000; camera.near = 10; camera.updateProjectionMatrix();
       build(key, roadDef, carDefs, eye, view); viewInfo = view;
     },
@@ -423,8 +533,47 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       api.enter(s.look, { P, az: viewAz + s.roadTurn }, s.cars || [], f.pos, view);
       return f;
     },
+    // build the heroPose world up front, hidden, so a click can fly straight in
+    prepareHero(s, m = 0) {
+      mode = m; const aspect = innerWidth / innerHeight, f = api.frame({ ...s, aspect });
+      const to = C.clone().sub(f.pos); to.y = 0; to.normalize();
+      const viewAz = Math.atan2(to.x, -to.z) * 180 / Math.PI, left = new THREE.Vector3(to.z, 0, -to.x);
+      const P = new THREE.Vector3(f.pos.x, 0, f.pos.z).addScaledVector(to, s.roadAhead * M).addScaledVector(left, (s.roadLeft || 0) * M);
+      const fwd = f.look.clone().sub(f.pos); fwd.y = 0; fwd.normalize();
+      const view = { eye: f.pos.clone(), fwd, right: new THREE.Vector3(-fwd.z, 0, fwd.x), row: (s.row || 20) * M, tanH: Math.tan(THREE.MathUtils.degToRad(s.fov / 2)) * aspect };
+      camera.far = 200000; camera.updateProjectionMatrix();
+      build(s.look, { P, az: viewAz + s.roadTurn }, [], f.pos, view); viewInfo = view;
+      REV.uOrigin.value.set(C.x, Y0, C.z - 70); REV.uCam.value.copy(f.pos);
+      heroPose = { pos: f.pos, look: f.look, fov: s.fov };
+      root.visible = false; api.ready = true; return heroPose;
+    },
+    get flying() { return !!fly && fly.dir > 0; }, get inside() { return inside; },
+    approachFrom(pos, look, fov, dur = 6.5) {
+      api.stop(); root.visible = true; inside = false; aux = null;
+      const vd = heroPose.look.clone().sub(heroPose.pos).normalize(), up = new THREE.Vector3(0, 1, 0);
+      fly = { dir: 1, t: 0, dur, L0: look.clone(), L1: heroPose.look.clone(), f0: fov, f1: heroPose.fov,
+        P: [pos.clone(), pos.clone().lerp(heroPose.pos, 0.35).addScaledVector(up, 500), heroPose.pos.clone().addScaledVector(vd, -900).addScaledVector(up, 380), heroPose.pos.clone()] };
+      setReveal(0);
+    },
+    flyStep(dt) {
+      fly.t = Math.min(1, fly.t + dt / fly.dur); const s = pose(fly.t); setReveal(bloomAt(fly.t));
+      if (fly.t >= 1) { fly = null; inside = true; setReveal(1); api.play(); s.done = true; }
+      return s;
+    },
+    depart(dur = 2.6) { if (!inside && !fly) return; api.stop(); inside = false; fly = { dir: -1, t: 0, dur, from: REV.uRev.value }; },
+    // storyboards: pose and build state at time t of the approach from the current camera
+    storyFrom(pos, look, fov) { api.approachFrom(pos, look, fov); fly.dir = 0; },
+    storyAt(t) { const s = pose(t); setReveal(bloomAt(t)); return s; },
+    setMode(m) { mode = m; },
+    stop() { for (const a of actors) a.dispose(); actors.length = 0; clock.playing = false; if (skyMat) skyMat.uniforms.uStar.value = 0; },
     play() { for (const a of actors) a.dispose(); actors.length = 0; clock.t = 0; evI = 0; trafficN = 0; nextCar = 26; clock.playing = true; },
-    tick(dt) { if (!clock.manual) update(dt); },
+    tick(dt) {
+      BLOOM.uBTime.value += dt;
+      if (fly && fly.dir < 0) { fly.t = Math.min(1, fly.t + dt / fly.dur); setReveal(fly.from * (1 - smooth(0, 1, fly.t)));
+        if (fly.t >= 1) { fly = null; root.visible = false; gridFade(0); for (const x of aux || []) x.o.material.opacity = x.a; for (const k in cssCards) cssCards[k].obj.element.style.opacity = ''; } }
+      if (!clock.manual) update(dt);
+      if (root.visible) { if (BLOOM.uBloom.value < 1) updateBloom(); dr.render(dScene, camera); } else if (dr.info.render.frame) dr.clear();
+    },
     step(dt) { update(dt); },
   };
   return api;

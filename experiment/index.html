@@ -935,6 +935,14 @@ function lookNow() { const d = new THREE.Vector3(); camera.getWorldDirection(d);
 
 function go(id, opt = {}) {
   if (HOLE.active) return;
+  // desert experiment: the first slide is entered by a slow approach into its billboard frame, and left by un-building the world
+  const DS = window.__desert;
+  if (DS && DS.ready) {
+    if (id === 'hero') { if (DS.flying || DS.inside) return;
+      tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; flight = null; mark(null);
+      DS.approachFrom(eyeNow(), lookNow(), camera.fov); current = 'flying'; navState('hero'); return; }
+    if (DS.inside || DS.flying) { window.__desertLock = false; DS.depart(); if (camera.fov !== BASE_FOV && id !== 'overview') { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } }
+  }
   if (id !== 'overview' && !cards[id]) return;
   if (id === current && !flight) return;
   const to = viewFor(id), fromPos = eyeNow(), fromLook = lookNow();
@@ -1149,6 +1157,10 @@ function frame(now) {
     if (trail.material.opacity > 0) headMat.opacity = smooth(0, .08, k) * (1 - smooth(.8, .95, k)); { const hp = flight.path.getPointAt(Math.min(.9995, tt + .06)); if (hp) head.position.copy(hp); }
     if (k >= 1) { const v = viewFor(flight.id); cam.pos.copy(v.pos); cam.look.copy(v.look); if (flight.fov1 != null && camera.fov !== flight.fov1) { camera.fov = flight.fov1; camera.updateProjectionMatrix(); } arrive(flight.id); }
   }
+  if (window.__desert && window.__desert.flying) { const s = window.__desert.flyStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
+    if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
+    if (s.done) { current = 'hero'; mark('hero'); navState('hero'); window.__desertLock = true; } }
+  if (window.__desertLock) { tYaw = tPitch = 0; pan.y = 0; }      // landed in the billboard frame: the camera holds still
   { const k = 1 - Math.exp(-dt * 8); yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k; }
   if (Math.abs(tYaw - yaw) < .004) yaw = tYaw; if (Math.abs(tPitch - pitch) < .004) pitch = tPitch;
   const dir = cam.look.clone().sub(cam.pos), dist = dir.length(); dir.normalize();
@@ -1169,7 +1181,7 @@ function resize() {
   const w = innerWidth, h = innerHeight;
   camera.aspect = w / h; camera.fov = (current === 'overview' || current === 'flying') ? overFov() : BASE_FOV; camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
-  if (!flight) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
+  if (!flight && !(window.__desert && (window.__desert.inside || window.__desert.flying))) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
 addEventListener('resize', resize); resize();
 cam.pos.copy(OVER.pos); cam.look.copy(OVER.look);
@@ -1462,16 +1474,16 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
 })();
 window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
 // desert billboard audition (experiment only): #desert loads the blockout; __wmp.shot parks the camera on an exact framing
+window.__wmp.lookAt = () => lookNow(); window.__wmp.fov = () => camera.fov;
 window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
 if (/desert/.test(location.hash)) import('./desert.js').then(m => {
-  const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear });
+  const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear, gridFade: v => { WARP.uFade.value = v; } });
   if (window.__desertManualClock) D.clock.manual = true;
   if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
-  // #desert: once the intro has settled, land on the billboard and start the sequence
+  // #desert: the site holds on the bird's-eye view; clicking the first slide flies in and builds the world (#desert-b, #desert-c: other build styles)
   const phone = innerWidth < 700, shot = phone ? { ...m.HERO_SHOT, ux: 0.08, uy: 0.30, fw: 0.9, fh: 0.56 } : m.HERO_SHOT;
-  const wait = () => { if (document.body.classList.contains('intro') || document.body.classList.contains('intro-c')) return setTimeout(wait, 200);
-    const f = D.heroShot(shot); window.__wmp.shot(f.pos, f.look, shot.fov); D.play(); };
-  setTimeout(wait, 400);
+  const style = ({ b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] || 0;
+  D.prepareHero(shot, style);
 });
 </script>
 <script>

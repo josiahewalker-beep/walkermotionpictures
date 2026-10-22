@@ -15,3 +15,8 @@
   - after the sequence: an occasional car every 14–24 s, alternating direction
 - Technical: vehicles render on a second canvas above the slide (the slide is HTML over the 3D canvas), with an invisible twin in the
   main scene that still casts the shadow. Only valid while nothing stands between the camera and the road.
+- 10-21 Josiah: the site holds on the bird's-eye view (no auto-landing). Clicking the first slide flies a slower curved approach (6.5 s)
+  into the billboard frame; on landing the camera locks (no drag-look) and the sequence plays. Next/Back un-builds the world.
+- 10-21 Josiah: the world should bloom out of the slide being approached and only fill the screen on landing. Three variants built
+  (screen-space, desert on its own canvas between the grid and the slides): #desert-a frame bleed, #desert-b light bloom, #desert-c tile resolve.
+  Superseded: the earlier world-space build styles (grid-to-ground, streaming, draw distance) remain in code behind uRev but are unused.
