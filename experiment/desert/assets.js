@@ -1,9 +1,10 @@
 // Desert world — loading the photoreal assets (see desert/ASSETS.md for the contract) and preparing their materials.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const BASE = new URL('./', import.meta.url).href;
-const loader = new GLTFLoader();
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);   // assets ship meshopt-compressed (gltfpack -cc)
 const cache = new Map();
 export const M = 108;                               // world units per metre
 

@@ -617,15 +617,15 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   async function applySurfaces(done) {
     const R = road && road.group.userData.roles;
     const [aA, aN, aR, lA, lY, lW, lN, sA, sN, gA, gN, gR, gM] = await Promise.all([
-      loadTex('asphalt_albedo.jpg', { srgb: true }), loadTex('asphalt_normal.jpg'), loadTex('asphalt_rough.jpg'),
-      loadTex('lines_alpha.png'), loadTex('lines_yellow_albedo.png', { srgb: true }), loadTex('lines_white_albedo.png', { srgb: true }), loadTex('lines_normal.png'),
+      loadTex('asphalt_albedo.jpg', { srgb: true }), loadTex('asphalt_normal_w.jpg'), loadTex('asphalt_rough.jpg'),
+      loadTex('lines_alpha.png'), loadTex('lines_yellow_albedo.jpg', { srgb: true }), loadTex('lines_white_albedo.jpg', { srgb: true }), loadTex('lines_normal.jpg'),
       loadTex('shoulder_albedo.jpg', { srgb: true }), loadTex('shoulder_normal.jpg'),
       loadTex('sand_albedo.jpg', { srgb: true }), loadTex('sand_normal.jpg'), loadTex('sand_rough.jpg'), loadTex('sand_macro.jpg', { srgb: true })]);
     const rep = (t, a, b) => { if (t) { t.repeat.set(a, b); t.needsUpdate = true; } return t; };
     if (R && aA) { const m = R.asphalt.material, u = R.asphalt.userData.w / (4 * M), v = R.asphalt.userData.len / (4 * M);
       Object.assign(m, { map: rep(aA, u, v), normalMap: rep(aN, u, v), roughnessMap: rep(aR, u, v), roughness: 1, color: new THREE.Color(0xffffff), flatShading: false });
       // road-scale wear from the set thread: R albedo ×2R, G tar-sealant (glossier), across the full width, 80 m along
-      const mac = await loadTex('asphalt_macro.png', { aniso: 4 });
+      const mac = await loadTex('asphalt_macro_rgb.jpg', { aniso: 4 });
       if (mac) { const prev = m.onBeforeCompile, ku = new THREE.Vector2(1 / u, R.asphalt.userData.len / (80 * M) / v);
         m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); sh.uniforms.tMacro = { value: mac }; sh.uniforms.uMacK = { value: ku };
           sh.fragmentShader = 'uniform sampler2D tMacro; uniform vec2 uMacK;\n' + sh.fragmentShader
