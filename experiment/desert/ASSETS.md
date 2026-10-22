@@ -67,8 +67,8 @@ Rebuild: `cd src/flora && python3 textures.py && python3 joshua.py && python3 sh
 | `joshua_b_lod1.glb` | 3.00 × 5.01 × 2.78 | 7,599 | 0.9 MB | bark, fur, leaf |
 | `joshua_c.glb` | 4.68 × 6.92 × 7.90 | 69,024 | 6.6 MB | bark, fur, leaf |
 | `joshua_c_lod1.glb` | 4.65 × 6.91 × 7.95 | 7,657 | 0.8 MB | bark, fur, leaf |
-| `joshua_d.glb` | 6.69 × 8.94 × 6.84 | 69,536 | 6.0 MB | bark, fur, leaf |
-| `joshua_d_lod1.glb` | 6.63 × 8.89 × 6.80 | 7,629 | 0.7 MB | bark, fur, leaf |
+| `joshua_d.glb` | 8.50 × 8.86 × 8.32 | 69,687 | 6.4 MB | bark, fur, leaf |
+| `joshua_d_lod1.glb` | 8.48 × 8.87 × 8.27 | 7,598 | 0.8 MB | bark, fur, leaf |
 | `rock_a.glb` | 2.46 × 1.48 × 1.91 | 3,999 | 0.7 MB | rock |
 | `rock_b.glb` | 1.33 × 1.43 × 1.19 | 3,999 | 0.7 MB | rock |
 | `rock_c.glb` | 1.49 × 0.53 × 1.02 | 2,998 | 0.4 MB | rock |
@@ -107,21 +107,30 @@ single-sided. Bottoms are sunk 5–12 cm below y = 0 so they sit in the sand; sc
 Generators: `src/set/` (`asphalt.py`, `lines.py`, `shoulder.py`, `sand.py` → `tex/`; `bb_geo.py` + `bb_build.py` (Blender, bakes)
 + `bb_finish.py` (weathering textures, materials, export) → `assets/billboard.glb`). Rebuild: run each under the lock.
 
-### `assets/billboard.glb` (~18k tris, ~5.3 MB)
+### `assets/billboard.glb` (18,056 tris, 5.2 MB, 11.3 × 7.6 × 3.8 m)
 - Origin on the ground directly below the face centre; face plane z = 0 facing +Z; face rectangle x ∈ [−5.465, 5.465],
-  y ∈ [2.80, 7.08]. Nothing is in front of it (checked by `bb_geo.check_front_clear`): the frame lip sits at z = −0.004, the
-  catwalk / lamps project forward only below y = 2.80 (lamp tops ≈ 2.75 m, catwalk deck 2.25 m, front edge z = 0.90).
+  y ∈ [2.80, 7.08]. The face frame wraps it outside: |x| 5.465–5.595, y 2.67–7.21, front lip at z = −0.004, 0.20 m deep.
+- Nothing is in front of the face rectangle (`bb_geo.check_front_clear`). In addition, nothing in front of the face plane
+  rises above the hero camera's sightline (camera 1.1 m high, 15 m out) to the face's bottom edge
+  (`bb_geo.check_sightline`, margin 0.18 m), so the HTML slide never cuts a lamp or the toe plate. Catwalk deck at 2.25 m,
+  front edge z = 0.90; five floods on gooseneck arms reach z ≈ 1.7 m, tops ≈ 2.4 m, aimed up at the face; pole centre
+  z = −0.65, Ø 0.94 → 0.80 m, two flanged sections, 8 anchor bolts on a 1.6 m concrete pier.
 - One mesh node per material: `paint_peeling` (pole, head frame, saddle, catwalk brackets/channel/toe plate, lamp arms),
-  `steel_weathered` (face frame — dark painted steel; ladder, cage, lamp housings, conduit — dull galvanized; junction box
-  + meter — faded grey enamel), `steel_weathered_rear` (face sheet backs, verticals, stringers, kickers; normally hidden),
-  `rust` (bolts, nuts, anchor rods, base plate), `concrete` (pier + grout pad), `grating` (bar-grating deck, double-sided),
-  `glass` (lamp lenses, meter dome; BLEND 0.55, double-sided; lamp #4 from the left has a broken lens),
-  `reflector` (lamp interiors, metallic), `vinyl_old` (torn remnants on the border + shreds hanging below/beside the frame;
-  double-sided), `plate` (owner's plate on the toe plate, fictional text).
-- Atlas materials carry unique baked textures (albedo with mild AO, ORM: G = roughness, B = metallic, normal). The integrator
-  may tune `paint_peeling` / `steel_weathered` colour factors live; no envMap-mirror: metallic ≤ 0.25 on weathered parts.
-- Bent catwalk bracket (2nd from the left), rust streaks from bolts / flanges / catwalk edge, bird droppings on the toe
-  plate, lamp tops and the deck, sand on horizontal surfaces, pitting at the pole foot.
+  `steel_weathered` (face frame in dark painted steel; ladder, cage, lamp housings and conduit in dull galvanized; junction
+  box + meter in faded grey enamel), `steel_weathered_rear` (face-sheet backs, verticals, stringers, kickers; normally
+  hidden), `rust` (bolts, nuts, anchor rods, base plate), `concrete` (pier + grout pad), `grating` (bar-grating deck,
+  double-sided, unique non-tiling map with sand drifts and droppings), `glass` (lamp lenses, meter dome; BLEND 0.55,
+  double-sided; the 4th lamp from the left has a broken lens with shards), `reflector` (lamp interiors), `vinyl_old` (torn
+  remnants on the frame border and shreds hanging below and beside it; double-sided), `plate` (owner's plate on the toe
+  plate; fictional text "HIGH DESERT OUTDOOR · STRUCTURE No. 1127", rasterised from DejaVu Sans Bold, free licence).
+- `paint_peeling`, `steel_weathered`, `steel_weathered_rear`, `concrete` carry unique baked atlases (albedo with mild AO
+  baked in, ORM with G = roughness and B = metallic, normal). The weathering is driven by Cycles-baked world position,
+  normal and AO: rust on edges and joints, gravity streaks below every bolt, flange and seam and along the catwalk edge,
+  pitting and heavier rust at the pole foot, sand on horizontal surfaces, bird droppings on the toe plate, lamp tops and
+  deck, plus a bent catwalk bracket (2nd from the left). Metallic ≤ 0.25 on weathered parts and roughness 0.6–0.95, so the
+  sky does not mirror in them. All colour is honest albedo (paint ≈ 0.15–0.24 linear, rust 0.07–0.30).
+- Rebuild: `flock … python3 src/set/bb_build.py` (geometry, UVs, bakes, ~90 s) then `python3 src/set/bb_finish.py`
+  (weathering, materials, export, ~3 min). bb_build asserts both clearance checks.
 
 ### Road and ground textures (`tex/`) — all tile seamlessly; albedo is sRGB, everything else linear
 | file | size | covers | mapping |
@@ -134,10 +143,9 @@ Generators: `src/set/` (`asphalt.py`, `lines.py`, `shoulder.py`, `sand.py` → `
 | `sand_macro.jpg` | 1024² | 300 m × 300 m | multiply the sand albedo by `2 × macro` (RGB, 0.5 = ×1); world xz / 300. Also good for a faint hue shift on rocks and shrubs. |
 
 Reference composite: `src/set/road_preview.py` builds the whole road cross-section (asphalt × macro + sealant, four line
-strips, both shoulders, sand × macro) exactly as intended, and writes `src/set/preview/road.glb` for the harness
+strips, both shoulders, sand × macro) exactly as intended; run with `--glb` to write `src/set/preview/road.glb` (13 MB, preview only — regenerate, do not ship) for the harness
 (`glb=src/set/preview/road.glb&ground=0`). Lines in it: yellow centres at ±0.11 m (v offsets 0 and 3.1 m), white fog lines at
 ±3.8 m; shoulder strips start at |x| = 4.67 m (u mirrored on the left side, flip the normal's X there).
-
 ## CARS
 Generators: `src/cars/` — `sports.py` / `minivan.py` (+ `*_params.py` design numbers), shared `body.py` (implicit body
 field), `carlib.py` (meshing, cuts, decimation), `surfops.py` (exact level-set cuts → panel gaps, glass, lamp recesses),

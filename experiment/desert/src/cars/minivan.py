@@ -13,7 +13,7 @@ import minivan_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_minivan.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0075
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 35000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 30000
 
 B = Body(M.P)
 P = M.P
@@ -243,7 +243,7 @@ def build():
             h = surf([(abs(x), z)], 'front', np.sign(x) or 1, 0.0)
             if len(h): pts.append(h[0] - np.array([0, 0.03, 0]))
         if len(pts) > 1:
-            D.strip_along(parts, np.array(pts), 0.008, 'trim_black', n_seg=6, col=(0.9, 0.9, 0.9))
+            D.strip_along(parts, np.array(pts), 0.008, 'chrome', n_seg=6)
     def depth_s(x, z):
         h = surf([(abs(x), z)], 'front', 1, 0.0)
         return (h[0][1] - 0.02) if len(h) else 2.4

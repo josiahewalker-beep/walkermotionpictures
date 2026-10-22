@@ -36,7 +36,7 @@ VARIANTS = {
               seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.25, r_trunk=0.25, fur_z=1.2,
               fur_len=2.3, budget=69000, live_n=240),
     # old ~9 m, broad crown, thick trunk
-    'd': dict(seed=37, height=9.0, trunk_len=2.6, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
+    'd': dict(seed=60, height=9.0, trunk_len=2.6, trunk_lean=0.03, levels=4, nfork=(2, 3), p_branch=0.85,
               seg_len=(0.9, 1.3), tilt=(42, 66), up_pull=0.6, kink=0.2, r_tip=0.07, r_exp=0.56, flare=0.3, r_trunk=0.38, fur_z=1.5,
               fur_len=2.5, budget=69500, live_n=170),
 }
@@ -381,7 +381,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         # adaxial (upper, channelled) side of the leaf: perpendicular to d in the (T, Nr) plane
         out_dir = nrm(-np.sin(theta)[:, None] * T[idx] + np.cos(theta)[:, None] * Nr[idx])
         wdir = nrm(np.cross(d, out_dir))
-        L = rng.uniform(0.18, 0.34, len(idx)) * (0.55 + 0.45 * smoothstep(0.0, 0.06, ss))
+        L = rng.uniform(0.21, 0.38, len(idx)) * (0.55 + 0.45 * smoothstep(0.0, 0.06, ss))
         if lod:
             L *= 1.05
         W = rng.uniform(0.010, 0.014, len(idx)) * (1 + 0.15 * (L > 0.28))

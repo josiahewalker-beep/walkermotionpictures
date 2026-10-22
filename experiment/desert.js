@@ -633,8 +633,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
             .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, 0.42, macS.g);'); };
         const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|macro'; }
       m.needsUpdate = true; done.push('asphalt'); }
-    if (R && lA) for (const [list, alb] of [[R.yellow, lY], [R.white, lW]]) for (const ms of list) { const v = ms.userData.len / (8 * M), m = ms.material;
-      Object.assign(m, { map: rep(alb && alb.clone(), 1, v), alphaMap: rep(lA.clone(), 1, v), normalMap: rep(lN && lN.clone(), 1, v), alphaTest: 0.5, color: new THREE.Color(0xffffff), roughness: 0.75, flatShading: false }); m.needsUpdate = true; }
+    if (R && lA) for (const [list, alb] of [[R.yellow, lY], [R.white, lW]]) for (const [li, ms] of list.entries()) { const v = ms.userData.len / (8 * M), m = ms.material, off = li * 0.37;   // the two yellows wear differently
+      const ofs = t => { if (t) t.offset.y = off; return t; };
+      Object.assign(m, { map: ofs(rep(alb && alb.clone(), 1, v)), alphaMap: ofs(rep(lA.clone(), 1, v)), normalMap: ofs(rep(lN && lN.clone(), 1, v)), alphaTest: 0.5, color: new THREE.Color(0xffffff), roughness: 0.75, flatShading: false }); m.needsUpdate = true; }
     if (R && sA) { const m = R.shoulder.material, u = R.shoulder.userData.w / (1.5 * M), v = R.shoulder.userData.len / (3 * M);
       Object.assign(m, { map: rep(sA, u, v), normalMap: rep(sN, u, v), color: new THREE.Color(0xffffff), flatShading: false }); m.needsUpdate = true; }
     if (groundMesh && gA) {
