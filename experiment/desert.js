@@ -446,7 +446,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     // Russian thistle: a short stub of a stem, ~16 primary branches radiating from it, each forking three or four times,
     // curving along the shell as they near it, so the ball is a dense, see-through lattice of wiry straw-coloured stems
     const r = rng(seed), pos = [], nrm = [], col = [], up = new THREE.Vector3(0, 1, 0);
-    const straw = new THREE.Color(0xc9a978), grey = new THREE.Color(0x9a8a74), rust = new THREE.Color(0xa86a48), t3 = new THREE.Color();
+    const straw = new THREE.Color(0xe6cc98), grey = new THREE.Color(0xcbb894), rust = new THREE.Color(0xb7835c), t3 = new THREE.Color();
     const tube = (a, b, ra, rb, c) => {
       const d = b.clone().sub(a).normalize(), s1 = Math.abs(d.y) < 0.9 ? up : new THREE.Vector3(1, 0, 0), u = new THREE.Vector3().crossVectors(d, s1).normalize(), v = new THREE.Vector3().crossVectors(d, u);
       const ring = (o, rr) => [0, 1, 2, 3].map(k => { const ang = k * Math.PI / 2; return { p: o.clone().addScaledVector(u, Math.cos(ang) * rr).addScaledVector(v, Math.sin(ang) * rr), n: u.clone().multiplyScalar(Math.cos(ang)).addScaledVector(v, Math.sin(ang)) }; });
@@ -504,7 +504,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const first = viewInfo ? viewInfo.row : (depths.slice(0, 3).reduce((a, o) => a + o.d, 0) / Math.max(1, Math.min(3, depths.length)) || 22 * M);
     const depth = first + 3.5 * M, half = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const a = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, -half * 1.12), b = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, half * 1.12);
-    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.4 * M, tw = tumbleweed(rad, 31); world.add(tw);
+    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.5 * M, tw = tumbleweed(rad, 31); world.add(tw);
     const r = rng(77), hops = []; { let t = 0; while (t < dur + 1) { const d = 0.5 + r() * 0.5; hops.push({ t, d, h: (0.3 + r() * 0.75) * M }); t += d; } }
     const axis = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), right).normalize().negate();
     let t = 0, rolled = 0, lastX = 0;
@@ -545,7 +545,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     world.add(range(L, 82000, 1800, 6200, L.mt[1], 3, L.mesa), range(L, 50000, 500, 3000, L.mt[0], 11, L.mesa), range(L, 30000, 120, 1100, L.mt[0], 17, L.mesa));
     const sd = new THREE.Vector3(...L.sun).normalize();
     const sun = new THREE.DirectionalLight(L.sunCol, L.sunI); sun.position.copy(C).addScaledVector(sd, 9000); sun.target.position.set(C.x, Y0, C.z + 600);
-    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -4600, right: 4600, top: 4600, bottom: -4600, near: 100, far: 24000 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 6;
+    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -4600, right: 4600, top: 4600, bottom: -4600, near: 100, far: 24000 }); sun.shadow.bias = -0.0005; sun.shadow.normalBias = 10;   // low sun grazes the car hoods: less acne
     if (view) { const c0 = view.eye.clone().addScaledVector(view.fwd, 22 * M); c0.y = Y0; sun.target.position.copy(c0); sun.position.copy(c0).addScaledVector(sd, 12000); }
     world.add(sun, sun.target, hemiLight = new THREE.HemisphereLight(L.zenith, L.sand[0], L.hemi)); sunLight = sun;
     cars = carDefs.map((cd, i) => { const c = car(L.car[i % L.car.length], cd.kind); const p = road.at(cd.s, cd.side); c.position.copy(p);

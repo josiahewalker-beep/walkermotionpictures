@@ -9,6 +9,7 @@
 // Query: glb=<path relative to desert/>, dist (m), h (camera height m), yaw (deg around the asset), fov, tx,ty,tz (look target m), ground=0|1
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { Sky } from 'three/addons/objects/Sky.js';
 const q = new URLSearchParams(location.search), num = (k, d) => q.has(k) ? parseFloat(q.get(k)) : d;
 const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
@@ -29,7 +30,7 @@ scene.add(sun, sun.target);
 if (num('ground', 1)) { const g = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xc79060, roughness: 0.95 })); g.receiveShadow = true; scene.add(g); }
 const cam = new THREE.PerspectiveCamera(num('fov', 35), innerWidth / innerHeight, 0.05, 5000);
 const info = document.getElementById('info');
-new GLTFLoader().load('../' + (q.get('glb') || 'assets/test.glb'), g => {
+new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load('../' + (q.get('glb') || 'assets/test.glb'), g => {
   const o = g.scene; let tris = 0, mats = new Set();
   o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; tris += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3; [].concat(m.material).forEach(x => mats.add(x.name)); } });
   scene.add(o);
