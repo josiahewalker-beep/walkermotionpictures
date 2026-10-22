@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { setupRenderer, skyEnvironment, makeComposer } from './desert/render.js';
 import { loadGLB, loadTex, prepAsset, instance, vehicleFrom } from './desert/assets.js';
+import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js';
 
 const M = 108;                                    // world units per metre
 const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -48,7 +49,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
 
   // ---------- build-in: every desert material shares these uniforms, read in the haze chunk below ----------
   // uMode 0 = grid becomes ground, 1 = streaming pop-in, 2 = draw distance. uRev 0 → 1 over the approach.
-  const REV = { uRev: { value: 1 }, uMode: { value: 0 }, uOrigin: { value: new THREE.Vector3() }, uCam: { value: new THREE.Vector3() }, uR: { value: 1e7 }, uVoid: { value: new THREE.Color(0xf6f7f9) }, uFloor: { value: 0 } };
+  const REV = REV_UNIFORMS();
   // bloom: the world opens out of the slide in screen space and fills the frame exactly at landing. uVar 0 frame bleed, 1 light bloom, 2 tile resolve
   const BLOOM = { uBloom: { value: 1 }, uVar: { value: 0 }, uEdge: { value: [0, 1, 2, 3].map(() => new THREE.Vector3()) }, uCenter: { value: new THREE.Vector2() },
     uRq: { value: 1 }, uRr: { value: 1 }, uBTime: { value: 0 }, uPx: { value: 1 }, uGlow: { value: new THREE.Color(0xffd29a) } };
@@ -134,116 +135,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   // ---------- haze: exponential, thicker near the ground, warmer toward the sun ----------
   // Replaces three's exp2 fog path for this scene, so the board stays clear and each band of desert behind it fades a step further
   const HAZE_H = 30 * M, HAZE_DENSITY = 2.0e-5;
-  let commonOrig = null;
   function installHaze(L) {
-    const S = THREE.ShaderChunk, sd = new THREE.Vector3(...L.sun).normalize(), sc = new THREE.Color(L.sunCol), f = v => v.toFixed(6);
-    if (commonOrig === null) commonOrig = S.common;
-    // shared by vertex and fragment, and by the shadow depth pass, so the build shapes the shadows too
-    S.common = commonOrig + `
-#ifdef DESERT_REV
- uniform float uRev; uniform int uMode; uniform vec3 uOrigin; uniform vec3 uCam; uniform float uR; uniform vec3 uVoid; uniform float uFloor;
- varying float vDK; varying float vG;
-#endif`;
-    // the world is built outward from the billboard's foot through the grid's own cells (160 units, aligned with the lattice).
-    // vDK: 0 at the front, 1 settled. Props use their own origin so they arrive whole; ground, road and ranges (DESERT_GROUND) per point.
-    S.project_vertex = `#ifdef DESERT_REV
- vec4 dwp = vec4( transformed, 1.0 );
- #ifdef USE_INSTANCING
-  dwp = instanceMatrix * dwp;
- #endif
- dwp = modelMatrix * dwp;
- #ifdef DESERT_GROUND
-  vec3 dOrg = dwp.xyz;
- #else
-  #ifdef USE_INSTANCING
-   vec3 dOrg = ( modelMatrix * instanceMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz;
-  #else
-   vec3 dOrg = ( modelMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz;
-  #endif
- #endif
- vDK = uRev >= 0.9999 ? 1.0 : clamp( ( uR - length( dOrg.xz - uOrigin.xz ) ) / ( 0.25 * uR + 300.0 ), 0.0, 1.0 );
- vG = 1.0;
- if ( uRev < 0.9999 ) {
-  #ifndef DESERT_GROUND
-   if ( uMode == 0 ) vG = smoothstep( 0.0, 1.0, vDK );
-   else if ( uMode == 2 ) { float ct = fract( sin( dot( floor( dOrg.xz / 160.0 ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.35; vG = smoothstep( ct, ct + 0.45, vDK ); }
-   dwp.y = mix( uFloor, dwp.y, vG );                      // props rise up out of the grid's floor
-  #else
-   if ( uMode == 0 ) dwp.y = mix( uFloor, dwp.y, smoothstep( 0.0, 1.0, vDK ) );   // ground and ranges lift out of the fabric
-  #endif
- }
- vec4 mvPosition = viewMatrix * dwp;
- gl_Position = projectionMatrix * mvPosition;
-#else
- vec4 mvPosition = vec4( transformed, 1.0 );
- #ifdef USE_BATCHING
-  mvPosition = batchingMatrix * mvPosition;
- #endif
- #ifdef USE_INSTANCING
-  mvPosition = instanceMatrix * mvPosition;
- #endif
- mvPosition = modelViewMatrix * mvPosition;
- gl_Position = projectionMatrix * mvPosition;
-#endif`;
-    S.fog_pars_vertex = '#ifdef USE_FOG\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  varying vec3 vFogWP;\n #endif\n#endif';
-    S.fog_vertex = `#ifdef USE_FOG
- vFogDepth = - mvPosition.z;
- #ifdef FOG_EXP2
-  #ifdef DESERT_REV
-   vFogWP = dwp.xyz;
-  #else
-   vec4 fogWP = vec4( transformed, 1.0 );
-   #ifdef USE_INSTANCING
-    fogWP = instanceMatrix * fogWP;
-   #endif
-   vFogWP = ( modelMatrix * fogWP ).xyz;
-  #endif
- #endif
-#endif`;
-    S.fog_pars_fragment = '#ifdef USE_FOG\n uniform vec3 fogColor;\n varying float vFogDepth;\n #ifdef FOG_EXP2\n  uniform float fogDensity;\n  varying vec3 vFogWP;\n #else\n  uniform float fogNear;\n  uniform float fogFar;\n #endif\n#endif';
-    S.fog_fragment = `#ifdef USE_FOG
- #ifdef FOG_EXP2
-  float fogH = exp( - max( vFogWP.y - (${f(Y0)}), 0.0 ) / ${f(HAZE_H)} );
-  float fogFactor = 1.0 - exp( - fogDensity * vFogDepth * ( 0.45 + 0.55 * fogH ) );
-  float fogSun = pow( max( dot( normalize( vFogWP - cameraPosition ), vec3( ${f(sd.x)}, ${f(sd.y)}, ${f(sd.z)} ) ), 0.0 ), 4.0 );
-  vec3 fogC = mix( fogColor, vec3( ${f(sc.r)}, ${f(sc.g)}, ${f(sc.b)} ), fogSun * 0.5 );
-  #ifdef DESERT_REV
-  if ( uRev < 0.9999 ) {
-   float fk = vDK;
-   #ifdef DESERT_GROUND
-    fk = clamp( ( uR - length( vFogWP.xz - uOrigin.xz ) ) / ( 0.25 * uR + 300.0 ), 0.0, 1.0 );
-   #endif
-   vec3 gp = vFogWP / 160.0 + vec3( 0.0, 0.5, 0.0 ), gw = abs( fract( gp - 0.5 ) - 0.5 ) / max( fwidth( gp ), vec3( 1e-4 ) );   // horizontal lines sit half a cell off the floor, so surfaces lying on it don't all light up
-   float lnFar = 1.0 - smoothstep( 0.12, 0.35, max( max( fwidth( gp.x ), fwidth( gp.y ) ), fwidth( gp.z ) ) );   // dense lines far away fade instead of blurring solid
-   float ln = ( 1.0 - clamp( min( min( gw.x, gw.y ), gw.z ) - 0.6, 0.0, 1.0 ) ) * lnFar;
-   vec2 cf = abs( fract( gp.xz - 0.5 ) - 0.5 ) / max( fwidth( gp.xz ), vec2( 1e-4 ) );
-   float edge = ( 1.0 - clamp( min( cf.x, cf.y ) - 0.8, 0.0, 1.0 ) ) * lnFar;
-   vec3 lineC = vec3( 0.24, 0.40, 0.96 ), paleC = uVoid * 0.94;
-   if ( uMode == 0 ) {            // rise: surfaces come up out of the fabric as pale grid-lined sheets, then take their colour
-    if ( fk <= 0.0 ) discard;
-    gl_FragColor.rgb = mix( mix( paleC, lineC, ln * 0.9 ), gl_FragColor.rgb, smoothstep( 0.12, 0.75, fk ) );
-   } else if ( uMode == 1 ) {     // drape: the grid's lines settle onto every surface first, then the fill comes in behind them
-    if ( fk <= 0.0 ) discard;
-    if ( fk < 0.3 ) { if ( ln < 0.5 ) discard; gl_FragColor.rgb = lineC; }
-    else { float s2 = smoothstep( 0.3, 1.0, fk ); gl_FragColor.rgb = mix( mix( paleC, gl_FragColor.rgb, s2 ), lineC, ln * ( 1.0 - s2 ) * 0.85 ); }
-   } else {                       // cells: each grid cell switches on with its outline lit, props grow up inside their cell
-    float g = vG;
-    #ifdef DESERT_GROUND
-     float ct = fract( sin( dot( floor( gp.xz ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.35;
-     g = smoothstep( ct, ct + 0.45, fk );
-    #endif
-    if ( g <= 0.002 ) discard;
-    gl_FragColor.rgb = mix( mix( paleC, lineC, max( edge, ln * 0.6 ) ), gl_FragColor.rgb, smoothstep( 0.05, 0.85, g ) );
-   }
-   fogC = mix( uVoid, fogC, smoothstep( 0.6, 1.0, uRev ) );
-  }
-  #endif
-  gl_FragColor.rgb = mix( gl_FragColor.rgb, fogC, fogFactor );
- #else
-  float fogFactor = smoothstep( fogNear, fogFar, vFogDepth );
-  gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, fogFactor );
- #endif
-#endif`;
+    installWorldChunks();
+    REV.uHzY0.value = Y0; REV.uHzH.value = HAZE_H; REV.uHzSun.value.set(...L.sun).normalize(); REV.uHzSunC.value.set(L.sunCol);
   }
 
   // ---------- ground and ranges ----------
