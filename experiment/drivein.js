@@ -195,7 +195,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const FL = { k: 1 };
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P(a * SW / 2 * 0.985, SCY + b * SH / 2 * 0.985, -0.05));
   const beamMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false, fog: false,
-    uniforms: { uK: { value: 0.05 }, uFl: { value: 1 }, uRev: REV.uRev },
+    uniforms: { uK: { value: 0.016 }, uFl: { value: 1 }, uRev: REV.uRev },
     vertexShader: 'attribute float aT; attribute vec2 aE; varying float vT; varying vec2 vE; void main(){ vT = aT; vE = aE; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform float uK, uFl, uRev; varying float vT; varying vec2 vE;
       void main(){ float edge = smoothstep(0.0, 0.18, vE.x) * smoothstep(0.0, 0.18, 1.0 - vE.x);       // soft sides

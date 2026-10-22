@@ -91,7 +91,7 @@ def build(C, out):
         c_edge = np.full(len(zgrid), -9.0)
     a_s = lambda z: np.interp(z, zgrid, a_edge)
     c_s = lambda z: np.interp(z, zgrid, c_edge)
-    roof_z = lambda s: B.c['Zroof'](s) - P['roof_crown'] * (B.c['Wg'](s) / 0.7) ** 2
+    roof_z = lambda s: B.c['Zroof'](s) - P['roof_crown'] * (gw(s, B.c['Zroof'](s)) / 0.7) ** 2
 
     zb = BELT + C.get('dlo_bot', 0.035)
     a_off, top_off = C.get('a_off', 0.075), C.get('top_off', 0.075)
@@ -226,7 +226,7 @@ def build(C, out):
         ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, [0.004]), ('clad', fn_clad, [0.0]),
     ]
     if open_win:
-        cuts.append(('open', fn_open, [0.0]))
+        cuts.append(('open', fn_open, []))
     hmat = C.get('handle_mat', 'trim_black')
     labels = {
         'paint': dict(mat='paint'),
