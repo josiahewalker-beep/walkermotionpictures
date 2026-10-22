@@ -166,7 +166,7 @@ def main():
                 bpy.ops.object.bake(type='AO', margin=8)
             else:
                 sc.cycles.samples = 8 if kind == 'edge' else 1
-                bpy.ops.object.bake(type='EMIT', margin=8)
+                bpy.ops.object.bake(type='EMIT', margin=0 if kind == 'nrm' else 8)
             a = np.empty(res * res * 4, np.float32)
             img.pixels.foreach_get(a)
             a = a.reshape(res, res, 4)[::-1, :, :3].copy()          # top row first (image convention)

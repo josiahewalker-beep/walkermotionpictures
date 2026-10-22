@@ -24,8 +24,8 @@ UP = np.array([0, 0, 1.0])
 
 VARIANTS = {
     # young: single trunk ~3 m, one or two terminal rosettes, fur nearly to the ground
-    'a': dict(seed=11, height=3.0, trunk_len=2.45, trunk_lean=0.06, levels=1, nfork=(1, 2), p_branch=0.55,
-              seg_len=(0.55, 0.8), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.07, r_exp=0.42, flare=0.3,
+    'a': dict(seed=11, height=3.0, trunk_len=2.1, trunk_lean=0.06, levels=1, nfork=(2, 2), p_branch=1.0,
+              seg_len=(0.45, 0.75), tilt=(28, 40), up_pull=1.2, kink=0.10, r_tip=0.07, r_exp=0.42, flare=0.3,
               fur_len=2.6, budget=60000, live_n=520),
     # ~5 m, forks into 2–4 branches
     'b': dict(seed=4, height=5.0, trunk_len=2.5, trunk_lean=0.08, levels=2, nfork=(2, 3), p_branch=0.6,
@@ -34,11 +34,11 @@ VARIANTS = {
     # mature ~7 m, many branches, classic silhouette
     'c': dict(seed=21, height=7.0, trunk_len=2.5, trunk_lean=0.07, levels=4, nfork=(2, 3), p_branch=0.8,
               seg_len=(0.9, 1.4), tilt=(48, 75), up_pull=0.55, kink=0.18, r_tip=0.065, r_exp=0.52, flare=0.5,
-              fur_len=2.3, budget=69000, live_n=400),
+              fur_len=2.3, budget=69000, live_n=300),
     # old ~9 m, broad crown, thick trunk
-    'd': dict(seed=37, height=9.0, trunk_len=2.9, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
-              seg_len=(1.1, 1.6), tilt=(45, 72), up_pull=0.6, kink=0.2, r_tip=0.068, r_exp=0.56, flare=0.65,
-              fur_len=2.2, budget=69500, live_n=300),
+    'd': dict(seed=37, height=9.0, trunk_len=2.6, trunk_lean=0.05, levels=4, nfork=(2, 3), p_branch=0.85,
+              seg_len=(0.9, 1.3), tilt=(42, 66), up_pull=0.6, kink=0.2, r_tip=0.07, r_exp=0.56, flare=0.65,
+              fur_len=2.5, budget=69500, live_n=220),
 }
 
 LIVE = 0.30      # living rosette length along the stem (m)
@@ -352,13 +352,14 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         # adaxial (upper, channelled) side of the leaf: perpendicular to d in the (T, Nr) plane
         out_dir = nrm(-np.sin(theta)[:, None] * T[idx] + np.cos(theta)[:, None] * Nr[idx])
         wdir = nrm(np.cross(d, out_dir))
-        L = rng.uniform(0.18, 0.34, len(idx)) * (0.35 + 0.65 * smoothstep(0.0, 0.06, ss))
+        L = rng.uniform(0.18, 0.34, len(idx)) * (0.55 + 0.45 * smoothstep(0.0, 0.06, ss))
         if lod:
             L *= 1.05
         W = rng.uniform(0.010, 0.014, len(idx)) * (1 + 0.15 * (L > 0.28))
         # leaves droop a little at the transition; living ones dead straight with tiny bend
         bend = np.where(ss < LIVE, rng.normal(0.0, 0.02, len(idx)), rng.uniform(0.02, 0.10, len(idx)))
-        base = p[idx] + Nr[idx] * (r[idx] * 0.8)[:, None]
+        taper = (0.25 + 0.75 * smoothstep(0.0, 0.16, ss)) if not b.children else np.ones(len(ss))
+        base = p[idx] + Nr[idx] * ((r[idx] + 0.05) * taper * 0.85)[:, None]
         if lod:
             V, uvt, trt, tt = blade_geometry(base, d, wdir, out_dir, L, W * 1.8, bend, None, [(0.0, 1.0)])
         else:
@@ -400,24 +401,37 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         lift = (r[idx] + 0.035)
         base = p[idx] + Nr[idx] * lift[:, None] + T[idx] * (L * 0.15)[:, None]
         droop = np.tile([0, 0, -1.0], (m, 1)) * rng.uniform(0.0, 0.06, m)[:, None]
-        rows = [(0.0, 1.0)] if lod else [(0.0, 1.0), (0.6, 0.75)]
-        V, uvt, trt, tt = blade_geometry(base, d, wdir, out_dir, L, W, bend, None, rows, droop=droop)
-        tone = rng.uniform(0.82, 1.12, m)
-        dark = rng.random(m) < 0.15
-        tone[dark] *= 0.6
-        warm = rng.normal(0, 0.025, m)
-        col = np.array([0.43, 0.395, 0.335])[None, :] * tone[:, None]
-        col[:, 0] += warm; col[:, 2] -= warm * 0.7
-        # flatter blades (pressed in) are under-layers: darker
-        under = 0.75 + 0.25 * smoothstep(0.08, 0.5, flare)
-        col *= under[:, None]
-        col = col / 0.85
-        ao_t = 0.55 + 0.45 * smoothstep(0.0, 0.7, tt)
-        C = col[:, None, :] * ao_t[None, :, None]
-        # each blade samples a narrow strip of the thatch texture (one leaf's worth of fibres)
-        uvo = np.c_[rng.random(m), rng.random(m)]
-        add_blades(parts['fur'], V, 1 - uvt, trt, tt, nrm(out_dir * 1.0 + Nr[idx] * 0.5), C, ss,
-                   uv_off=uvo, uv_scale=(0.02, 0.25))
+        if lod:
+            groups = [(np.arange(m), [(0.0, 1.0)])]
+        else:
+            thin = rng.random(m) < 0.6
+            W = np.where(thin, W * 0.55, W * 1.1)
+            L = np.where(thin, L * 1.1, L)
+            groups = [(np.flatnonzero(thin), [(0.0, 1.0)]), (np.flatnonzero(~thin), [(0.0, 1.0), (0.6, 0.75)])]
+        for gi, rows in groups:
+            if len(gi) == 0:
+                continue
+            Vg, uvt, trt, tt = blade_geometry(base[gi], d[gi], wdir[gi], out_dir[gi], L[gi], W[gi], bend[gi], None,
+                                              rows, droop=droop[gi])
+            fur_emit(parts['fur'], Vg, uvt, trt, tt, gi, flare, out_dir, Nr[idx], ss, rng, m)
+
+
+def fur_emit(part, V, uvt, trt, tt, gi, flare, out_dir, Nr, ss, rng, m):
+    n = len(gi)
+    tone = rng.uniform(0.82, 1.12, n)
+    dark = rng.random(n) < 0.15
+    tone[dark] *= 0.6
+    warm = rng.normal(0, 0.025, n)
+    col = np.array([0.43, 0.395, 0.335])[None, :] * tone[:, None]
+    col[:, 0] += warm; col[:, 2] -= warm * 0.7
+    under = 0.75 + 0.25 * smoothstep(0.08, 0.5, flare[gi])      # flatter blades are under-layers: darker
+    col *= under[:, None]
+    col = col / 0.85
+    ao_t = 0.55 + 0.45 * smoothstep(0.0, 0.7, tt)
+    C = col[:, None, :] * ao_t[None, :, None]
+    uvo = np.c_[rng.random(n), rng.random(n)]          # each blade samples a narrow strip of the thatch texture
+    add_blades(part, V, 1 - uvt, trt, tt, nrm(out_dir[gi] * 1.0 + Nr[gi] * 0.5), C, ss[gi],
+               uv_off=uvo, uv_scale=(0.02, 0.25))
 
 
 # =================================================================================================== AO
@@ -466,7 +480,7 @@ def build_tree(name, P, lod=False, seed_override=None):
     if lod:
         live_n, leaf_tris, blade_tris, budget = 70, 1, 1, 7600
     else:
-        live_n, leaf_tris, blade_tris, budget = P['live_n'], 2, 3, P['budget']
+        live_n, leaf_tris, blade_tris, budget = P['live_n'], 2, 1.8, P['budget']
     dens_live = live_n / LIVE
     live_tris = len(tips) * (live_n + live_n * 0.6 * (DEAD - LIVE) / LIVE * 0 + 0.6 * dens_live * (DEAD - LIVE)) * leaf_tris
     remain = budget - tube_tris - live_tris
