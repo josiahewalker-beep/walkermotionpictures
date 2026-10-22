@@ -44,11 +44,15 @@ def box_uv(V, F, scale, top_only=False):
     return uvs
 
 
-def make_mesh(name, V, F, uvs=None, smooth_angle=35):
+def make_mesh(name, V, F, uvs=None, smooth_angle=35, recalc=True):
     me = bpy.data.meshes.new(name)
     Vb = to_blender(V)
     me.from_pydata(Vb.tolist(), [], [list(f) for f in F])
     me.validate(clean_customdata=False)
+    if recalc:
+        bm = bmesh.new(); bm.from_mesh(me)
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.to_mesh(me); bm.free()
     me.update()
     ob = bpy.data.objects.new(name, me)
     bpy.context.scene.collection.objects.link(ob)
@@ -95,11 +99,11 @@ def main():
         elif name == 'grating':
             ob = make_mesh(name, V, F, box_uv(V, F, 1.0, top_only=True))     # 1 UV unit = 1 m, x / -z
         elif name == 'vinyl_old':
-            ob = make_mesh(name, V, F, [np.stack([V[f, 0] / 11.2 + 0.5, (V[f, 1] - 2.55) / 4.8], 1) for f in F], smooth_angle=80)
+            ob = make_mesh(name, V, F, [np.stack([V[f, 0] / 11.2 + 0.5, (V[f, 1] - 2.55) / 4.8], 1) for f in F], smooth_angle=80, recalc=False)
         elif name == 'plate':
-            ob = make_mesh(name, V, F, [np.array([[0, 0], [1, 0], [1, 1], [0, 1]])])
+            ob = make_mesh(name, V, F, [np.array([[0, 0], [1, 0], [1, 1], [0, 1]])], recalc=False)
         else:
-            ob = make_mesh(name, V, F, box_uv(V, F, 0.5))                    # rust, glass, reflector: 1 UV = 0.5 m
+            ob = make_mesh(name, V, F, box_uv(V, F, 0.5), recalc=name not in ('glass', 'reflector'))   # rust, glass, reflector: 1 UV = 0.5 m
         objs[name] = ob
         log(name, len(V), 'verts', len(F), 'faces')
     for name in ATLAS:
