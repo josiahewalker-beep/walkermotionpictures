@@ -46,7 +46,7 @@ def make_material(name, spec):
     if 'ior' in spec:
         bsdf.inputs['IOR'].default_value = spec['ior']
     m.use_backface_culling = not spec.get('double', False)
-    if spec.get('vcol'):
+    if False and spec.get('vcol'):
         # multiply base colour by COLOR_0 so the exporter keeps the attribute
         vc = nt.nodes.new('ShaderNodeVertexColor'); vc.layer_name = 'Col'
         if 'tex' in spec:
@@ -56,6 +56,9 @@ def make_material(name, spec):
         mix.inputs[6].default_value = (*c, 1.0)
         nt.links.new(vc.outputs['Color'], mix.inputs[7])
         nt.links.new(mix.outputs[2], bsdf.inputs['Base Color'])
+    for key, cs in (('tex_arr', 'sRGB'), ('normal_arr', 'Non-Color'), ('rough_arr', 'Non-Color')):
+        if key in spec:
+            spec[key.replace('_arr', '_tex').replace('tex_tex', 'tex')] = make_image(name + '_' + key.split('_')[0] + '.png', spec[key], cs)
     if 'tex' in spec:
         t = nt.nodes.new('ShaderNodeTexImage'); t.image = spec['tex']
         nt.links.new(t.outputs['Color'], bsdf.inputs['Base Color'])

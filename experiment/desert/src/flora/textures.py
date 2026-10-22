@@ -49,9 +49,9 @@ def bark(size=1024, seed=3):
     hgt = ndimage.gaussian_filter(hgt, 0.7, mode='wrap')
     nmap = height_to_normal(hgt * 14.0)
     # albedo: weathered grey plate tops, warm brown-grey sides, near-black furrows
-    top = np.array([0.33, 0.30, 0.26])
-    side = np.array([0.25, 0.22, 0.185])
-    furrow = np.array([0.12, 0.10, 0.085])
+    top = np.array([0.36, 0.33, 0.29])
+    side = np.array([0.28, 0.25, 0.21])
+    furrow = np.array([0.14, 0.12, 0.10])
     t = np.clip(hgt / max(hgt.max(), 1e-6), 0, 1)[..., None]
     col = furrow + (side - furrow) * smoothstep(0.05, 0.35, t) + (top - side) * smoothstep(0.45, 0.9, t)
     col = col * (1 + 0.12 * fine[..., None] + 0.14 * fib[..., None] + 0.10 * big[..., None])
@@ -107,7 +107,7 @@ def thatch(size=1024, seed=5, n_blades=2600):
         edge = np.maximum(edge, (np.roll(np.roll(ids, dy, 0), dx, 1) != ids).astype(np.float32))
     edge = ndimage.gaussian_filter(edge, 1.2, mode='wrap')
     col *= (1 - 0.45 * np.clip(edge, 0, 1))[..., None]
-    col = col / 0.36 * 0.80                                    # normalise to a multiplier (mean ~0.75)
+    col = col / col.mean((0, 1), keepdims=True) * 0.62           # neutral-grey multiplier (linear mean ≈ 0.48)
     a = save_img(np.clip(col, 0.03, 1.0), 'thatch_albedo.jpg')
     hgt = (0.5 * t + 0.25 * fib * 0.2) - 0.6 * edge
     nmap = height_to_normal(ndimage.gaussian_filter(hgt, 1.0, mode='wrap') * 6.0)

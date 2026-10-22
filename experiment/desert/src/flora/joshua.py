@@ -187,13 +187,13 @@ def sample_curve(b, s_vals):
 def tube(part_bark, part_core, b, P, rng, lod=False):
     """Trunk/branch surface. Rings every ~0.09 m. Each quad is bark or thatch-core: the boundary is ragged
     (s + angular noise), the thatch core swells smoothly out of the bark above the skirt edge."""
-    n_r = max(4, int(b.length / (0.16 if lod else 0.09)))
+    n_r = max(3, int(b.length / (0.3 if lod else 0.09)))
     arc = np.linspace(0, b.length, n_r + 1)
     s = b.length - arc + b.s[-1]
     p, T, N, r, _ = sample_curve(b, s)
     Bv = np.cross(T, N)
     rmax = b.r.max()
-    sides = 6 if lod else int(np.clip(round(rmax * 55), 9, 22))
+    sides = 5 if lod else int(np.clip(round(rmax * 55), 9, 22))
     ang = np.linspace(0, 2 * math.pi, sides + 1)
     A = ang[None, :]
     fur_len = P['fur_len']
@@ -232,11 +232,11 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
         V = np.repeat(arc / tile, W)
         tone = np.ones((len(v_all), 3))
         if fur:
-            tone *= np.array([0.50, 0.47, 0.43]) * (0.55 + 0.45 * furness.ravel())[:, None]   # darker where thin
+            tone *= np.array([0.80, 0.75, 0.68]) * (0.6 + 0.4 * furness.ravel())[:, None]   # core sits under the blades
             g = smoothstep(DEAD, 0.0, sv)[:, None]
             tone = tone * (1 - g) + g * np.array([0.30, 0.34, 0.22])
         else:
-            tone *= rng.uniform(0.92, 1.08)
+            tone *= rng.uniform(0.92, 1.08) * 1.3
         used = np.unique(tris)
         remap = -np.ones(len(v_all), int); remap[used] = np.arange(len(used))
         (part_core if fur else part_bark).add(v_all[used], remap[tris], n=n_all[used],
@@ -398,10 +398,10 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         tt_ = np.clip((ss - LIVE) / (DEAD - LIVE), 0, 1)[:, None]
         # a few leaves in the living zone already browning at the tip (natural)
         col = np.where(tt_ < 0.5, green + (yel - green) * (tt_ * 2), yel + (straw - yel) * (tt_ * 2 - 1))
-        col = col / 0.86 * 0.9
+        col = col / 0.86 * 1.08
         nv = V.shape[1]
         # per-vertex: darker toward the leaf base (inside the rosette)
-        ao_t = 0.42 + 0.58 * smoothstep(0.0, 0.8, tt)
+        ao_t = 0.60 + 0.40 * smoothstep(0.0, 0.8, tt)
         C = col[:, None, :] * ao_t[None, :, None]
         # tip spine browns: handled by the texture
         center = p[idx] - T[idx] * 0.08
@@ -447,10 +447,10 @@ def fur_emit(part, V, uvt, trt, tt, gi, flare, out_dir, Nr, ss, rng, m):
     warm = rng.normal(0, 0.025, n)
     col = np.array([0.43, 0.395, 0.335])[None, :] * tone[:, None]
     col[:, 0] += warm; col[:, 2] -= warm * 0.7
-    under = 0.75 + 0.25 * smoothstep(0.08, 0.5, flare[gi])      # flatter blades are under-layers: darker
+    under = 0.85 + 0.15 * smoothstep(0.08, 0.5, flare[gi])      # flatter blades are under-layers: darker
     col *= under[:, None]
-    col = col / 0.85
-    ao_t = 0.55 + 0.45 * smoothstep(0.0, 0.7, tt)
+    col = col / 0.48 * 1.3                              # calibrated: visible fur ≈ 0.35–0.42 linear after AO
+    ao_t = 0.70 + 0.30 * smoothstep(0.0, 0.7, tt)
     C = col[:, None, :] * ao_t[None, :, None]
     uvo = np.c_[rng.random(n), rng.random(n)]          # each blade samples a narrow strip of the thatch texture
     add_blades(part, V, 1 - uvt, trt, tt, nrm(out_dir[gi] * 1.0 + Nr[gi] * 0.5), C, ss[gi],
@@ -458,7 +458,7 @@ def fur_emit(part, V, uvt, trt, tt, gi, flare, out_dir, Nr, ss, rng, m):
 
 
 # =================================================================================================== AO
-def bake_ao(parts, strength=1.0, cell=0.09):
+def bake_ao(parts, strength=0.45, cell=0.09):
     pts, w = [], []
     for k, part in parts.items():
         arr = part.arrays()
@@ -473,8 +473,9 @@ def bake_ao(parts, strength=1.0, cell=0.09):
         if arr is None:
             continue
         v, t, n, c, uv = arr
-        vis = voxel_ao(v + n * 0.04, P, W, cell=cell, sigma=strength)
-        ao = 0.30 + 0.70 * np.clip(vis, 0, 1) ** 0.9
+        vis = np.clip(voxel_ao(v + n * 0.04, P, W, cell=cell, sigma=strength), 0, 1)
+        lo = {'bark': 0.55, 'fur': 0.45, 'leaf': 0.5}[k]
+        ao = lo + (1 - lo) * vis
         c = c.copy()
         c[:, :3] *= ao[:, None]
         # rebuild the part as one chunk
@@ -513,9 +514,9 @@ def build_tree(name, P, lod=False, seed_override=None):
     for b in branches:
         leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=lod)
     if not lod:
-        bake_ao(parts, strength=1.0, cell=0.09)
+        bake_ao(parts, strength=0.45, cell=0.09)
     else:
-        bake_ao(parts, strength=0.8, cell=0.15)
+        bake_ao(parts, strength=0.35, cell=0.15)
     stats = {k: v.ntris for k, v in parts.items()}
     build_tree.tips = [[float(b.pts[-1][0]), float(b.pts[-1][2]), float(-b.pts[-1][1])] for b in tips]
     return parts, stats, len(tips), dens_fur
