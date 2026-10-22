@@ -87,8 +87,11 @@ fn_lowg = D.proj_fn(mirror_half(LOWER), 'front', domain=front_dom, n_per=6, mirr
 FOG = [(0.66, 0.40), (0.80, 0.42), (0.86, 0.36), (0.80, 0.31), (0.66, 0.31), (0.62, 0.35)]
 fn_fog = D.proj_fn(FOG, 'front', domain=front_dom, n_per=6)
 rear_dom = lambda V: V[:, 1] < -2.25
-TAIL = [(0.70, 1.33), (0.88, 1.34), (0.935, 1.30), (0.945, 1.13), (0.93, 1.01), (0.86, 0.99), (0.72, 1.02), (0.68, 1.13)]
-fn_tail = D.proj_fn(TAIL, 'rear', domain=rear_dom, n_per=8)
+TAIL = [(0.70, 1.33), (0.88, 1.34), (1.10, 1.34), (1.10, 0.99), (0.86, 0.99), (0.72, 1.02), (0.68, 1.13)]
+_fn_tail = D.proj_fn(TAIL, 'rear', domain=rear_dom, n_per=8)
+def fn_tail(V, N):
+    # rear outline for the hatch-side edge, clean vertical cut on the body side where the lamp wraps round
+    return np.maximum(_fn_tail(V, N), V[:, 1] + 2.40)
 TBAR = [(0.0, 1.135), (0.66, 1.135), (0.66, 1.155), (0.0, 1.155)]
 fn_tbar = D.proj_fn(mirror_half(TBAR), 'rear', domain=rear_dom, n_per=3, mirror=False)
 RPLATE = [(0.0, 0.97), (0.17, 0.97), (0.185, 0.955), (0.185, 0.79), (0.17, 0.775), (0.0, 0.775)]
