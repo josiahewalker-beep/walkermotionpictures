@@ -361,17 +361,21 @@ p { margin:0; color:var(--mid); }
 /* small laptop windows: a tighter corner so it never reaches the Next / Back buttons */
 @media (min-width:621px) and (max-width:1180px), (min-width:621px) and (max-height:700px) { .radio { column-gap:10px; right:14px; bottom:10px; } .globe, .globe canvas { width:64px; height:64px; } .rtop { font-size:11.5px; white-space:normal; max-width:118px; justify-self:end; line-height:1.25; } .rst { font-size:12px; } .rpl { font-size:11px; min-height:0; } .rinfo { max-width:140px; } .rctl { gap:8px; margin-top:4px; } .rbtn, .knob { width:26px; height:26px; } .rbtn svg { width:12px; height:12px; } }
 @media (max-width:620px) {
-  /* phones: a small globe under the header; the station floats out beside it after each spin, then tucks away */
-  .radio { right:10px; bottom:auto; top:calc(env(safe-area-inset-top,0px) + 62px); display:block; text-align:right; }
-  .rtop, .radio > .rby, .rctl { display:none; }
-  .rrow { display:flex; flex-direction:row-reverse; align-items:flex-start; gap:8px; position:relative; }
-  .globe, .globe canvas { width:58px; height:58px; } .globe::after { bottom:-4px; height:7px; }
-  .radio .rmini { display:grid; position:absolute; right:-6px; top:42px; width:24px; height:24px; } .rmini svg { width:11px; height:11px; }
+  /* phones (Josiah 10-21): the globe rides in the bottom bar, left of List view; the station pops up above it after each spin */
+  .radio { left:0; top:0; right:auto; bottom:auto; display:block; text-align:left; will-change:transform; }
+  .rtop, .radio > .rby, .rctl, .radio .rby2 { display:none; }
+  .rrow { display:block; position:relative; width:46px; height:46px; }
+  .globe, .globe canvas { width:46px; height:46px; } .globe::after { bottom:-4px; height:7px; }
+  .radio .rmini { display:grid; position:absolute; right:-7px; bottom:-3px; width:24px; height:24px; background:rgba(255,255,255,.9); box-shadow:0 4px 12px -6px rgba(11,18,32,.4); } .rmini svg { width:10px; height:10px; }
   .radio.paused .rmini .i-play { display:inline; } .radio.paused .rmini .i-pause { display:none; }
-  .rinfo { width:auto; max-width:170px; margin-top:6px; opacity:0; transform:translateX(8px); pointer-events:none; transition:opacity .35s, transform .35s; }
+  .rinfo { position:absolute; left:-2px; bottom:calc(100% + 10px); width:max-content; max-width:min(250px, calc(100vw - 24px)); margin:0; padding:8px 12px 7px; border-radius:12px; background:rgba(255,255,255,.82); -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); border:1px solid rgba(227,231,238,.95); box-shadow:0 10px 30px -14px rgba(11,18,32,.35); opacity:0; transform:translateY(6px); pointer-events:none; transition:opacity .35s, transform .35s; }
   .radio.peek .rinfo { opacity:1; transform:none; pointer-events:auto; }
-  .rst { font-size:12px; -webkit-line-clamp:1; } .rpl { font-size:11px; }
-  .radio .rby2 { display:block; margin:2px 0 0; font-size:10px; }
+  .radio p { text-shadow:none; }
+  .rst { font-size:12.5px; -webkit-line-clamp:1; } .rpl { font-size:11px; min-height:0; }
+  /* Next and Back a size down so the globe fits beside List view */
+  .ctl #nextbtn, .ctl #backbtn { font-size:13px; padding:9px 11px; min-height:40px; }
+}
+@media (max-width:380px) { .ctl { gap:5px; } .ctl #listbtn { font-size:13.5px; padding:10px 12px; } .ctl .bird { padding:10px 11px; } .ctl #nextbtn, .ctl #backbtn { padding:9px 9px; } }   /* 360-px Androids still fit the globe */
 }
 
 /* ---------- first load: the grid fades in, then the stops ---------- */
@@ -1017,7 +1021,7 @@ function openList() { buildList(); $('list').hidden = false; $('listbtn').textCo
 function closeList() { $('list').hidden = true; $('listbtn').textContent = 'List view'; $('nextbtn').hidden = false; }
 
 // The control bar sits just under whichever card we are at; between cards it rests at the bottom of the screen.
-const ctlEl = document.querySelector('.ctl'), ctlPos = { x: innerWidth / 2, y: innerHeight - 60, set: false };
+const radioEl = document.getElementById('radio'), ctlEl = document.querySelector('.ctl'), ctlPos = { x: innerWidth / 2, y: innerHeight - 60, set: false };
 const ndc = new THREE.Vector3();
 function placeCtl(dt) {
   const w = ctlEl.offsetWidth, h = ctlEl.offsetHeight, m = 14, bottom = innerHeight - h - m - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0);
@@ -1033,7 +1037,15 @@ function placeCtl(dt) {
   }
   const k = ctlPos.set ? 1 - Math.exp(-dt * 10) : 1; ctlPos.set = true;
   ctlPos.x += (x - ctlPos.x) * k; ctlPos.y += (y - ctlPos.y) * k;
-  ctlEl.style.transform = `translate(${(ctlPos.x - w / 2).toFixed(1)}px, ${ctlPos.y.toFixed(1)}px)`;
+  if (innerWidth <= 620) {
+    // phones: globe + bar travel as one centred group, the globe on the left
+    const rw = radioEl.offsetWidth, rh = radioEl.offsetHeight, gap = innerWidth <= 380 ? 10 : 12, left = Math.min(Math.max(ctlPos.x - (rw + gap + w) / 2, 10), innerWidth - rw - gap - w - 10);
+    radioEl.style.transform = `translate(${left.toFixed(1)}px, ${(ctlPos.y + (h - rh) / 2).toFixed(1)}px)`;
+    ctlEl.style.transform = `translate(${(left + rw + gap).toFixed(1)}px, ${ctlPos.y.toFixed(1)}px)`;
+  } else {
+    if (radioEl.style.transform) radioEl.style.transform = '';
+    ctlEl.style.transform = `translate(${(ctlPos.x - w / 2).toFixed(1)}px, ${ctlPos.y.toFixed(1)}px)`;
+  }
 }
 
 // ---------- the black hole: a 20 s end of the fabric, and its recreation ----------
