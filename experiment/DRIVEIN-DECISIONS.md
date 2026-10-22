@@ -29,3 +29,4 @@
   under the camera's upward tilt; Josiah chose to keep round 3's ground (gentle rise, hidden lifts) and add the tracks: a
   90 m overlay drawn in code (worn lanes, the ruts of every car into its spot, old faint arcs) over the fine dirt tile.
 - 10-22 Josiah: no telephone pole / streetlamp in frame. The pole is removed; its warm light stays, moved just off frame left.
+- 10-22 Josiah: the hero car (window down, popcorn bucket) is a silver 1994–98 Saab 9000 Aero 5-door hatchback with the Aero body kit and the Super Aero 3-spoke 16" wheels. Built procedurally from reference; no badges or wordmarks.
