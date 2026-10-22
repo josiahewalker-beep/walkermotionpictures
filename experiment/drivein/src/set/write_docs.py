@@ -92,7 +92,7 @@ bulb centre (0.90, 4.38, 0). Rotate about Y so the arm points over the lot.
 **`popcorn_bucket.glb`** — origin at the bottom centre; root `popcorn_bucket` → `bucket` (material `paper`: 16 red/white
 stripes, a white band with POPCORN lettering, rolled rim, grease spots; double-sided so the inner wall shows) and
 `popcorn` (material `popcorn`: a low dome heaped with 18 kernels). Ø 0.18 m top, 0.22 m wall, heap to ~0.27 m.
-**`popcorn_kernel.glb`** — one popped kernel (~2 cm, 292 tris, material `popcorn`), origin at its lowest point; instance
+**`popcorn_kernel.glb`** — one popped kernel (~2 cm, 276 tris, material `popcorn`), origin at its lowest point; instance
 it with random rotation and ±20 % scale for the spill.
 """
 
@@ -109,16 +109,16 @@ every moving part is its own node with its pivot (node origin) at the hinge, so 
 rotating `wing_L` about its local Z by +θ and `wing_R` by −θ (θ ≈ −30°…+70°, 15-25 Hz looks right for a moth). Forewing
 over hindwing in one mesh per side; material `wing` (pale dusty buff, wavy antemedial/postmedial lines, discal spot;
 double-sided). Span 5 cm.
-**`mouse.glb`** — field mouse, ~21 cm nose to tail tip, origin on the ground under the body. Hierarchy: `mouse` → `body`
+**`mouse.glb`** — deer mouse (brown back, white belly and feet, bicoloured tail), ~19 cm nose to tail tip, origin on the ground under the body. Hierarchy: `mouse` → `body`
 (pivot (0, 0.02, 0)) → `head` (pivot at the neck (0, 0.023, 0.028); pitch it for nibbling) → `head_skin` (ears, nose),
 `eyes`; `tail` (pivot at the base (0, 0.019, −0.044); yaw/pitch it, it curves to the ground); `leg_FL`, `leg_FR`,
 `leg_HL`, `leg_HR` (pivots at shoulders/hips; swing about local X for the scurry); `paws` (pivot at the chest
 (0, 0.016, 0.028); two little hands tucked under the chin) → `kernel_socket` (empty at the grip point, parent a kernel
 there while it nibbles). When it sits up, pitch `body` back ~35-45° about X and raise `paws` toward the mouth. Materials
 `fur` (1024 agouti brown back / buff belly, normal-mapped hair flow), `skin` (ears, nose, tail, feet), `eye`.
-**`owl.glb`** — great horned owl in flight, span ~1.2 m, origin at the body centre. `owl` → `body` (round head with ear
+**`owl.glb`** — great horned owl in flight, span ~1.07 m, origin at the body centre. `owl` → `body` (round head with ear
 tufts, barred breast, scalloped tail fan, tucked feet; `feather`) → `beak`, `eyes`, `wing_L` (+X), `wing_R`, pivots at the
-shoulders (±0.075, 0.03, 0.05). Wings are thick cambered arm/hand grids with a scalloped trailing edge and six slotted,
+shoulders (±0.062, 0.035, 0.05). Wings are thick cambered arm/hand grids with a scalloped trailing edge and six slotted,
 splayed primaries; flap by rotating about local Z (+θ left, −θ right; owls flap slowly, ~2-3 Hz, or glide). Built for the
 outline against the moonlit sky; `feather` is double-sided.
 """

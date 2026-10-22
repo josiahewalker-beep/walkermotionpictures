@@ -53,7 +53,7 @@ C = dict(
     grille=(0.40, 0.575, 0.675), grille_bars=1, grille_vbars=11, grille_sur_mat='chrome', lower_intake=(0.50, 0.27, 0.37),
     tail=(0.36, 0.68, 0.88), rplate=0.60,
     handles=[0.02, -1.08], markers=((S_FA + 0.85, 0.60), (S_RA - 0.85, 0.64)), fuel=(S_RA - 0.45, BELT - 0.13),
-    rub=(lambda s: np.full_like(s, 0.50), 0.016), rub_mat='chrome', rub_raise=0.005,
+    rub=(lambda s: np.full_like(s, 0.50), 0.02), rub_mat='chrome', rub_raise=0.005,
     interior=dict(seat_s=0.05, seat_x=0.40, floor=0.30, dash_s=0.92, dash_z=0.88, dash_w=0.78, wheel_s=0.56, hip_z=0.50,
                   seat_h=0.62, rear_seats=True, rear_s=-0.95, cabin_bounds=((-0.85, -1.75, 0.30), (0.85, 1.1, 1.40)),
                   glass_band=(BELT + 0.02, 1.36)),

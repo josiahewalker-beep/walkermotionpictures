@@ -51,7 +51,7 @@ def refine_for_cuts(B, V, F, N, cuts, iters=4):
         for name, fn, offs in cuts:
             if not offs: continue
             ga = fn(V[a], N[a]); gb = fn(V[b], N[b])
-            for t in (0.25, 0.5, 0.75):
+            for t in (0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875):
                 P = V[a] + t * (V[b] - V[a]); Nt = normalize(N[a] + t * (N[b] - N[a]))
                 gt = fn(P, Nt)
                 for o in offs:

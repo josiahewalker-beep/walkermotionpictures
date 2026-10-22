@@ -459,7 +459,7 @@ def pack(raw, out):
     exe = GLTFPACK if os.path.exists(GLTFPACK) else shutil.which('gltfpack')
     if not exe:
         os.replace(raw, out); CB.log('gltfpack not found, wrote uncompressed', out); return
-    subprocess.run([exe, '-i', raw, '-o', out, '-cc', '-kn', '-km', '-noq'], check=True, capture_output=True)
+    subprocess.run([exe, '-i', raw, '-o', out, '-cc', '-kn', '-km'], check=True, capture_output=True)
     os.remove(raw)
     CB.log('packed', out, os.path.getsize(out))
 
