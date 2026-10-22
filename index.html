@@ -1405,7 +1405,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
     if (gainN && waLive && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
     if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); showKnob(0); }
     audio.play().then(() => { fadeTo(vol, 2200); box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
-      .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
+      .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = matchMedia('(hover:hover) and (pointer:fine)').matches ? 'Click anywhere to listen' : 'Tap anywhere to listen'; peek(0); } });
   }
   function stop() { wantPlay = false; box.classList.add('paused'); playBtn.setAttribute('aria-label', 'Play'); fadeTo(0, 500, () => { if (!wantPlay) audio.pause(); }); }
   // a station that is off air: try another place
@@ -1435,7 +1435,7 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   box.addEventListener('wheel', e => e.stopPropagation());
 
   // Browsers hold sound until the visitor interacts: the first click, tap or key anywhere starts the station.
-  const evs = ['pointerup', 'touchend', 'keydown', 'click'];   // pointerdown/touchstart don't count as a tap for Safari's sound rules
+  const evs = ['pointerdown', 'mousedown', 'pointerup', 'touchend', 'keydown', 'click'];   // Chrome lets sound start on the press (a drag to look around counts); Safari on the lift, so both are here
   // A brand-new site gets no sound until the visitor's first click, tap or key (every browser's rule). That first touch also
   // unlocks the player for Safari by playing a tiny silent clip, so the station can start the moment it lands.
   const BLIP = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
