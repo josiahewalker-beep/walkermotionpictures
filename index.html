@@ -397,6 +397,16 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
   .more { grid-template-columns:1fr 1fr; }
 }
 
+/* the way in (Josiah 10-21): browsers hold sound until a first click, so the entrance is that click. The grid fades in behind it. */
+#gate { position:fixed; inset:0; z-index:35; display:grid; place-content:center; justify-items:center; gap:12px; pointer-events:none; opacity:0; transition:opacity .8s ease; }
+body.gate #gate { opacity:1; pointer-events:auto; transition-delay:.7s; }
+body.entered #gate { opacity:0; pointer-events:none; transition:opacity .45s ease; }
+#gate button { font:inherit; font-size:17px; font-weight:600; letter-spacing:.01em; color:#fff; background:var(--ink); border:0; border-radius:999px; padding:15px 30px 15px 24px; min-height:52px; display:inline-flex; align-items:center; gap:12px; cursor:pointer; box-shadow:0 18px 40px -18px rgba(11,18,32,.55); transition:background .2s, transform .2s; }
+#gate button:hover { background:var(--accent); transform:translateY(-1px); }
+#gate button:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+#gate button svg { width:18px; height:18px; fill:currentColor; flex:none; }
+#gate p { margin:0; font-size:12.5px; color:var(--mid); letter-spacing:.02em; text-shadow:0 0 6px #f6f7f9, 0 0 12px #f6f7f9; }
+
 /* list view: the same cards, stacked, for anyone who prefers to read */
 #list { position:fixed; inset:0; z-index:20; overflow:auto; background:var(--bg); padding:calc(env(safe-area-inset-top,0px) + 84px) max(14px,3vw) 90px; }
 #list .wrap { max-width:68rem; margin:0 auto; display:grid; gap:22px; }
@@ -424,7 +434,13 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 .risk:hover { background:rgba(229,72,77,.08); border-color:#e5484d; }
 </style>
 <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
-</head><body class="intro">
+</head><body class="intro gate">
+<div id="gate"><button type="button" id="enter"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3.2v9.1a3 3 0 1 0 1.6 2.6V7.1l6.4-1.5v5.1a3 3 0 1 0 1.6 2.6V1.6z"/></svg>Enter</button><p>Sound on · the radio plays</p></div>
+<script>
+// resolves when the visitor comes in; Enter or Space on the keyboard works too
+window.ENTERED_P = new Promise(done => { const b = document.getElementById('enter'), go = () => { if (document.body.classList.contains('entered')) return; document.body.classList.add('entered'); document.body.classList.remove('gate'); done(); };
+  b.addEventListener('click', go); addEventListener('keydown', e => { if (!document.body.classList.contains('entered') && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); go(); } }); });
+</script>
 <div id="void" aria-hidden="true"></div>
 <canvas id="gl" aria-hidden="true"></canvas>
 <button id="hole" type="button" hidden aria-label="A black hole"><span class="tip" id="holetip">Do not click this unless you are okay with the end.</span></button>
@@ -574,6 +590,7 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 </template>
 
 <script type="module">
+const ENTERED = window.ENTERED_P;
 import * as THREE from 'three';
 import { CSS3DRenderer, CSS3DObject } from './CSS3DRenderer.js';
 
@@ -609,7 +626,7 @@ let gl;
 try { gl = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, alpha: true }); } catch (e) { gl = null; }
 const listWrap = $('listwrap');
 function buildList() { if (!listWrap.childElementCount) { for (const c of $('cards').content.querySelectorAll('.card')) listWrap.append(c.cloneNode(true)); if (window.hydrate) hydrate(listWrap); wireMail(listWrap); } }
-if (!gl) { document.body.classList.remove('intro', 'intro-c'); buildList(); $('list').hidden = false; $('listbtn').hidden = true; $('nextbtn').hidden = true; throw new Error('no webgl'); }
+if (!gl) { document.body.classList.remove('intro', 'intro-c', 'gate'); document.getElementById('gate').remove(); buildList(); $('list').hidden = false; $('listbtn').hidden = true; $('nextbtn').hidden = true; throw new Error('no webgl'); }
 // the grid's lines are one device pixel wide, so on a phone's dense screen they all but vanish; phones draw the grid at
 // 1x so its lines read like the desktop's (the cards are HTML and stay sharp either way)
 gl.setPixelRatio(innerWidth < 700 ? 1 : Math.min(devicePixelRatio, 2)); gl.setClearColor(0xf6f7f9, 0);
@@ -1177,15 +1194,16 @@ const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.s
 // Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
 {
   const first = cards[startAt] ? startAt : 'hero', body = document.body;
-  if (still) { body.classList.remove('intro', 'intro-c'); go(first); }
+  if (still) { ENTERED.then(() => { body.classList.remove('intro', 'intro-c'); go(first); }); }
   else {
     requestAnimationFrame(() => requestAnimationFrame(() => { body.classList.add('intro-c'); body.classList.remove('intro'); }));
-    setTimeout(() => {
+    // the stops fade in and the camera travels once the visitor has come in through the Enter button
+    ENTERED.then(() => {
       ORDER.forEach((k, i) => { cards[k].el.style.transitionDelay = i * 120 + 'ms'; });
       body.classList.remove('intro-c');
       setTimeout(() => { for (const k in cards) cards[k].el.style.transitionDelay = ''; }, 2200);
-    }, 1400);
-    setTimeout(() => go(first), 2500);
+      setTimeout(() => go(first), 1100);
+    });
   }
 }
 // headline auditions: #h=1..4 (Portfolio selects), #k=1..4 (intro); combine with &
@@ -1456,13 +1474,13 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   // a video playing takes the sound: the radio fades out, and fades back in when the video stops or closes
   window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, get level() { return level(); }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
   // first spin once the stops have faded in
-  setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
+  ENTERED.then(() => setTimeout(tune, 250));             // spins as the globe fades in, right after Enter (its click unlocked the sound)
 })();
 window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
 </script>
 <script>
-// safety net: if anything stops the opening sequence, show the page anyway
-setTimeout(() => document.body.classList.remove('intro', 'intro-c'), 6000);
+// safety net: if anything stops the opening sequence, Enter still shows the page
+document.getElementById('enter') && document.getElementById('enter').addEventListener('click', () => setTimeout(() => document.body.classList.remove('intro', 'intro-c'), 4500));
 </script>
 <script>
 (() => {
