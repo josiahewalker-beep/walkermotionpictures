@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asset preview</title>
+<meta name="robots" content="noindex,nofollow">
+<style>html,body{margin:0;height:100%;background:#20232a;overflow:hidden} canvas{display:block;width:100vw;height:100vh} #info{position:fixed;left:12px;bottom:10px;color:#cfd3da;font:12px/1.4 ui-monospace,monospace;background:rgba(0,0,0,.45);padding:6px 9px;border-radius:6px}</style>
+<script type="importmap">{ "imports": { "three": "../../vendor/three.module.min.js", "three/addons/": "../../vendor/jsm/", "three/examples/jsm/": "../../vendor/jsm/", "postprocessing": "../../vendor/pp-shim.js" } }</script>
+</head><body><canvas id="c"></canvas><div id="info">loading…</div>
+<script type="module">
+// Lights an asset the way the desert scene does: golden-hour sun from camera-left, sky-based image lighting, ACES.
+// Query: glb=<path relative to desert/>, dist (m), h (camera height m), yaw (deg around the asset), fov, tx,ty,tz (look target m), ground=0|1
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+const q = new URLSearchParams(location.search), num = (k, d) => q.has(k) ? parseFloat(q.get(k)) : d;
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(innerWidth, innerHeight, false);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = num('exp', 0.9);
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const sunDir = new THREE.Vector3(-0.86, 0.26, 0.42).normalize();
+// sky → environment (same recipe the scene uses)
+const sky = new Sky(); sky.scale.setScalar(4000);
+const u = sky.material.uniforms; u.turbidity.value = 6; u.rayleigh.value = 1.6; u.mieCoefficient.value = 0.006; u.mieDirectionalG.value = 0.86; u.sunPosition.value.copy(sunDir);
+const pm = new THREE.PMREMGenerator(r); const envScene = new THREE.Scene(); envScene.add(sky.clone());
+const gnd = new THREE.Mesh(new THREE.CircleGeometry(3000, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x9a6a42 })); gnd.position.y = -0.01; envScene.add(gnd);
+scene.environment = pm.fromScene(envScene, 0.02).texture; scene.add(sky);
+const sun = new THREE.DirectionalLight(0xffc68a, num('sun', 3.2)); sun.position.copy(sunDir).multiplyScalar(40); sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 120 }); sun.shadow.bias = -0.0002; sun.shadow.normalBias = 0.02;
+scene.add(sun, sun.target);
+if (num('ground', 1)) { const g = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xc79060, roughness: 0.95 })); g.receiveShadow = true; scene.add(g); }
+const cam = new THREE.PerspectiveCamera(num('fov', 35), innerWidth / innerHeight, 0.05, 5000);
+const info = document.getElementById('info');
+new GLTFLoader().load('../' + (q.get('glb') || 'assets/test.glb'), g => {
+  const o = g.scene; let tris = 0, mats = new Set();
+  o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; tris += (m.geometry.index ? m.geometry.index.count : m.geometry.attributes.position.count) / 3; [].concat(m.material).forEach(x => mats.add(x.name)); } });
+  scene.add(o);
+  const box = new THREE.Box3().setFromObject(o), size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  const yaw = THREE.MathUtils.degToRad(num('yaw', 30)), dist = num('dist', Math.max(size.x, size.y, size.z) * 1.6), h = num('h', size.y * 0.6);
+  const tgt = new THREE.Vector3(num('tx', ctr.x), num('ty', ctr.y), num('tz', ctr.z));
+  cam.position.set(tgt.x + Math.sin(yaw) * dist, h, tgt.z + Math.cos(yaw) * dist); cam.lookAt(tgt);
+  info.textContent = `${q.get('glb')} · ${Math.round(tris).toLocaleString()} tris · ${size.x.toFixed(2)}×${size.y.toFixed(2)}×${size.z.toFixed(2)} m · materials: ${[...mats].join(', ')}`;
+  r.render(scene, cam); window.__ready = true;
+}, undefined, e => { info.textContent = 'load failed: ' + e; window.__ready = true; });
+</script></body></html>

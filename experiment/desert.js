@@ -2,6 +2,8 @@
 // Everything is built around the hero card where it already sits; the card never moves, only the camera does.
 // Units: the site's world units (1 unit ≈ 1 CSS px at the card plane). The card is ~4.3 m tall, so ~108 units per metre.
 import * as THREE from 'three';
+import { setupRenderer, skyEnvironment, makeComposer } from './desert/render.js';
+import { loadGLB, loadTex, prepAsset, instance, vehicleFrom } from './desert/assets.js';
 
 const M = 108;                                    // world units per metre
 const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
@@ -38,7 +40,10 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   scene.add(root);
   let fogBefore = null, hazeFog = null;
   const useHaze = () => { if (fogBefore === null) fogBefore = scene.fog; scene.fog = hazeFog; };
-  let world = null, lookKey = 'mojave', road = null, cars = [], skyMat = null, trees = [], viewInfo = null;
+  let world = null, lookKey = 'mojave', road = null, cars = [], skyMat = null, trees = [], viewInfo = null, sunLight = null, hemiLight = null;
+  const placed = { tree: [], bush: [], rock: [] };      // where the scatter put things, so assets can take the same spots
+  const TPL = {};                                         // loaded asset templates
+  let groundMesh = null, envTex = null, composer = null, landedAt = -1;
   const hidden = [];
 
   // ---------- build-in: every desert material shares these uniforms, read in the haze chunk below ----------
@@ -84,7 +89,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   // ---------- sky dome ----------
   function sky(L) {
     const s = new THREE.Vector3(...L.sun).normalize();
-    skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+    skyMat = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false,   // encoded like everything else, so it looks the same with and without post
       uniforms: { zen: { value: new THREE.Color(L.zenith) }, hor: { value: new THREE.Color(L.horizon) }, haze: { value: new THREE.Color(L.haze) }, sun: { value: s }, sunCol: { value: new THREE.Color(L.sunCol) },
         uT: { value: 0 }, uStar: { value: 0 }, uSkyRev: { value: 1 }, uVoid: REV.uVoid, uRev: REV.uRev, uMode: REV.uMode },
       vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
@@ -113,7 +118,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
             vec2 cf = abs(fract(sc - 0.5) - 0.5) / max(fwidth(sc), vec2(1e-4)); float edge = 1.0 - clamp(min(cf.x, cf.y) - 0.8, 0.0, 1.0);
             c = mix(mix(uVoid * 0.94, vec3(0.24, 0.40, 0.96), edge), c, smoothstep(0.05, 0.85, g));
           }
-          gl_FragColor = vec4(mix(uVoid, c, uSkyRev), 1.0); }` });
+          gl_FragColor = vec4(pow(max(mix(uVoid, c, uSkyRev), vec3(0.0)), vec3(2.2)), 1.0);
+          #include <colorspace_fragment>
+        }` });
     const d = new THREE.Mesh(new THREE.SphereGeometry(95000, 64, 32), skyMat); d.position.set(C.x, Y0, C.z); d.renderOrder = -10; d.frustumCulled = false; return d;
   }
 
@@ -248,7 +255,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
     const m = new THREE.Mesh(g, groundHook(revHook(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }))));
-    m.position.set(C.x, Y0, C.z); m.receiveShadow = true; return m;
+    m.position.set(C.x, Y0, C.z); m.receiveShadow = true; groundMesh = m; return m;
   }
   function range(L, R, hMin, hMax, color, seed, mesa) {
     // a sloped band of ridges: base at R, crest set back, so the sun models the slopes instead of a flat wall
@@ -273,16 +280,16 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   function makeRoad(L, P, az) {      // P: a point on the centre line (world x,z); az: heading in degrees (0 = -z, 90 = +x)
     const dir = new THREE.Vector3(Math.sin(az * Math.PI / 180), 0, -Math.cos(az * Math.PI / 180)), n = new THREE.Vector3(-dir.z, 0, dir.x);
     const lane = 3.7 * M, shoulderW = 1.4 * M, len = 140000;
-    const g = new THREE.Group();
+    const g = new THREE.Group(), roles = { yellow: [], white: [] }; g.userData.roles = roles;
     const strip = (w, off, color, y, dash) => {
       if (!dash) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), groundHook(mat(color, { polygonOffset: true, polygonOffsetFactor: -y, polygonOffsetUnits: -y })));
-        m.rotation.x = -Math.PI / 2; m.rotation.z = -Math.atan2(dir.x, -dir.z); m.position.set(P.x + n.x * off, Y0 + y, P.z + n.z * off); m.receiveShadow = true; g.add(m); return; }
+        m.rotation.x = -Math.PI / 2; m.rotation.z = -Math.atan2(dir.x, -dir.z); m.position.set(P.x + n.x * off, Y0 + y, P.z + n.z * off); m.receiveShadow = true; m.userData.w = w; m.userData.len = len; g.add(m); return m; }
     };
-    strip(2 * lane + 2 * shoulderW + 1.2 * M, 0, L.shoulder, 0.6);      // gravel shoulder band
-    strip(2 * lane + 2 * shoulderW, 0, L.asphalt, 1.2);                 // asphalt
-    strip(0.12 * M, -0.12 * M, 0xe8b532, 1.8); strip(0.12 * M, 0.12 * M, 0xe8b532, 1.8);   // double yellow
-    strip(0.15 * M, lane + 0.1 * M, 0xeeeeea, 1.8); strip(0.15 * M, -lane - 0.1 * M, 0xeeeeea, 1.8);  // fog lines
-    road = { P: P.clone(), dir, n, lane, halfW: lane + shoulderW + 0.6 * M,
+    roles.shoulder = strip(2 * lane + 2 * shoulderW + 1.2 * M, 0, L.shoulder, 0.6);      // gravel shoulder band
+    roles.asphalt = strip(2 * lane + 2 * shoulderW, 0, L.asphalt, 1.2);                 // asphalt
+    roles.yellow.push(strip(0.12 * M, -0.12 * M, 0xe8b532, 1.8), strip(0.12 * M, 0.12 * M, 0xe8b532, 1.8));   // double yellow
+    roles.white.push(strip(0.15 * M, lane + 0.1 * M, 0xeeeeea, 1.8), strip(0.15 * M, -lane - 0.1 * M, 0xeeeeea, 1.8));  // fog lines
+    road = { P: P.clone(), dir, n, lane, halfW: lane + shoulderW + 0.6 * M, group: g,
       dist(x, z) { const dx = x - P.x, dz = z - P.z; return Math.abs(dx * n.x + dz * n.z); },
       at(s, laneSide) { return new THREE.Vector3(P.x + dir.x * s + n.x * laneSide * lane * 0.5, Y0, P.z + dir.z * s + n.z * laneSide * lane * 0.5); } };
     return g;
@@ -290,7 +297,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
 
   // ---------- billboard structure (behind and below the card; nothing crosses in front of the face) ----------
   function billboard(L) {
-    const g = new THREE.Group(), dark = mat(L.frame), steel = mat(0x6d7178), galv = mat(0x8e9298);
+    const g = new THREE.Group(); g.userData.kind = 'billboard'; const _g = g, dark = mat(L.frame), steel = mat(0x6d7178), galv = mat(0x8e9298);
     const box = (w, h, d, x, y, z, m = dark) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(C.x + x, y, C.z + z); b.castShadow = b.receiveShadow = true; g.add(b); return b; };
     box(W + 28, H + 28, 30, 0, C.y, -22);                                       // face frame, card sits on its front
     for (let i = -3; i <= 3; i++) box(14, H + 10, 30, i * W / 7, C.y, -70, steel);           // back verticals
@@ -353,25 +360,25 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const bushGeo = new THREE.IcosahedronGeometry(1, 1), bushCount = 1400;
     L.bush.forEach((c, bi) => {
       const im = new THREE.InstancedMesh(bushGeo, mat(c), bushCount / 3 | 0), d = new THREE.Object3D(); let i = 0;
-      place(bushCount / 3 | 0, 300, 26000, 0.8 * M, (x, z, dd) => { const s = (0.2 + Math.pow(r(), 2) * 0.45) * M * (dd > 8000 ? 1.5 : 1) * (inStrip(x, z) ? 0.55 : 1); d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r() * .6), s * 0.55, s * (1 + r() * .6)); d.rotation.y = r() * 6; d.updateMatrix(); im.setMatrixAt(i++, d.matrix); }, 'bush');
-      im.count = i; im.castShadow = true; im.receiveShadow = true; g.add(im);
+      place(bushCount / 3 | 0, 300, 26000, 0.8 * M, (x, z, dd) => { const s = (0.2 + Math.pow(r(), 2) * 0.45) * M * (dd > 8000 ? 1.5 : 1) * (inStrip(x, z) ? 0.55 : 1); d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r() * .6), s * 0.55, s * (1 + r() * .6)); d.rotation.y = r() * 6; d.updateMatrix(); im.setMatrixAt(i++, d.matrix); placed.bush.push({ x, z, s: s / M, rot: d.rotation.y, i: i - 1, im }); }, 'bush');
+      im.count = i; im.castShadow = true; im.receiveShadow = true; im.userData.kind = 'bush'; g.add(im);
     });
     // rocks
     const rockGeo = new THREE.DodecahedronGeometry(1, 0), rk = new THREE.InstancedMesh(rockGeo, mat(L.rock), 260), d = new THREE.Object3D(); let ri = 0;
-    place(260, 400, 18000, 0.5 * M, (x, z) => { const s = (0.12 + Math.pow(r(), 4) * 1.0) * M; d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r()), s * (0.5 + r() * 0.5), s * (1 + r())); d.rotation.set(r(), r() * 6, r()); d.updateMatrix(); rk.setMatrixAt(ri++, d.matrix); });
-    rk.count = ri; rk.castShadow = rk.receiveShadow = true; g.add(rk);
+    place(260, 400, 18000, 0.5 * M, (x, z) => { const s = (0.12 + Math.pow(r(), 4) * 1.0) * M; d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r()), s * (0.5 + r() * 0.5), s * (1 + r())); d.rotation.set(r(), r() * 6, r()); d.updateMatrix(); rk.setMatrixAt(ri++, d.matrix); placed.rock.push({ x, z, s: s / M, rot: d.rotation.y, i: ri - 1, im: rk }); });
+    rk.count = ri; rk.castShadow = rk.receiveShadow = true; rk.userData.kind = 'rock'; g.add(rk);
     // a few boulder piles near the billboard
     for (let k = 0; k < 2; k++) { const bx = C.x + (k - 1) * 9 * M + (r() - .5) * 4 * M, bz = C.z - (3 + r() * 9) * M; if (!ok(bx, bz, M) || inStrip(bx, bz)) continue;
-      for (let j = 0; j < 4; j++) { const s = (0.4 + r() * 0.7) * M, b = new THREE.Mesh(rockGeo, mat(L.rock)); b.position.set(bx + (r() - .5) * 2 * M, Y0 + s * .3, bz + (r() - .5) * 2 * M); b.scale.set(s * 1.3, s * .8, s); b.rotation.set(r(), r() * 6, r()); b.castShadow = b.receiveShadow = true; g.add(b); } }
+      for (let j = 0; j < 4; j++) { const s = (0.4 + r() * 0.7) * M, b = new THREE.Mesh(rockGeo, mat(L.rock)); b.position.set(bx + (r() - .5) * 2 * M, Y0 + s * .3, bz + (r() - .5) * 2 * M); b.scale.set(s * 1.3, s * .8, s); b.rotation.set(r(), r() * 6, r()); b.castShadow = b.receiveShadow = true; b.userData.kind = 'rock'; g.add(b); placed.rock.push({ x: b.position.x, z: b.position.z, s: s * 1.3 / M, rot: b.rotation.y, mesh: b }); } }
     // trees
     const tree = L.tree === 'joshua' ? joshua : saguaro;
-    place(L.tree === 'joshua' ? 70 : 55, 1800, 24000, 1.5 * M, (x, z, dd) => { const t = tree(L, r, dd > 9000 ? 1.25 : 1); t.position.set(x, Y0, z); t.rotation.y = r() * 6; g.add(t); trees.push(new THREE.Vector3(x, Y0, z)); });
+    place(L.tree === 'joshua' ? 70 : 55, 1800, 24000, 1.5 * M, (x, z, dd) => { const t = tree(L, r, dd > 9000 ? 1.25 : 1); t.position.set(x, Y0, z); t.rotation.y = r() * 6; t.userData.kind = 'tree'; g.add(t); trees.push(new THREE.Vector3(x, Y0, z)); placed.tree.push({ x, z, rot: t.rotation.y, big: dd > 9000, node: t }); });
     if (view && L.tree === 'joshua') {
       const half = view.row * view.tanH, poleL = dl(C.x, C.z - 70).l;
       for (const u of [-0.92, -0.55, -0.12, 0.38, 0.8]) { let lat = u * half + (r() - .5) * 1.5 * M; if (Math.abs(lat - poleL) < 3 * M) lat += 3.5 * M * Math.sign(lat - poleL || 1);
         const dd = view.row + (r() - .5) * 1.6 * M, x = view.eye.x + view.fwd.x * dd + view.right.x * lat, z = view.eye.z + view.fwd.z * dd + view.right.z * lat;
         if (road && road.dist(x, z) < road.halfW + M) continue;
-        const t = joshua(L, r, 1.1); t.position.set(x, Y0, z); t.rotation.y = r() * 6; g.add(t); trees.push(new THREE.Vector3(x, Y0, z)); }
+        const t = joshua(L, r, 1.1); t.position.set(x, Y0, z); t.rotation.y = r() * 6; t.userData.kind = 'tree'; g.add(t); trees.push(new THREE.Vector3(x, Y0, z)); placed.tree.push({ x, z, rot: t.rotation.y, row: true, node: t }); }
     }
     if (L.tree === 'saguaro') place(40, 900, 12000, 1.2 * M, (x, z) => { const t = ocotillo(L, r, 1); t.position.set(x, Y0, z); g.add(t); });
     return g;
@@ -434,23 +441,6 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const holder = new THREE.Group(); holder.add(m); return holder;
   }
 
-  // ---------- foreground layer: vehicles pass in front of the slide, which is HTML on top of the main canvas ----------
-  let fg = null; const SHADOW_ONLY = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
-  function foreground() {
-    if (fg) return fg;
-    const cv = document.createElement('canvas'); cv.id = 'desert-fg'; cv.setAttribute('aria-hidden', 'true');
-    Object.assign(cv.style, { position: 'fixed', inset: '0', width: '100%', height: '100%', pointerEvents: 'none' });
-    (document.getElementById('css') || document.body).after(cv);
-    const r = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true }); r.setPixelRatio(renderer.getPixelRatio()); r.setClearColor(0x000000, 0);
-    fg = { cv, r, sc: new THREE.Scene(), live: 0, size() { r.setSize(innerWidth, innerHeight, false); } }; fg.size(); addEventListener('resize', fg.size);
-    return fg;
-  }
-  function fgLights(L, sun) {
-    const F = foreground(); F.sc.clear();
-    const s2 = new THREE.DirectionalLight(L.sunCol, L.sunI); s2.position.copy(sun.position); s2.target.position.copy(sun.target.position);
-    F.sc.add(s2, s2.target, new THREE.HemisphereLight(L.zenith, L.sand[0], L.hemi)); F.sc.fog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
-  }
-
   // ---------- the sequence after landing ----------
   // t = 2 s red sports car, left to right in the near lane · t = 10 s blue minivan, right to left in the far lane ·
   // t = 13 s tumbleweed crosses behind the first row of Joshua trees in ~8 s · stars fade in over ~20 s · then light traffic
@@ -464,12 +454,11 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       const vis = q.z < 1 && Math.abs(q.x) < 1.08 && Math.abs(q.y) < 1.08; if (vis && sIn === null) sIn = sv; if (vis) sOut = sv; }
     if (sIn === null) return;
     const s0 = sIn - dirSign * 6 * M, s1 = sOut + dirSign * 8 * M, v = make(), heading = road.dir.clone().multiplyScalar(dirSign);
-    v.rotation.y = Math.atan2(heading.x, heading.z); const F = foreground(); F.sc.add(v); F.live++;
-    const twin = v.clone(true); twin.traverse(o => { if (o.isMesh) { o.material = SHADOW_ONLY; o.castShadow = true; } }); world.add(twin);
+    v.rotation.y = Math.atan2(heading.x, heading.z); world.add(v);
     let sv = s0;
-    actors.push({ update(dt) { sv += dirSign * speed * M * dt; v.position.copy(road.at(sv, side)).setY(Y0 + 2); twin.position.copy(v.position);
+    actors.push({ update(dt) { sv += dirSign * speed * M * dt; v.position.copy(road.at(sv, side)).setY(Y0 + 2);
       for (const w of v.userData.spin) w.rotation.x += speed * M * dt / v.userData.wheelR;
-      return dirSign > 0 ? sv > s1 + 40 * M : sv < s1; }, dispose() { F.sc.remove(v); world.remove(twin); F.live--; } });
+      return dirSign > 0 ? sv > s1 + 40 * M : sv < s1; }, dispose() { world.remove(v); } });
   }
   function tumbleRun(seconds) {
     camera.updateMatrixWorld();
@@ -496,9 +485,10 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       rolled += (x - lastX) / rad; lastX = x; tw.children[0].rotation.set(0, 0, 0); tw.children[0].rotateOnWorldAxis(axis, rolled); tw.children[0].rotateOnWorldAxis(right, Math.sin(t * 2.3) * 0.25);
       return t > dur + 0.5; }, dispose() { world.remove(tw); } });
   }
+  const carOf = (key, fallback) => () => TPL[key] ? vehicleFrom(TPL[key]) : fallback();
   const EVENTS = [
-    { at: 2, fn: () => laneRun(() => sportsCar(0xc8102e), -1, -1, 30) },
-    { at: 10, fn: () => laneRun(() => minivan(0x1f4f96), 1, 1, 24) },
+    { at: 2, fn: () => laneRun(carOf('sports', () => sportsCar(0xc8102e)), -1, -1, 30) },
+    { at: 10, fn: () => laneRun(carOf('minivan', () => minivan(0x1f4f96)), 1, 1, 24) },
     { at: 13, fn: () => tumbleRun(8) },
   ];
   function update(dt) {
@@ -506,29 +496,122 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     clock.t += dt;
     while (evI < EVENTS.length && clock.t >= EVENTS[evI].at) EVENTS[evI++].fn();
     if (clock.t >= nextCar) { const sw = trafficN++ % 2 === 0, cols = [0xe9e6df, 0x8d9299, 0x23262b, 0x6b7f8e];
-      laneRun(() => (r => r > 0.5 ? sportsCar : minivan)(Math.random())(cols[trafficN % cols.length]), sw ? -1 : 1, sw ? -1 : 1, 22 + Math.random() * 8);
+      laneRun(trafficN % 2 ? carOf('minivan', () => minivan(cols[trafficN % cols.length])) : carOf('sports', () => sportsCar(cols[trafficN % cols.length])), sw ? -1 : 1, sw ? -1 : 1, 22 + Math.random() * 8);
       nextCar = clock.t + 14 + Math.random() * 10; }
     for (let i = actors.length - 1; i >= 0; i--) if (actors[i].update(dt)) { actors[i].dispose(); actors.splice(i, 1); }
-    if (fg) { if (fg.live > 0) { camera.updateMatrixWorld(); fg.r.render(fg.sc, camera); fg.drawn = true; } else if (fg.drawn) { fg.r.clear(); fg.drawn = false; } }
     if (skyMat) { skyMat.uniforms.uT.value = clock.t; const k = Math.min(1, Math.max(0, (clock.t - 1) / 19)); skyMat.uniforms.uStar.value = (Lcur?.stars || 0) * k * k * (3 - 2 * k); }
   }
 
   // ---------- assemble ----------
   function build(key, roadDef, carDefs = [], eye = null, view = null) {
     if (world) { root.remove(world); world.traverse(o => { o.geometry?.dispose?.(); }); }
-    lookKey = key; const L = LOOKS[key]; Lcur = L; world = new THREE.Group(); trees = []; installHaze(L);
+    lookKey = key; const L = LOOKS[key]; Lcur = L; world = new THREE.Group(); trees = []; placed.tree.length = placed.bush.length = placed.rock.length = 0; installHaze(L);
     road = null; const rd = makeRoad(L, roadDef.P, roadDef.az);
     world.add(sky(L), ground(L), rd, billboard(L), scatter(L, eye, view));
     world.add(range(L, 80000, 1500, 5600, L.mt[1], 3, L.mesa), range(L, 46000, 300, 2600, L.mt[0], 11, L.mesa));
     const sd = new THREE.Vector3(...L.sun).normalize();
     const sun = new THREE.DirectionalLight(L.sunCol, L.sunI); sun.position.copy(C).addScaledVector(sd, 9000); sun.target.position.set(C.x, Y0, C.z + 600);
-    sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -5000, right: 5000, top: 5000, bottom: -5000, near: 100, far: 22000 }); sun.shadow.bias = -0.0004;
-    world.add(sun, sun.target, new THREE.HemisphereLight(L.zenith, L.sand[0], L.hemi)); fgLights(L, sun);
+    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -4600, right: 4600, top: 4600, bottom: -4600, near: 100, far: 24000 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 6;
+    if (view) { const c0 = view.eye.clone().addScaledVector(view.fwd, 22 * M); c0.y = Y0; sun.target.position.copy(c0); sun.position.copy(c0).addScaledVector(sd, 12000); }
+    world.add(sun, sun.target, hemiLight = new THREE.HemisphereLight(L.zenith, L.sand[0], L.hemi)); sunLight = sun;
     cars = carDefs.map((cd, i) => { const c = car(L.car[i % L.car.length], cd.kind); const p = road.at(cd.s, cd.side); c.position.copy(p);
       c.rotation.y = Math.atan2(road.dir.x, road.dir.z) + (cd.side > 0 ? 0 : Math.PI); world.add(c); return c; });
     world.traverse(o => { if (o.isMesh && o.material && o.material.defines && 'DESERT_REV' in o.material.defines) o.customDepthMaterial = 'DESERT_GROUND' in o.material.defines ? DEPTH_G : DEPTH; });
     root.add(world);
     hazeFog = new THREE.FogExp2(L.haze, HAZE_DENSITY);
+  }
+
+  // ---------- photoreal assets: each one takes over its blockout's place as soon as its file exists ----------
+  const depthFor = o => {
+    const m = [].concat(o.material)[0], g = m.defines && 'DESERT_GROUND' in m.defines;
+    if (m.alphaTest > 0 && (m.map || m.alphaMap)) {          // leaf cards and grating cast their cut-out shadow, not a square
+      const d = revHook(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: m.map, alphaMap: m.alphaMap, alphaTest: m.alphaTest }));
+      return g ? groundHook(d) : d;
+    }
+    return g ? DEPTH_G : DEPTH;
+  };
+  const hide = kind => world && world.traverse(o => { if (o.userData.kind === kind) o.visible = false; });
+  const hash = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
+  const mtx = (x, z, rot, sc, y = Y0) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rot), new THREE.Vector3(sc, sc, sc));
+  const near = (x, z, m) => heroPose && Math.hypot(x - heroPose.pos.x, z - heroPose.pos.z) < m * M;
+  const ahead = (x, z) => { if (!heroPose) return true; const fx = heroPose.look.x - heroPose.pos.x, fz = heroPose.look.z - heroPose.pos.z, l = Math.hypot(fx, fz) || 1; return ((x - heroPose.pos.x) * fx + (z - heroPose.pos.z) * fz) / l > -8 * M; };
+  let assetsApplied = false;
+  async function applyAssets() {
+    if (!world) return; const w0 = world, done = [];
+    const [bb, ja, jb, jc, jd, jal, jbl, jcl, jdl, cra, crb, bua, ra, rb, rc, rd, re, sports, van] = await Promise.all(['billboard', 'joshua_a', 'joshua_b', 'joshua_c', 'joshua_d',
+      'joshua_a_lod1', 'joshua_b_lod1', 'joshua_c_lod1', 'joshua_d_lod1', 'creosote_a', 'creosote_b', 'bursage_a', 'rock_a', 'rock_b', 'rock_c', 'rock_d', 'rock_e', 'car_sports', 'car_minivan'].map(n => loadGLB(n + '.glb')));
+    if (world !== w0) return;
+    const prep = o => prepAsset(o, revHook, depthFor);
+    if (sports) { TPL.sports = prep(sports); done.push('car_sports'); }
+    if (van) { TPL.minivan = prep(van); done.push('car_minivan'); }
+    if (bb) { const b = prep(bb.clone(true)); b.scale.setScalar(M); b.position.set(C.x, Y0, C.z); b.userData.kind = 'asset'; hide('billboard'); world.add(b); done.push('billboard'); }
+    // Joshua trees: the hero mesh close to the camera, the light one far away, instanced per variant
+    const heroT = [ja, jb, jc, jd].filter(Boolean).map(prep), lodT = [jal, jbl, jcl, jdl].map((l, i) => l ? prep(l) : null);
+    if (heroT.length) {
+      const sets = heroT.map(() => ({ hi: [], lo: [] }));
+      placed.tree.forEach((t, k) => { const h = hash(t.x, t.z), v = t.row ? (heroT.length > 2 ? 2 + (k % 2) : heroT.length - 1) % heroT.length : Math.floor(h * heroT.length);
+        const sc = M * (0.85 + hash(t.z, t.x) * 0.3) * (t.big ? 1.15 : 1), m = mtx(t.x, t.z, t.rot, sc);
+        (near(t.x, t.z, 55) || !lodT[v] ? sets[v].hi : sets[v].lo).push(m); });
+      hide('tree'); const g = new THREE.Group(); g.userData.kind = 'asset';
+      sets.forEach((st, v) => { if (st.hi.length) g.add(instance(heroT[v], st.hi)); if (st.lo.length) g.add(instance(lodT[v], st.lo)); });
+      world.add(g); done.push('joshua');
+    }
+    // shrubs and rocks near the camera become assets; the far ones stay light
+    const shrubs = [cra, crb, bua].filter(Boolean).map(prep);
+    if (shrubs.length) {
+      const sets = shrubs.map(() => []), dummy = new THREE.Matrix4().makeScale(0, 0, 0);
+      placed.bush.forEach(b => { if (!near(b.x, b.z, 70) || !ahead(b.x, b.z)) return; const v = Math.floor(hash(b.x, b.z) * shrubs.length);
+        sets[v].push(mtx(b.x, b.z, b.rot, M * (0.55 + b.s * 1.4))); b.im.setMatrixAt(b.i, dummy); b.im.instanceMatrix.needsUpdate = true; });
+      const g = new THREE.Group(); g.userData.kind = 'asset'; sets.forEach((st, v) => st.length && g.add(instance(shrubs[v], st))); world.add(g); done.push('shrubs');
+    }
+    const rocks = [ra, rb, rc, rd, re].filter(Boolean).map(prep);
+    if (rocks.length) {
+      const sz = rocks.map(r => { const b = new THREE.Box3().setFromObject(r), s3 = b.getSize(new THREE.Vector3()); return Math.max(s3.x, s3.z) || 1; });
+      const order = sz.map((s2, i) => i).sort((a, b) => sz[a] - sz[b]), sets = rocks.map(() => []), dummy = new THREE.Matrix4().makeScale(0, 0, 0);
+      placed.rock.forEach(r => { if (!near(r.x, r.z, 80)) return; const want = r.s * 2.2, v = order[Math.min(order.length - 1, Math.floor(Math.min(1, want / 2.5) * order.length))];
+        sets[v].push(mtx(r.x, r.z, r.rot, M * want / sz[v]));
+        if (r.mesh) r.mesh.visible = false; else { r.im.setMatrixAt(r.i, dummy); r.im.instanceMatrix.needsUpdate = true; } });
+      const g = new THREE.Group(); g.userData.kind = 'asset'; sets.forEach((st, v) => st.length && g.add(instance(rocks[v], st))); world.add(g); done.push('rocks');
+    }
+    await applySurfaces(done);
+    if (done.length) bakeEnv();
+    window.__desertAssets = done; return done;
+  }
+  // road and ground textures from the set thread (desert/tex), mapped in metres
+  async function applySurfaces(done) {
+    const R = road && road.group.userData.roles;
+    const [aA, aN, aR, lA, lY, lW, lN, sA, sN, gA, gN, gR, gM] = await Promise.all([
+      loadTex('asphalt_albedo.jpg', { srgb: true }), loadTex('asphalt_normal.jpg'), loadTex('asphalt_rough.jpg'),
+      loadTex('lines_alpha.png'), loadTex('lines_yellow_albedo.png', { srgb: true }), loadTex('lines_white_albedo.png', { srgb: true }), loadTex('lines_normal.png'),
+      loadTex('shoulder_albedo.jpg', { srgb: true }), loadTex('shoulder_normal.jpg'),
+      loadTex('sand_albedo.jpg', { srgb: true }), loadTex('sand_normal.jpg'), loadTex('sand_rough.jpg'), loadTex('sand_macro.jpg', { srgb: true })]);
+    const rep = (t, a, b) => { if (t) { t.repeat.set(a, b); t.needsUpdate = true; } return t; };
+    if (R && aA) { const m = R.asphalt.material, u = R.asphalt.userData.w / (4 * M), v = R.asphalt.userData.len / (4 * M);
+      Object.assign(m, { map: rep(aA, u, v), normalMap: rep(aN, u, v), roughnessMap: rep(aR, u, v), roughness: 1, color: new THREE.Color(0xffffff), flatShading: false }); m.needsUpdate = true; done.push('asphalt'); }
+    if (R && lA) for (const [list, alb] of [[R.yellow, lY], [R.white, lW]]) for (const ms of list) { const v = ms.userData.len / (8 * M), m = ms.material;
+      Object.assign(m, { map: rep(alb && alb.clone(), 1, v), alphaMap: rep(lA.clone(), 1, v), normalMap: rep(lN && lN.clone(), 1, v), alphaTest: 0.5, color: new THREE.Color(0xffffff), roughness: 0.75, flatShading: false }); m.needsUpdate = true; }
+    if (R && sA) { const m = R.shoulder.material, u = R.shoulder.userData.w / (1.5 * M), v = R.shoulder.userData.len / (3 * M);
+      Object.assign(m, { map: rep(sA, u, v), normalMap: rep(sN, u, v), color: new THREE.Color(0xffffff), flatShading: false }); m.needsUpdate = true; }
+    if (groundMesh && gA) {
+      const m = groundMesh.material, k = 160000 / (6 * M);
+      Object.assign(m, { map: rep(gA, k, k), normalMap: rep(gN, k, k), roughnessMap: rep(gR, k, k), roughness: 1, flatShading: false, vertexColors: !!gM }); m.needsUpdate = true;
+      if (gM && gM.image) {          // large-scale tone from the macro map, baked into the ground's vertex colours
+        const cv = document.createElement('canvas'), W2 = cv.width = gM.image.width, H2 = cv.height = gM.image.height, cx = cv.getContext('2d'); cx.drawImage(gM.image, 0, 0);
+        const px = cx.getImageData(0, 0, W2, H2).data, g = groundMesh.geometry, pos = g.attributes.position, col = g.attributes.color, span = 300 * M;
+        let mean = 0; for (let i = 0; i < px.length; i += 4) mean += px[i] + px[i + 1] + px[i + 2]; mean /= (px.length / 4) * 3;
+        for (let i = 0; i < pos.count; i++) { const u = ((pos.getX(i) / span) % 1 + 1) % 1, v = ((pos.getZ(i) / span) % 1 + 1) % 1, j = ((Math.floor(v * H2) * W2) + Math.floor(u * W2)) * 4;
+          const f = c => Math.min(1.6, Math.max(0.5, px[j + c] / mean)); col.setXYZ(i, f(0), f(1), f(2)); }
+        col.needsUpdate = true;
+      } else if (gM === null) { const col = groundMesh.geometry.attributes.color; for (let i = 0; i < col.count; i++) col.setXYZ(i, 1, 1, 1); col.needsUpdate = true; }
+      done.push('sand');
+    }
+  }
+  // image-based light and reflections from a physically based sky matched to the sun
+  function bakeEnv() {
+    if (!heroPose || window.__noEnv || envTex) return;
+    envTex = skyEnvironment(renderer, new THREE.Vector3(...(Lcur || LOOKS.golden).sun).normalize());
+    scene.environment = envTex;
+    if (hemiLight) hemiLight.intensity = (Lcur ? Lcur.hemi : 1) * 0.35;     // the environment carries most of the fill now
   }
 
   // ---------- the approach: slower curved flight from wherever the camera is into the hero frame, building the world as it comes ----------
@@ -559,9 +642,11 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       for (const k in cssCards) if (k !== heroId) cssCards[k].obj.element.style.opacity = '0';
       root.visible = true; REV.uRev.value = 1;
       useHaze();
-      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      setupRenderer(renderer);
       camera.far = 200000; camera.near = 10; camera.updateProjectionMatrix();
       build(key, roadDef, carDefs, eye, view); viewInfo = view;
+      if (!heroPose) heroPose = { pos: eye ? eye.clone() : C.clone(), look: C.clone(), fov: 38 };
+      api.assets = applyAssets();
     },
     // aim a camera: standing h metres above ground, at horizontal angle theta (deg, + = to the card's left) from the card's facing,
     // with the card centre landing at screen point (ux, uy) in -1..1 and spanning `fw` of the frame width
@@ -599,11 +684,14 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       const fwd = f.look.clone().sub(f.pos); fwd.y = 0; fwd.normalize();
       const view = { eye: f.pos.clone(), fwd, right: new THREE.Vector3(-fwd.z, 0, fwd.x), row: (s.row || 20) * M, tanH: Math.tan(THREE.MathUtils.degToRad(s.fov / 2)) * aspect };
       camera.far = 200000; camera.updateProjectionMatrix();
-      renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      setupRenderer(renderer);
+      for (const o of scene.children) if (o !== root && o.material && !o.material.isShaderMaterial) [].concat(o.material).forEach(x => { x.toneMapped = false; x.needsUpdate = true; });   // the grid's own pieces keep their look
       build(s.look, { P, az: viewAz + s.roadTurn }, [], f.pos, view); viewInfo = view;
       REV.uOrigin.value.set(C.x, 0, C.z - 70); REV.uCam.value.copy(f.pos);
       heroPose = { pos: f.pos, look: f.look, fov: s.fov };
-      root.visible = false; api.ready = true; return heroPose;
+      root.visible = false; api.ready = true;
+      bakeEnv(); api.assets = applyAssets();
+      return heroPose;
     },
     get flying() { return !!fly && fly.dir > 0; }, get inside() { return inside; },
     approachFrom(pos, look, fov, dur = 6.5) {
@@ -615,10 +703,21 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     },
     flyStep(dt) {
       fly.t = Math.min(1, fly.t + dt / fly.dur); const s = pose(fly.t); setReveal(bloomAt(fly.t));
-      if (fly.t >= 1) { fly = null; inside = true; setReveal(1); api.play(); s.done = true; }
+      if (fly.t >= 1) { fly = null; inside = true; setReveal(1); api.play(); s.done = true; landedAt = 0; }
       return s;
     },
-    depart(dur = 2.6) { if (!inside && !fly) return; api.stop(); inside = false; fly = { dir: -1, t: 0, dur, from: REV.uRev.value }; },
+    depart(dur = 3.2) { if (!inside && !fly) return; api.stop(); inside = false; landedAt = -1; fly = { dir: -1, t: 0, dur, from: REV.uRev.value }; },
+    // the frame: composed (ambient occlusion, bloom, grain) once landed, plain otherwise. Returns false to let the page render itself.
+    render(dt) {
+      if (!(inside && root.visible) || window.__desertNoPost) return false;
+      if (!composer) composer = makeComposer(renderer, scene, camera);
+      landedAt += dt; const k = Math.min(1, landedAt / 1.2);
+      composer.render(dt, k * k * (3 - 2 * k)); return true;
+    },
+    bakeEnv() { bakeEnv(); }, applyAssets() { return applyAssets(); },
+    // QA: jump straight to the landed state
+    get debug() { return { sunLight, hemiLight, envTex, scene, renderer }; },
+    landNow() { api.approachFrom(camera.position.clone(), camera.position.clone().add(new THREE.Vector3(0, 0, -1)), camera.fov); fly.t = 1; const s2 = pose(1); fly = null; inside = true; setReveal(1); landedAt = 5; return s2; },
     // storyboards: pose and build state at time t of the approach from the current camera
     storyFrom(pos, look, fov) { api.approachFrom(pos, look, fov); fly.dir = 0; },
     storyAt(t) { const s = pose(t); setReveal(bloomAt(t)); return s; },

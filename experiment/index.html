@@ -424,7 +424,7 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 .risk { background:transparent; color:#e5484d; border:1px solid rgba(229,72,77,.35); }
 .risk:hover { background:rgba(229,72,77,.08); border-color:#e5484d; }
 </style>
-<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js", "three/addons/": "./vendor/jsm/", "three/examples/jsm/": "./vendor/jsm/", "postprocessing": "./vendor/pp-shim.js" } }</script>
 </head><body class="intro">
 <div id="void" aria-hidden="true"></div>
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -1178,7 +1178,7 @@ function frame(now) {
   const s = 1 + Math.sin(now / 700) * .06; for (const k in cards) cards[k].ring.scale.setScalar(k === current ? s * 1.25 : 1);
   placeCtl(dt); CODE.tick(now); HOLE.tick(now, dt);
   if (window.__desert) window.__desert.tick(dt);
-  gl.render(scene, camera); css.render(cssScene, camera);
+  if (!(window.__desert && window.__desert.render(dt))) gl.render(scene, camera); css.render(cssScene, camera);
   requestAnimationFrame(frame);
 }
 function resize() {
@@ -1192,10 +1192,12 @@ cam.pos.copy(OVER.pos); cam.look.copy(OVER.look);
 requestAnimationFrame(frame);
 // Opening move: a beat on the whole grid, then the camera travels in to the intro.
 const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.slice(1) : '');
+// desert experiment: on by default here (#nodesert turns it off); #desert-a / #desert-b pick the other build styles
+const DESERT_ON = !/nodesert/.test(location.hash);
 // Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
 {
   const first = cards[startAt] ? startAt : 'hero', body = document.body;
-  if (still) { body.classList.remove('intro', 'intro-c'); if (!/desert/.test(location.hash) || startAt) go(first); }
+  if (still) { body.classList.remove('intro', 'intro-c'); if (!DESERT_ON || startAt) go(first); }
   else {
     requestAnimationFrame(() => requestAnimationFrame(() => { body.classList.add('intro-c'); body.classList.remove('intro'); }));
     setTimeout(() => {
@@ -1203,7 +1205,7 @@ const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.s
       body.classList.remove('intro-c');
       setTimeout(() => { for (const k in cards) cards[k].el.style.transitionDelay = ''; }, 2200);
     }, 1400);
-    setTimeout(() => { if (!/desert/.test(location.hash) || startAt) go(first); }, 2500);   // desert experiment: hold on the bird's-eye view
+    setTimeout(() => { if (!DESERT_ON || startAt) go(first); }, 2500);   // desert experiment: hold on the bird's-eye view
   }
 }
 // headline auditions: #h=1..4 (Portfolio selects), #k=1..4 (intro); combine with &
@@ -1480,14 +1482,14 @@ window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, s
 // desert billboard audition (experiment only): #desert loads the blockout; __wmp.shot parks the camera on an exact framing
 window.__wmp.lookAt = () => lookNow(); window.__wmp.fov = () => camera.fov;
 window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
-if (/desert/.test(location.hash)) import('./desert.js').then(m => {
+if (DESERT_ON) import('./desert.js').then(m => {
   const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear, gridFade: v => { WARP.uFade.value = v; },
     gridDes: (r, amp, glow, o) => { WARP.uDesR.value = r; WARP.uDesAmp.value = amp; WARP.uDesGlow.value = glow; WARP.uDesO.value.copy(o); } });
   if (window.__desertManualClock) D.clock.manual = true;
   if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
   // #desert: the site holds on the bird's-eye view; clicking the first slide flies in and builds the world (#desert-b, #desert-c: other build styles)
   const phone = innerWidth < 700, shot = phone ? { ...m.HERO_SHOT, ux: 0.08, uy: 0.30, fw: 0.9, fh: 0.56 } : m.HERO_SHOT;
-  const style = ({ b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] || 0;
+  const style = ({ a: 0, b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] ?? 2;     // build C (cell by cell) is the default
   D.prepareHero(shot, style);
 });
 </script>
