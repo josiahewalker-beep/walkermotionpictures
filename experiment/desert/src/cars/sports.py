@@ -13,7 +13,7 @@ import sports_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_sports.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0065
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 45000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 39000
 
 B = Body(M.P)
 P = M.P
@@ -110,7 +110,7 @@ RPLATE = [(0.0, 0.705), (0.17, 0.705), (0.185, 0.69), (0.185, 0.525), (0.17, 0.5
 fn_rplate = D.proj_fn(mirror_half(RPLATE), 'rear', domain=rear_dom, n_per=4, mirror=False)
 HANDLE = [(-0.48, 0.795), (-0.48, 0.815), (-0.50, 0.825), (-0.66, 0.825), (-0.68, 0.815), (-0.68, 0.795), (-0.66, 0.785), (-0.50, 0.785)]
 fn_handle = D.proj_fn(HANDLE, 'side', domain=side_dom2, n_per=4)
-MARKER_F = [(1.93, 0.47), (1.93, 0.50), (2.03, 0.50), (2.03, 0.47)]
+MARKER_F = [(1.95, 0.475), (1.95, 0.495), (2.02, 0.495), (2.02, 0.475)]
 fn_mark_f = D.proj_fn(catmull_closed(np.array(MARKER_F), 2), 'side', domain=lambda V: (np.abs(V[:, 0]) > 0.6) & (V[:, 1] > 1.7), n_per=3)
 MARKER_R = [(-2.03, 0.80), (-2.03, 0.83), (-2.13, 0.83), (-2.13, 0.80)]
 fn_mark_r = D.proj_fn(catmull_closed(np.array(MARKER_R), 2), 'side', domain=lambda V: (np.abs(V[:, 0]) > 0.6) & (V[:, 1] < -1.9), n_per=3)

@@ -13,7 +13,7 @@ import minivan_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_minivan.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0075
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 45000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 35000
 
 B = Body(M.P)
 P = M.P
@@ -97,7 +97,7 @@ H1 = [(0.42, 0.975), (0.42, 0.995), (0.40, 1.005), (0.25, 1.005), (0.23, 0.995),
 H2 = [(-0.04, 0.975), (-0.04, 0.995), (-0.06, 1.005), (-0.21, 1.005), (-0.23, 0.995), (-0.23, 0.975), (-0.21, 0.965), (-0.06, 0.965)]
 fn_h1 = D.proj_fn(H1, 'side', domain=sd2, n_per=3)
 fn_h2 = D.proj_fn(H2, 'side', domain=sd2, n_per=3)
-fn_mark_f = D.proj_fn(catmull_closed(np.array([(2.18, 0.70), (2.18, 0.73), (2.30, 0.73), (2.30, 0.70)]), 2), 'side',
+fn_mark_f = D.proj_fn(catmull_closed(np.array([(2.20, 0.705), (2.20, 0.725), (2.28, 0.725), (2.28, 0.705)]), 2), 'side',
                       domain=lambda V: (np.abs(V[:, 0]) > 0.6) & (V[:, 1] > 1.9), n_per=3)
 
 zl_curve = np.array([(2.7, 0.27), (2.3, 0.27), (2.0, 0.30), (1.0, 0.30), (-1.0, 0.30), (-2.0, 0.30), (-2.3, 0.41), (-2.7, 0.41)])

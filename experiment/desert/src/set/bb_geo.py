@@ -425,8 +425,8 @@ def build(seed=3):
             hexbolt(R, a0 + [-0.05, dy, 0.02], (0, 0, 1), r=0.007, head=0.008, tag=3, src=0.8)
         # gooseneck: out and down, then sweeping up toward the face
         t = np.linspace(0, 1, 16)
-        zc = CW_Z1 + 0.07 + 0.95 * t
-        yc = DECK_Y - 0.12 - 0.20 * np.sin(np.pi * t * 0.9) + 0.32 * t ** 2.2
+        zc = CW_Z1 + 0.07 + 0.72 * t
+        yc = DECK_Y - 0.12 - 0.22 * np.sin(np.pi * t * 0.9) + 0.10 * t ** 2.2
         path = np.stack([np.full_like(t, x), yc, zc], 1)
         sweep(P, p_circle(0.027, 10), path, up=(1, 0, 0), tag=51)
         tip = path[-1]
@@ -633,6 +633,18 @@ def vinyl(rs):
         bucket(V).add(Vv, F, 83)
 
 
+def check_sightline(Bk, cam_h=1.1, cam_d=15.0):
+    """From the low hero camera, nothing in front of the face (z > 0) may project above the face's bottom edge."""
+    worst = -9
+    for name, b in Bk.items():
+        V, F, _ = b.arrays()
+        m = (V[:, 2] > 0.02) & (np.abs(V[:, 0]) < FX)
+        if m.any():
+            lim = FACE_Y0 - (FACE_Y0 - cam_h) / cam_d * V[m, 2]
+            worst = max(worst, float((V[m, 1] - lim).max()))
+    return worst
+
+
 def check_front_clear(Bk):
     """Assert nothing crosses in front of the face rectangle."""
     bad = []
@@ -656,3 +668,4 @@ if __name__ == '__main__':
         print(f'{k:22s} verts {len(V):7d} tris {t:7d}')
     print('total tris', tot, 'sources', len(SOURCES), 'perch', len(PERCH))
     print('front-clear violations:', check_front_clear(Bk))
+    print('sightline margin (m, must be < 0):', check_sightline(Bk))

@@ -237,6 +237,8 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
         tone = np.ones((len(v_all), 3))
         if fur:
             tone *= np.array([0.62, 0.56, 0.48]) * (0.7 + 0.3 * furness.ravel())[:, None]   # core = shaded under-layer
+            if lod:
+                tone *= 0.85
             g = smoothstep(DEAD, 0.0, sv)[:, None]
             tone = tone * (1 - g) + g * np.array([0.30, 0.34, 0.22])
         else:
@@ -388,7 +390,7 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         taper = (0.25 + 0.75 * smoothstep(0.0, 0.16, ss)) if not b.children else np.ones(len(ss))
         base = p[idx] + Nr[idx] * ((r[idx] + 0.05) * taper * 0.85)[:, None]
         if lod:
-            V, uvt, trt, tt = blade_geometry(base, d, wdir, out_dir, L, W * 1.8, bend, None, [(0.0, 1.0)])
+            V, uvt, trt, tt = blade_geometry(base, d, wdir, out_dir, L, W * 2.4, bend, None, [(0.0, 1.0)])
         else:
             V, uvt, trt, tt = blade_geometry(base, d, wdir, out_dir, L, W, bend, np.full(len(idx), -0.25),
                                              [(0.0, 1.0)])

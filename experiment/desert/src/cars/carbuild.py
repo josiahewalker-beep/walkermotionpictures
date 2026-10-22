@@ -59,7 +59,7 @@ def base_materials(paint, rim_color, rim_rough=0.3, caliper=(0.42, 0.02, 0.02)):
         'rubber': dict(color=(0.04, 0.04, 0.042), metallic=0.0, roughness=0.88, vcol=True, normal_arr=nrm, rough_arr=rough),
         'rim': dict(color=rim_color, metallic=1.0, roughness=rim_rough, vcol=True),
         'brake': dict(color=(0.30, 0.30, 0.31), metallic=0.8, roughness=0.62),
-        'light_marker': dict(color=(0.9, 0.42, 0.04), metallic=0.0, roughness=0.2, emission=(1.0, 0.45, 0.05), emission_strength=0.3),
+        'light_marker': dict(color=(0.55, 0.22, 0.02), metallic=0.0, roughness=0.15, emission=(1.0, 0.45, 0.05), emission_strength=0.1),
         'caliper': dict(color=caliper, metallic=0.0, roughness=0.35),
         'light_front': dict(color=(0.85, 0.86, 0.88), metallic=0.0, roughness=0.15, vcol=True, emission=(0.9, 0.95, 1.0), emission_strength=0.6),
         'light_rear': dict(color=(0.32, 0.01, 0.012), metallic=0.0, roughness=0.12, vcol=True, emission=(0.6, 0.02, 0.02), emission_strength=0.25),

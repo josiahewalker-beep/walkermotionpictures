@@ -26,3 +26,14 @@
   fabric (crest wave, surfaces lift from the floor), #desert-b the grid drapes (lines settle onto surfaces, then fill), #desert-c cell by
   cell (floor cells switch on outlined, props grow up in their cells). The intro no longer auto-flies to the first slide in desert mode.
 - 10-21 Josiah (deck comment): build C — the sky fills in by cells too: 3° cells from the horizon up, outlined in the grid's blue, finishing at landing.
+- 10-21 Josiah (overnight brief): photoreal pass — real-looking cars with glass reflections, Joshua trees with shaggy dead-leaf skirts and
+  spike leaves, textured asphalt with blemished paint, a billboard weathered ~20 years. Morning deliverable is the whole flow:
+  bird's-eye → click → cell build → land/lock → sequence → Next → cell un-build.
+- Technical (overnight): three asset threads (cars, flora, set) build original geometry/textures in Blender Python to desert/ASSETS.md;
+  the integrator swaps blockouts for GLBs as they land (instanced; near/far LOD for trees). Pipeline: ACES, sky-based environment
+  light/reflections, N8AO ambient occlusion, light bloom, print grade + grain, used only once landed so the grid's look is untouched.
+- Technical: vehicles moved back into the main scene (the separate canvas is gone) so paint and glass reflect the scene's light and
+  shadows are real; the sightline to the tumbleweed is kept clear of tall shrubs and boulders.
+- Technical: the near lane is only ~10 m on screen from the landing frame, so the red car crosses in under a second; slowed to 26 m/s
+  (~58 mph) so the eye gets a beat on it. Paint is a clearcoat physical material, base darkened so grazing sky reflections stay red.
+- Technical: asphalt carries a road-scale wear map (cracks, tar sealant that reads glossier, patches, wheel paths) over a quiet 4 m tile.

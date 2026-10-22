@@ -52,14 +52,57 @@ browser, so realism has to come from geometry detail, honest PBR values and good
 - Local server for previews: `http://localhost:8765/experiment/desert/preview/harness.html?...` (start it with
   `cd /home/claude/walkermotionpictures && python3 -m http.server 8765` if it isn't answering).
 
-## FLORA (provisional — in progress, filenames are final, contents keep improving overnight)
-- `assets/joshua_{a,b,c,d}.glb` (+ `_lod1`), `creosote_{a,b}.glb`, `bursage_a.glb`, `rock_{a..e}.glb`.
-- One mesh node per asset, origin at the trunk/footprint base on y = 0, metres, +Y up.
-- Joshua materials: `bark` (texture + normal), `fur` (double-sided, dead-leaf thatch), `leaf` (double-sided).
-  Vertex colours COLOR_0 carry per-blade tint and baked AO: keep vertex colours enabled (alpha is always 1).
-- Shrubs: `bark` (stems), `leaf` (alphaMode MASK, cutoff 0.5, double-sided). Rocks: `rock` (albedo + normal, single-sided).
-- Final numbers, tri counts and LOD notes follow when the pass is done.
+## FLORA (Joshua trees, shrubs, rocks) — generator: `src/flora/`
+Rebuild: `cd src/flora && python3 textures.py && python3 joshua.py && python3 shrubs.py && python3 rocks.py`
+(Blender 5.x as a Python module; run under the shared lock; ~2 min total). `write_docs.py` regenerates this table.
 
+| file | size x × y(up) × z, m | tris | GLB | materials |
+|---|---|---|---|---|
+| `bursage_a.glb` | 0.92 × 0.46 × 0.94 | 6,900 | 0.5 MB | bark, leaf |
+| `creosote_a.glb` | 1.82 × 1.99 × 1.73 | 4,812 | 0.3 MB | bark, leaf |
+| `creosote_b.glb` | 1.50 × 1.42 × 1.35 | 3,252 | 0.3 MB | bark, leaf |
+| `joshua_a.glb` | 1.07 × 2.99 × 1.51 | 61,284 | 6.5 MB | bark, fur, leaf |
+| `joshua_a_lod1.glb` | 1.05 × 2.99 × 1.46 | 7,905 | 0.9 MB | bark, fur, leaf |
+| `joshua_b.glb` | 2.99 × 5.00 × 2.80 | 67,586 | 6.9 MB | bark, fur, leaf |
+| `joshua_b_lod1.glb` | 3.00 × 5.01 × 2.78 | 7,599 | 0.9 MB | bark, fur, leaf |
+| `joshua_c.glb` | 4.68 × 6.92 × 7.90 | 69,024 | 6.6 MB | bark, fur, leaf |
+| `joshua_c_lod1.glb` | 4.65 × 6.91 × 7.95 | 7,657 | 0.8 MB | bark, fur, leaf |
+| `joshua_d.glb` | 6.69 × 8.94 × 6.84 | 69,536 | 6.0 MB | bark, fur, leaf |
+| `joshua_d_lod1.glb` | 6.63 × 8.89 × 6.80 | 7,629 | 0.7 MB | bark, fur, leaf |
+| `rock_a.glb` | 2.46 × 1.48 × 1.91 | 3,999 | 0.7 MB | rock |
+| `rock_b.glb` | 1.33 × 1.43 × 1.19 | 3,999 | 0.7 MB | rock |
+| `rock_c.glb` | 1.49 × 0.53 × 1.02 | 2,998 | 0.4 MB | rock |
+| `rock_d.glb` | 0.57 × 0.38 × 0.44 | 1,280 | 0.3 MB | rock |
+| `rock_e.glb` | 0.30 × 0.19 × 0.25 | 1,198 | 0.1 MB | rock |
+
+Common to all: one mesh node named like the file, origin on the ground at the trunk/footprint centre, metres, +Y up,
+no animation. Vertex colours COLOR_0 (RGB, normalized uint8) carry per-blade tint **and baked ambient occlusion** —
+keep `vertexColors` on. Normals are int8 via `KHR_mesh_quantization` (three.js GLTFLoader handles it natively).
+Fur/bark/leaf carry `KHR_materials_specular` (lowered F0, matte dead leaves).
+
+**Joshua trees** (`joshua_a` young 3 m single trunk · `b` 5 m Y-fork · `c` 7 m mature classic · `d` 9 m old broad).
+- `bark` — corky checkered trunk bark (1024 albedo + normal), single-sided, roughness 0.95. Lower trunk only.
+- `fur` — dead-leaf skirt, double-sided: a thatch-textured core tube plus thousands of downward blades (flat
+  straws and thin strands, curled tips; tan-brown just under each rosette, weathering to grey-straw).
+  Visible albedo ≈ 0.30–0.38 linear. On the trunk from ~1 m up (a: from 0.5 m) and on all younger limbs.
+- `leaf` — living rosettes, double-sided: stiff keeled dagger leaves 18–34 cm, ~1.2 cm wide, blue-green to olive,
+  pale serrated margin and brown spine in the texture, radiating like a sea urchin; yellowing band below.
+- Trunk diameters at 1 m: a 0.25, b 0.34, c 0.48, d 0.72 m (at the ground with flare: 0.32 / 0.42 / 0.61 / 0.97 m).
+- Rosette tip positions per hero tree (glTF coords): `src/flora/_tex/joshua_<v>_tips.json` (useful for wind/sway).
+- `_lod1` (≤ 8k tris, 512 px textures): same skeleton/silhouette, 5-sided tubes, single-triangle leaves and blades,
+  thicker thatch core. Matches the hero from ~35 m; switch at 35–45 m. Fur blades are double-sided: no need to
+  disable backface culling elsewhere.
+- Sway (if wanted): bend ∝ height², rosettes are at the branch tips; the trees are stiff — keep amplitude tiny.
+
+**Shrubs** — `creosote_a` (1.7 m, open vase) and `creosote_b` (1.35 m): thin dark-grey stems (`bark`, vertex colour
+only) + alpha-tested leaf-sprig cards (`leaf`, alphaMode MASK cutoff 0.5, double-sided, PNG with alpha).
+`bursage_a`: low pale grey-green mound ~0.55 m × 0.9 m.
+
+**Rocks** — `rock_a` big rounded block 2.5 m, `rock_b` upright faceted 1.4 m, `rock_c` low slab, `rock_d`/`rock_e`
+cobbles 0.55/0.3 m. Joshua-Tree monzogranite: buff-tan with orange iron staining, coarse grain speckle, joint
+fractures, spalled exfoliation patches, narrow desert-varnish streaks, small lichen crusts, sand/dust at the base.
+Material `rock`: 1024 px albedo (cavity/AO baked in) + tangent-space normal (512 for rock_e), roughness 0.88,
+single-sided. Bottoms are sunk 5–12 cm below y = 0 so they sit in the sand; scale freely (±30%) and rotate about Y.
 ## SET (billboard + road + ground textures)
 Generators: `src/set/` (`asphalt.py`, `lines.py`, `shoulder.py`, `sand.py` → `tex/`; `bb_geo.py` + `bb_build.py` (Blender, bakes)
 + `bb_finish.py` (weathering textures, materials, export) → `assets/billboard.glb`). Rebuild: run each under the lock.

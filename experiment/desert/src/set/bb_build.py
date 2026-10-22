@@ -91,6 +91,7 @@ def main():
     Bk = bb_geo.build()
     bad = bb_geo.check_front_clear(Bk)
     assert not bad, bad
+    assert bb_geo.check_sightline(Bk) < 0, "something in front of the face breaks the hero sightline"
     objs = {}
     for name, b in Bk.items():
         V, F, tags = b.arrays()
