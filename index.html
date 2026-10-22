@@ -1435,13 +1435,21 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   box.addEventListener('wheel', e => e.stopPropagation());
 
   // Browsers hold sound until the visitor interacts: the first click, tap or key anywhere starts the station.
-  const evs = ['pointerdown', 'pointerup', 'touchend', 'keydown', 'click'];
+  const evs = ['pointerup', 'touchend', 'keydown', 'click'];   // pointerdown/touchstart don't count as a tap for Safari's sound rules
   // A brand-new site gets no sound until the visitor's first click, tap or key (every browser's rule). That first touch also
   // unlocks the player for Safari by playing a tiny silent clip, so the station can start the moment it lands.
   const BLIP = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
   let unlocked = false;
   const unlock = () => { graph(); if (unlocked) return; unlocked = true; if (current) return; [aW, aP].forEach(a => { a.src = BLIP; a.play().then(() => a.pause()).catch(() => {}); }); setTimeout(() => { if (current && audio.paused && !userPaused && !ducked) { load(current.src); start(); } }, 300); };
-  const kick = () => { graph(); if (!current) return unlock(); if (userPaused || !audio.paused || ducked) { if (!audio.paused || userPaused) evs.forEach(e => removeEventListener(e, kick, true)); return; } unlocked = true; start(); };
+  // Safari lets an audio element play later only if it was started inside a tap, so every tap also wakes whichever player
+  // is idle; when a spin later moves the station onto it, it is allowed to sound (Josiah 10-21: "Tap anywhere" was a lie)
+  const primed = new WeakSet();
+  const prime = () => [aW, aP].forEach(a => { if (a === audio || primed.has(a)) return; a.src = BLIP; a.play().then(() => { primed.add(a); if (a !== audio) a.pause(); }).catch(() => {}); });   // only counts once it actually played
+  // the listeners stay on for the whole visit: whenever the radio is waiting on a tap, the next tap anywhere starts it
+  const kick = () => { graph(); if (!current) { unlock(); prime(); return; }
+    const first = !unlocked; unlocked = true;
+    if (!spinning && !userPaused && !ducked && audio.paused && (first || box.classList.contains('blocked'))) { userPaused = false; start(); }
+    prime(); };
   evs.forEach(e => addEventListener(e, kick, { capture: true, passive: true }));
 
   // a video in the player takes the sound; the radio comes back when it closes
