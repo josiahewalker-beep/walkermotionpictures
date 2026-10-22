@@ -285,7 +285,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     if (n.startsWith('needles')) { m.envMapIntensity = 0.15; m.roughness = 1; if ('specularIntensity' in m) m.specularIntensity = 0.1; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
     if (n.startsWith('light_bulb')) { m.emissive = new THREE.Color(0xffc890); m.emissiveIntensity = 2.0; m.toneMapped = false; }
     return m; }
-  const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) } };
+  const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) }, uCrK: { value: 0.12 }, uCrP: { value: 6.0 } };
   function rimOn(m, k) { if (!k) return m; const prev = m.onBeforeCompile;
     m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); sh.uniforms.uMoonW = RIM.uMoonW; sh.uniforms.uRimC = RIM.uRimC; sh.uniforms.uRimK = { value: k };
       sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
@@ -301,7 +301,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox;
       const cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2, R = Math.max(b.max.x - cx, b.max.z - cz), cr = new THREE.Vector3(R, b.min.y, b.max.y), cc = new THREE.Vector2(cx, cz);
       const m = o.material.clone(); m.name = o.material.name; const prev = m.onBeforeCompile;
-      m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); Object.assign(sh.uniforms, { uMoonW: RIM.uMoonW, uRimC: RIM.uRimC, uRimK: { value: k }, uCrown: { value: cr }, uCrC: { value: cc } });
+      m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); Object.assign(sh.uniforms, { uMoonW: RIM.uMoonW, uRimC: RIM.uRimC, uRimK: RIM.uCrK, uCrP: RIM.uCrP, uCrown: { value: cr }, uCrC: { value: cc } });
         sh.vertexShader = 'uniform vec3 uCrown; uniform vec2 uCrC; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.vertexShader.replace('#include <begin_vertex>',
           `#include <begin_vertex>
            { vec4 cw = vec4( transformed, 1.0 ), rr = vec4( transformed.x - uCrC.x, 0.0, transformed.z - uCrC.y, 0.0 );
@@ -311,14 +311,14 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
              vCrW = ( modelMatrix * cw ).xyz; vCrR = ( modelMatrix * rr ).xyz;
              float h = clamp( ( transformed.y - uCrown.y ) / max( uCrown.z - uCrown.y, 1e-3 ), 0.0, 1.0 );
              vCrO = length( transformed.xz - uCrC ) / ( uCrown.x * clamp( ( 1.0 - h ) * 1.15, 0.12, 1.0 ) ); vCrH = h; }`);
-        sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.fragmentShader
+        sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK; uniform float uCrP; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.fragmentShader
           .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-           float crOuter = smoothstep( 0.45, 1.0, vCrO );
+           float crOuter = smoothstep( 0.45, 1.0, vCrO ), crEdge = smoothstep( 0.8, 1.15, vCrO );
            { vec3 V = normalize( cameraPosition - vCrW ), Rd = normalize( vCrR + vec3( 1e-5 ) );
              float sil = 1.0 - abs( dot( Rd, normalize( vec3( V.x, 0.0, V.z ) ) ) );
              float side = 0.5 + 0.5 * dot( Rd, normalize( vec3( uMoonW.x, 0.0, uMoonW.z ) ) );
              float top = smoothstep( 0.72, 1.0, vCrH );
-             totalEmissiveRadiance += uRimC * uRimK * crOuter * ( pow( sil, 2.0 ) * ( 0.35 + 0.65 * side ) + 0.5 * top ); }`)
+             totalEmissiveRadiance += uRimC * uRimK * crEdge * ( pow( sil, uCrP ) * ( 0.2 + 0.8 * side ) + 0.4 * top * side ); }`)
           .replace('#include <aomap_fragment>', `reflectedLight.directDiffuse *= mix( 0.15, 0.7, crOuter ); reflectedLight.indirectDiffuse *= mix( 0.3, 0.8, crOuter ); reflectedLight.directSpecular *= 0.05 * crOuter; reflectedLight.indirectSpecular *= 0.1;
            #include <aomap_fragment>`); };
       const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
@@ -483,7 +483,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       x.addEventListener('click', ev => { ev.stopPropagation(); api.stopFilm(); }); box.appendChild(x);
       if (getComputedStyle(el).position === 'static') el.style.position = 'relative'; el.appendChild(box); film = box; if (window.__radio) window.__radio.duck(true); },
     stopFilm() { if (film) { film.remove(); film = null; if (window.__radio) window.__radio.duck(false); } },
-    get debug() { return { scene, camera, renderer, clock, world, REV, heroPose, moonDir, lens, P, K }; },
+    get debug() { return { RIM, scene, camera, renderer, clock, world, REV, heroPose, moonDir, lens, P, K }; },
   };
   return api;
 }

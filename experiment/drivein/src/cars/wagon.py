@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_wagon.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.011
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 4500
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 3600
 
 S_FA, S_RA, RT = 1.55, -1.39, 0.34
 BELT = 0.93
@@ -44,7 +44,7 @@ C = dict(
     dlo_rear=lambda Z, c_s: np.full_like(Z, -2.44), top_off=0.055, a_off=0.075,
     pillars=[(-0.05, 0.035, -0.06), (-1.18, 0.05, 0.0)], b_s=-0.05, b_slant=-0.06, fd0=1.10,
     rd1=lambda Z, c_s: np.full_like(Z, -1.16), sill=0.29,
-    ws_dom=0.35, bl_dom=-2.45, bl_zlo=1.0, bl_ztop=1.40, bl_side=0.11,
+    ws_dom=0.35, bl_dom=-2.45, bl_zlo=1.0, bl_ztop=1.40, bl_side=0.11, ws_ztop=1.405,
     hood=(1.31, 0.76, HL[3] + 0.012), lid=(-2.47, 0.80, 0.52),
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.66,
     grille=(0.38, 0.565, 0.69), grille_bars=3, grille_vbars=9, grille_sur_mat='chrome', lower_intake=(0.50, 0.26, 0.38),
