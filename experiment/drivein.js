@@ -285,7 +285,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     if (n.startsWith('needles')) { m.envMapIntensity = 0.15; m.roughness = 1; if ('specularIntensity' in m) m.specularIntensity = 0.1; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
     if (n.startsWith('light_bulb')) { m.emissive = new THREE.Color(0xffc890); m.emissiveIntensity = 2.0; m.toneMapped = false; }
     return m; }
-  const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) }, uCrK: { value: 0.12 }, uCrP: { value: 6.0 } };
+  const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) }, uCrK: { value: 0.18 }, uCrP: { value: 6.0 } };
   function rimOn(m, k) { if (!k) return m; const prev = m.onBeforeCompile;
     m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); sh.uniforms.uMoonW = RIM.uMoonW; sh.uniforms.uRimC = RIM.uRimC; sh.uniforms.uRimK = { value: k };
       sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
@@ -323,7 +323,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
            #include <aomap_fragment>`); };
       const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
       o.material = m; }); return tpl; }
-  const rimFor = n => /^(needles|leaf)/.test(n) ? 0 :/^(bark|wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
+  const rimFor = n => /^(needles|leaf)/.test(n) ? 0 :/^bark/.test(n) ? 0.06 : /^(wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
   let applied = false;
   async function applyAssets() {
