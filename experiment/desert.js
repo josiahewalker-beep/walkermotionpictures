@@ -671,7 +671,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   }
 
   // ---------- the approach: slower curved flight from wherever the camera is into the hero frame, building the world as it comes ----------
-  let heroPose = null, fly = null, mode = 0, aux = null, inside = false;
+  let heroPose = null, fly = null, lastFly = null, mode = 0, aux = null, inside = false;
   const ease = t => t * t * t * (t * (t * 6 - 15) + 10);
   const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
   function setReveal(p) {
@@ -691,6 +691,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const look = fly.L0.clone().lerp(fly.L1, ease(Math.min(1, t / 0.92)));
     return { pos, look, fov: fly.f0 + (fly.f1 - fly.f0) * e };
   }
+  function finishLeave() { fly = null; root.visible = false; gridFade(0); gridDes(-1, 0, 0, REV.uOrigin.value); if (fogBefore !== null) { scene.fog = fogBefore; fogBefore = null; } for (const x of aux || []) x.o.material.opacity = x.a; for (const k in cssCards) cssCards[k].obj.element.style.opacity = ''; }
   const api = {
     root, Y0, W, H, C, LOOKS, clock,
     enter(key, roadDef, carDefs, eye, view) {
@@ -759,7 +760,19 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     },
     flyStep(dt) {
       fly.t = Math.min(1, fly.t + dt / fly.dur); const s = pose(fly.t); setReveal(bloomAt(fly.t));
-      if (fly.t >= 1) { fly = null; inside = true; setReveal(1); api.play(); s.done = true; landedAt = 0; }
+      if (fly.t >= 1) { lastFly = fly; fly = null; inside = true; setReveal(1); api.play(); s.done = true; landedAt = 0; }
+      return s;
+    },
+    // leaving the way we came: the camera pulls back up the approach curve while the world un-builds cell by cell,
+    // from the horizon in toward the billboard's foot (the build run backwards), then the page flies on to the next slide
+    get leaving() { return !!fly && fly.dir === -2; },
+    leave(speed = 6.5 / 4.2) {
+      const f = fly && fly.dir > 0 ? fly : lastFly; if (!f) { api.depart(); return false; }
+      api.stop(); inside = false; landedAt = -1; fly = Object.assign({}, f, { dir: -2, t: f === fly ? fly.t : 1, speed }); return true;
+    },
+    leaveStep(dt) {
+      fly.t = Math.max(0, fly.t - dt * fly.speed / fly.dur); const s = pose(fly.t); setReveal(bloomAt(fly.t));
+      if (fly.t <= 0) { finishLeave(); s.done = true; }
       return s;
     },
     depart(dur = 3.2) { if (!inside && !fly) return; api.stop(); inside = false; landedAt = -1; fly = { dir: -1, t: 0, dur, from: REV.uRev.value }; },
@@ -786,8 +799,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     play() { for (const a of actors) a.dispose(); actors.length = 0; clock.t = 0; evI = 0; trafficN = 0; nextCar = 26; clock.playing = true; },
     tick(dt) {
       BLOOM.uBTime.value += dt;
-      if (fly && fly.dir < 0) { fly.t = Math.min(1, fly.t + dt / fly.dur); setReveal(fly.from * (1 - smooth(0, 1, fly.t)));
-        if (fly.t >= 1) { fly = null; root.visible = false; gridFade(0); gridDes(-1, 0, 0, REV.uOrigin.value); if (fogBefore !== null) { scene.fog = fogBefore; fogBefore = null; } for (const x of aux || []) x.o.material.opacity = x.a; for (const k in cssCards) cssCards[k].obj.element.style.opacity = ''; } }
+      if (fly && fly.dir === -1) { fly.t = Math.min(1, fly.t + dt / fly.dur); setReveal(fly.from * (1 - smooth(0, 1, fly.t)));
+        if (fly.t >= 1) finishLeave(); }
       if (!clock.manual) update(dt);
     },
     step(dt) { update(dt); },

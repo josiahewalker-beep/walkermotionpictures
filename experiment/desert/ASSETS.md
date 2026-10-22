@@ -161,7 +161,20 @@ Everything is procedural (no third-party meshes or textures); plate text is fict
   Each wheel node's origin is the hub centre (sports: y = 0.343 m, minivan: y = 0.368 m); it holds tyre + rim + brake disc
   + centre cap. Spin about local **X**: `wheel.rotation.x += speed / radius * dt` for forward travel along +Z.
   Brake calipers are in `body` (they do not spin).
-- Triangles: see the table below (`body` includes interior, lamps, grille mesh, mirrors, wipers, plates, exhausts, roof rails).
+- Triangles (`body` includes interior, lamps, grille mesh, mirrors, wipers, plates, exhausts, roof rails):
+| asset | total tris | body node | each wheel node | file size |
+|---|---|---|---|---|
+| `car_sports.glb` | ~148.5k | ~91.7k | ~14.2k (tyre 5.9k, rim 6.5k, disc, cap) | ~5.3 MB |
+| `car_minivan.glb` | ~148.2k | ~91.5k | ~14.2k | ~5.3 MB |
+- Minivan paint base colour = linear (0.021, 0.070, 0.262) ≈ sRGB (40, 75, 140) per review; sports paint = linear (0.45, 0.02, 0.02).
+  `paint` metallic 0.55 / roughness 0.28 (integrator adds clearcoat).
+- Body normals are analytic gradients of the body field averaged over a 1.8 cm (minivan 3 cm) sphere so reflections run
+  in clean bands; the wheel-arch cut keeps its own sharp normals.
+- Minivan details: sliding-door track groove on the rear quarter under the third-row glass, front + sliding door shut lines,
+  hatch shut line, fuel door (right rear), roof rails, rear wiper, blacked B/C pillars, fog lamps, chrome grille slats.
+- Coupe details: door, hood, trunk and fuel-door shut lines, flush handles, quad exhaust, diffuser fins, mesh grille + side
+  intakes, red calipers, cross-drilled discs, splitter lip, full-width tail light bar.
+
 - Materials (all named by role): `paint` (base colour = the paint colour; COLOR_0 carries baked occlusion, darker low on the
   body and inside the arches — keep vertex colours on), `glass` (BLEND α 0.82, dark tint), `trim_black` (window surrounds,
   gaps, grille, cladding, wheel wells, underbody; COLOR_0 darkens recesses), `chrome`, `rubber` (tyres: normal map +

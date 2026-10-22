@@ -301,7 +301,7 @@ def add_rear_details(parts):
     for x in (-0.30, -0.12, 0.12, 0.30):
         p0 = rear_point(x, 0.20, 0.0)
         if p0 is None: continue
-        bv, bf = D.box((x, p0[1] + 0.12, 0.175), (0.004, 0.16, 0.05))
+        bv, bf = D.box((x, p0[1] + 0.15, 0.18), (0.004, 0.13, 0.045))
         parts.add('body', bv, bf, 'trim_black', flat=True, COL=np.c_[np.full((8, 3), 0.6), np.ones(8)])
 
 def add_front_details(parts):

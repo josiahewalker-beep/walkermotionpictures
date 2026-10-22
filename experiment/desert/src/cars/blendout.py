@@ -142,6 +142,6 @@ def build(parts, matspecs, out_path, node_origins=None, root_name='car'):
         ob.parent = root
         scn.collection.objects.link(ob)
     bpy.ops.export_scene.gltf(filepath=out_path, export_format='GLB', export_yup=True, export_apply=True,
-                              export_image_format='AUTO', export_vertex_color='ACTIVE',
+                              export_image_format='JPEG', export_vertex_color='ACTIVE',
                               export_all_vertex_colors=False, export_tangents=False)
     return total

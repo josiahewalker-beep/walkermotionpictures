@@ -937,6 +937,7 @@ const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a
 function eyeNow() { return camera.position.clone(); }
 function lookNow() { const d = new THREE.Vector3(); camera.getWorldDirection(d); return camera.position.clone().addScaledVector(d, Math.max(400, cam.pos.distanceTo(cam.look))); }
 
+let desertNext = null;
 function go(id, opt = {}) {
   if (HOLE.active) return;
   // desert experiment: the first slide is entered by a slow approach into its billboard frame, and left by un-building the world
@@ -945,7 +946,10 @@ function go(id, opt = {}) {
     if (id === 'hero') { if (DS.flying || DS.inside) return;
       tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; flight = null; mark(null);
       DS.approachFrom(eyeNow(), lookNow(), camera.fov); current = 'flying'; navState('hero'); return; }
-    if (DS.inside || DS.flying) { window.__desertLock = false; DS.depart(); if (camera.fov !== BASE_FOV && id !== 'overview') { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } }
+    if (DS.leaving) { desertNext = id; return; }                  // already pulling back: just retarget
+    if (DS.inside || DS.flying) { window.__desertLock = false;
+      if (DS.leave()) { desertNext = id; current = 'flying'; flight = null; return; }        // pull back up the approach while it un-builds, then fly on
+      if (camera.fov !== BASE_FOV && id !== 'overview') { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } }
   }
   if (id !== 'overview' && !cards[id]) return;
   if (id === current && !flight) return;
@@ -1164,6 +1168,9 @@ function frame(now) {
   if (window.__desert && window.__desert.flying) { const s = window.__desert.flyStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
     if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
     if (s.done) { current = 'hero'; mark('hero'); navState('hero'); window.__desertLock = true; } }
+  if (window.__desert && window.__desert.leaving) { const s = window.__desert.leaveStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
+    if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
+    if (s.done) { const id = desertNext || 'overview'; desertNext = null; current = null; if (camera.fov !== BASE_FOV) { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } go(id); } }
   if (window.__desertLock) { tYaw = tPitch = 0; pan.y = 0; }      // landed in the billboard frame: the camera holds still
   { const k = 1 - Math.exp(-dt * 8); yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k; }
   if (Math.abs(tYaw - yaw) < .004) yaw = tYaw; if (Math.abs(tPitch - pitch) < .004) pitch = tPitch;
