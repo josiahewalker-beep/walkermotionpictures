@@ -223,7 +223,7 @@ def place_tufts(tree, budget_cards):
     return P, D, Sz, Tt
 
 
-def card_quads(kind, P, D, Sz, rng, cross=True, cells=None):
+def card_quads(kind, P, D, Sz, rng, cross=True, cells=None, axis_fn=None):
     """Return verts (N*k*4,3), tris, normals, uv for crossed (pines) or tilted-pair (fir) cards."""
     V, F, Nn, UV, owner = [], [], [], [], []
     n = len(P)
@@ -244,20 +244,25 @@ def card_quads(kind, P, D, Sz, rng, cross=True, cells=None):
             side0 = perp(d[None])[0]
             rot = rng.uniform(0, math.pi)
             side0 = rodrigues(side0[None], d[None], np.array([rot]))[0]
-            planes = [side0, np.cross(d, side0)] if cross else [side0]
+            if cross == 3:     # three planes 60° apart: rounder tufts from every side
+                planes = [rodrigues(side0[None], d[None], np.array([k * math.pi / 3]))[0] for k in range(3)]
+            else:
+                planes = [side0, np.cross(d, side0)] if cross else [side0]
             start = P[i] - d * s * 0.45
+        # shading normal: radial from the trunk axis (plus a little up), the same for every card of the tuft, so the
+        # moon behind the trees rims only the silhouette edges; winding is made to face outward as well
+        rad = P[i] - (axis_fn(P[i][2]) if axis_fn is not None else np.array([0, 0, P[i][2]]))
+        rad[2] = 0
+        out = nrm(nrm(rad + 1e-6) + UP * 0.35)
         for sd in planes:
-            w = s * (0.5 if kind != 'fir' else 0.5)
+            w = s * 0.5
             v = np.array([start - sd * w, start + sd * w, start + sd * w + d * s, start - sd * w + d * s])
-            nn = nrm(np.cross(sd, d))
-            if nn[2] < 0:
-                nn = -nn
-            # bend the shading normal outward from the tree axis (softer, volumetric crowns)
-            out = nrm(np.array([P[i][0], P[i][1], 0.0]) + 1e-6)
-            nn = nrm(nn * 0.6 + out * 0.5 + UP * 0.25)
+            geo = np.cross(v[1] - v[0], v[2] - v[0])
+            flip = np.dot(geo, out) < 0
+            nn = out
             V.append(v); Nn.append(np.tile(nn, (4, 1)))
             UV.append(np.array([[cu, v0], [cu + 0.5, v0], [cu + 0.5, v0 + 0.5], [cu, v0 + 0.5]]))
-            F.append(np.array([[0, 1, 2], [0, 2, 3]]) + base)
+            F.append((np.array([[0, 2, 1], [0, 3, 2]]) if flip else np.array([[0, 1, 2], [0, 2, 3]])) + base)
             owner += [i] * 4
             base += 4
     return np.concatenate(V), np.concatenate(F), np.concatenate(Nn), np.concatenate(UV), np.array(owner)
@@ -273,9 +278,11 @@ def foliage_colour(tree, P, Tt, vis, rng):
     rad = np.hypot(P[:, 0], P[:, 1]) / env
     depth = smoothstep(1.0, 0.25, rad)
     jitter = rng.uniform(0.85, 1.12, n)
-    warm = rng.uniform(-0.05, 0.08, n)
-    col = np.stack([jitter * (1 + warm), jitter, jitter * (1 - warm * 0.5)], -1)
-    shade = (0.45 + 0.55 * vis) * (1 - 0.25 * depth)
+    col = np.tile(jitter[:, None], (1, 3))
+    # warm brown-olive variation: older/inner tufts and a share of random ones shift toward olive-brown
+    olive = np.clip(rng.uniform(-0.2, 1.0, n) * 0.5 + 0.5 * depth, 0, 1) * rng.uniform(0.3, 0.8, n)
+    col = col * (1 - olive[:, None]) + col * np.array([1.25, 0.88, 0.62]) * olive[:, None]
+    shade = (0.35 + 0.65 * vis) * (1 - 0.45 * depth)
     return np.clip(col * shade[:, None], 0, 1)
 
 
@@ -301,10 +308,11 @@ def build(name, write=True):
         tube(bark, pts, radii, sides, np.ones(3), (tile[0] * 0.5, tile[1] * 0.5))
     for sp in tree.stubs:
         tube(bark, sp, np.array([0.025, 0.017, 0.006]), 3, np.array([0.75, 0.75, 0.72]), (0.3, 0.5))
-    budget_cards = (T['budget'] - bark.ntris) // (4 if kind != 'fir' else 4)
+    budget_cards = (T['budget'] - bark.ntris) // (6 if kind != 'fir' else 4)
     P, D, Sz, Tt = place_tufts(tree, budget_cards)
     cells = rng.integers(0, 4, len(P))
-    V, F, Nn, UV, own = card_quads(kind, P, D, Sz, rng, cross=True, cells=cells)
+    V, F, Nn, UV, own = card_quads(kind, P, D, Sz, rng, cross=(3 if kind != 'fir' else True), cells=cells,
+                                   axis_fn=tree.axis_at)
     # AO: occlusion density from the tuft centres (weighted by card area)
     occ = P + rng.normal(0, 0.1, P.shape)
     bv, bt, bn, bc, buv = bark.arrays()
@@ -355,7 +363,7 @@ def build_lod(tree, P, D, Sz, colt, cells, rng, target=5800):
     # card size: keep total covered area similar (alpha coverage of the atlas is the same), at least the extent
     Sc = np.maximum(np.sqrt(Area) * 0.80, Ext * 1.6)
     Sc = np.maximum(Sc, Sz.mean())
-    V, F, Nn, UV, own = card_quads(kind, Pc, Dc, Sc, rng, cross=True)
+    V, F, Nn, UV, own = card_quads(kind, Pc, Dc, Sc, rng, cross=True, axis_fn=tree.axis_at)
     # bigger cards average more tufts → their colour is slightly darker inside (self-shadowing at distance)
     needles.add(V, F, n=Nn, c=np.c_[Cc[own] * 0.95, np.ones(len(own))], uv=UV)
     print(f'{tree.name}_lod1: bark {bark.ntris}, cards {len(Pc)} → total {bark.ntris + needles.ntris} tris', flush=True)
@@ -369,7 +377,7 @@ def export(name, bark, needles, kind, tex_size=None):
         ba, bn, na = [downsize(p, tex_size) for p in (ba, bn, na)]
     bpy_reset()
     mats = {'bark': make_material('bark', base=ba, normal=bn, normal_strength=1.0, rough=0.92),
-            'needles': make_material('needles', base=na, rough=0.62, double=True, alpha_clip=0.4)}
+            'needles': make_material('needles', base=na, rough=0.82, double=True, alpha_clip=0.4, spec=0.15)}
     build_object(name, {'bark': bark, 'needles': needles}, mats)
     path = os.path.join(ASSETS, name + '.glb')
     export_glb(path, image_format='AUTO')

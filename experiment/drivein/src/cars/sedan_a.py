@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_sedan_a.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.010
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 6500
 
 S_FA, S_RA, RT = 1.33, -1.29, 0.30
 BELT = 0.90
@@ -41,7 +41,7 @@ P = dict(
 )
 HL = (0.33, 0.74, 0.55, 0.64)
 C = dict(
-    name='car_sedan_a', P=P, BOUNDS=((-0.91, -2.30, 0.13), (0.91, 2.30, 1.40)), res=RES, body_target=TARGET,
+    lod=0.4, name='car_sedan_a', P=P, BOUNDS=((-0.91, -2.30, 0.13), (0.91, 2.30, 1.40)), res=RES, body_target=TARGET,
     S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.178, TYRE_W=0.185, X_W=0.725,
     paint=car90.lin((178, 138, 48)), paint_metal=0.5, paint_rough=0.33, interior_color=(0.06, 0.05, 0.04),
     dlo_rear=lambda Z, c_s: c_s(Z) + 0.10, top_off=0.055, a_off=0.075,

@@ -19,11 +19,81 @@ def body_normals(B, V):
     w = np.clip((-dw - 0.001) / 0.004, 0, 1)[:, None]   # inside the well cut -> well normals
     return normalize(n_out * (1 - w) + n_full * w)
 
-def body_surface(B, bounds, res, target):
+def split_edges(V, F, flag):
+    """Split the flagged edges (bool per unique edge, edges as returned by unique_edges) with bmesh."""
+    import bmesh
+    bm = bmesh.new()
+    for v in V: bm.verts.new(v)
+    bm.verts.ensure_lookup_table()
+    for f in F:
+        try: bm.faces.new([bm.verts[i] for i in f])
+        except ValueError: pass
+    bm.verts.index_update()
+    want = set(map(tuple, flag.tolist()))
+    sel = [e for e in bm.edges if tuple(sorted((e.verts[0].index, e.verts[1].index))) in want]
+    if sel:
+        bmesh.ops.subdivide_edges(bm, edges=sel, cuts=1, use_grid_fill=False)
+        bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 3])
+    bm.verts.index_update()
+    V = np.array([v.co[:] for v in bm.verts], float)
+    F = np.array([[v.index for v in f.verts] for f in bm.faces], np.int64)
+    bm.free()
+    return V, F, len(sel)
+
+def refine_for_cuts(B, V, F, N, cuts, iters=4):
+    """Edges that a thin feature (band, glass inset, strip) passes through without changing sign at the two end
+    vertices would be skipped by the level-set cut: find them by sampling each cut function inside the edge, split
+    them, re-project. Keeps the decimated mesh coarse everywhere else."""
+    for it in range(iters):
+        E = np.unique(np.sort(np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]]), 1), axis=0)
+        bad = np.zeros(len(E), bool)
+        a, b = E[:, 0], E[:, 1]
+        for name, fn, offs in cuts:
+            if not offs: continue
+            ga = fn(V[a], N[a]); gb = fn(V[b], N[b])
+            for t in (0.25, 0.5, 0.75):
+                P = V[a] + t * (V[b] - V[a]); Nt = normalize(N[a] + t * (N[b] - N[a]))
+                gt = fn(P, Nt)
+                for o in offs:
+                    sa, sb, st = np.sign(ga - o), np.sign(gb - o), np.sign(gt - o)
+                    bad |= (sa == sb) & (st != sa) & (np.abs(gt) < 0.9)
+        if not bad.any(): break
+        V, F, n = split_edges(V, F, E[bad])
+        V = project_to_surface(B.field, V)
+        N = body_normals(B, V)
+        F = fix_winding(V, F, N)
+        log('refine', it, n, len(F))
+    return V, F, N
+
+def split_long(V, F, L, zmin=-1.0, iters=5):
+    """Split edges longer than L (bmesh) so thin bands and inset features can't be skipped by long decimated slivers.
+    Edges whose midpoint lies below zmin (underside) are left alone."""
+    import bmesh
+    bm = bmesh.new()
+    for v in V: bm.verts.new(v)
+    bm.verts.ensure_lookup_table()
+    for f in F:
+        try: bm.faces.new([bm.verts[i] for i in f])
+        except ValueError: pass
+    for _ in range(iters):
+        long = [e for e in bm.edges if e.calc_length() > L and 0.5 * (e.verts[0].co.z + e.verts[1].co.z) > zmin]
+        if not long: break
+        bmesh.ops.subdivide_edges(bm, edges=long, cuts=1, use_grid_fill=False)
+        bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 3])
+    bm.verts.index_update()
+    V = np.array([v.co[:] for v in bm.verts], float)
+    F = np.array([[v.index for v in f.verts] for f in bm.faces], np.int64)
+    bm.free()
+    return V, F
+
+def body_surface(B, bounds, res, target, max_edge=None, zmin=-1.0):
     t = time.time()
     V, F = mc_mesh(B.field, *bounds, res)
     log('mc', len(F), round(time.time() - t, 1))
     V, F = decimate(V, F, target)
+    if max_edge:
+        V, F = split_long(V, F, max_edge, zmin)
+        log('split', len(F))
     V = project_to_surface(B.field, V)
     N = body_normals(B, V)
     F = fix_winding(V, F, N)
@@ -32,6 +102,7 @@ def body_surface(B, bounds, res, target):
 
 def run_cuts(B, V, F, N, cuts):
     """cuts: list of (name, fn, offsets)"""
+    V, F, N = refine_for_cuts(B, V, F, N, cuts)
     cs = CutSurface(V, F, N, normal_fn=lambda P: body_normals(B, P))
     for name, fn, offs in cuts:
         cs.add_fn(name, fn)

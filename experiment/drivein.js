@@ -210,10 +210,12 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
 
   // ---------- light ----------
   const hemi = new THREE.HemisphereLight(0x2c3650, 0x2a1d12, 0.35); world.add(hemi);
-  const moon = new THREE.DirectionalLight(0x9fb2e8, 0.5); moon.position.copy(P(0, SCY, 0)).addScaledVector(moonDir, 400 * K); moon.target.position.copy(P(0, 3, 10)); world.add(moon, moon.target);
+  const moon = new THREE.DirectionalLight(0x9fb2e8, 0.3); moon.position.copy(P(0, SCY, 0)).addScaledVector(moonDir, 400 * K); moon.target.position.copy(P(0, 3, 10)); world.add(moon, moon.target);
   // the warm light from behind the camera: the concession stand's open windows
-  const stand = new THREE.DirectionalLight(0xffb070, 1.35); stand.position.copy(P(STAND[0], 9, STAND[2] + 6)); stand.target.position.copy(P(-4, 2, 18)); stand.castShadow = true;
-  stand.shadow.mapSize.set(2048, 2048); Object.assign(stand.shadow.camera, { left: -40 * K, right: 40 * K, top: 30 * K, bottom: -30 * K, near: 1 * K, far: 120 * K }); stand.shadow.bias = -0.0004; stand.shadow.normalBias = 0.06 * K;
+  // a spot, not a sun: it reaches the cars and the lot and falls off before the treeline (Josiah 10-22: the trees are backlit)
+  const standAt = P(STAND[0], 9, STAND[2] + 6), standAim = P(-4, 2, 18), dStand = standAt.distanceTo(standAim);
+  const stand = new THREE.SpotLight(0xffb070, 1.6 * dStand * dStand, 85 * K, 0.62, 0.7, 2); stand.position.copy(standAt); stand.target.position.copy(standAim); stand.castShadow = true;
+  stand.shadow.mapSize.set(2048, 2048); stand.shadow.camera.near = 2 * K; stand.shadow.camera.far = 100 * K; stand.shadow.bias = -0.0004; stand.shadow.normalBias = 0.06 * K;
   world.add(stand, stand.target);
   const lampLight = new THREE.PointLight(0xffa860, 60 * K * K, 34 * K, 2); lampLight.position.copy(lampPos); world.add(lampLight);
   const screenSpill = new THREE.PointLight(0x8ea0c8, 260 * K * K, 70 * K, 2); screenSpill.position.copy(P(0, SCY * 0.8, 9)); world.add(screenSpill);   // the slide lights the lot a little
@@ -275,7 +277,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
 
   // ---------- assets take over their blockouts as they arrive ----------
   const TPL = {}; const assetsDone = [];
-  const prep = o => prepAsset(o, m => revHook(nightMaterial(m)), depthFor);
+  const prep = o => prepAsset(o, m => { const r = revHook(nightMaterial(m)); return rimOn(r, rimFor((m.name || '').toLowerCase())); }, depthFor);
   function nightMaterial(m) { m = upgradeMaterial(m); const n = (m.name || '').toLowerCase();
     if ('envMapIntensity' in m) m.envMapIntensity = /^(paint|glass|chrome|rim)/.test(n) ? 1.0 : 0.35;
     if (n.startsWith('needles') || n.startsWith('leaf')) { m.side = THREE.DoubleSide; if (m.map) { m.alphaTest = Math.max(m.alphaTest || 0, 0.45); m.transparent = false; } }
@@ -283,6 +285,16 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     if (n.startsWith('needles')) { m.envMapIntensity = 0.15; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
     if (n.startsWith('light_bulb')) { m.emissive = new THREE.Color(0xffc890); m.emissiveIntensity = 2.0; m.toneMapped = false; }
     return m; }
+  const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) } };
+  function rimOn(m, k) { if (!k) return m; const prev = m.onBeforeCompile;
+    m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); sh.uniforms.uMoonW = RIM.uMoonW; sh.uniforms.uRimC = RIM.uRimC; sh.uniforms.uRimK = { value: k };
+      sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+         { vec3 Vv = normalize( vViewPosition ); vec3 Mv = normalize( ( viewMatrix * vec4( uMoonW, 0.0 ) ).xyz );
+           float back = smoothstep( 0.05, 0.75, dot( -Vv, Mv ) ), edge = pow( 1.0 - abs( dot( normalize( normal ), Vv ) ), 2.2 );
+           totalEmissiveRadiance += uRimC * uRimK * back * edge; }`); };
+    const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|rim' + k; return m; }
+  const rimFor = n => /^(needles|leaf)/.test(n) ? 0.22 : /^(bark|wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
   let applied = false;
   async function applyAssets() {

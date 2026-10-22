@@ -66,6 +66,7 @@ def make_mesh(name, V, F, attr=None, uvs=None, smooth_angle=35, recalc=True, par
     ob.location = loc.tolist()
     bpy.context.scene.collection.objects.link(ob)
     if parent is not None:
+        bpy.context.view_layer.update()
         ob.parent = parent
         ob.matrix_parent_inverse = parent.matrix_world.inverted()
     if uvs is not None:
@@ -95,6 +96,7 @@ def empty(name, origin=(0, 0, 0), parent=None):
     ob.location = to_blender(np.asarray(origin, float)).tolist()
     bpy.context.scene.collection.objects.link(ob)
     if parent is not None:
+        bpy.context.view_layer.update()
         ob.parent = parent
         ob.matrix_parent_inverse = parent.matrix_world.inverted()
     return ob

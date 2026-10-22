@@ -152,7 +152,7 @@ def needle_clump(ncards=48, seed=9):
                  c=np.c_[np.full((4, 3), shade), np.ones(4)])
     tex = fallen_atlas()
     bpy_reset()
-    mat = make_material('needles', base=tex, rough=0.6, double=True, alpha_clip=0.4)
+    mat = make_material('needles', base=tex, rough=0.8, double=True, alpha_clip=0.4, spec=0.2)
     build_object('needle_clump', {'needles': part}, {'needles': mat})
     path = os.path.join(ASSETS, 'needle_clump.glb')
     export_glb(path, image_format='AUTO')

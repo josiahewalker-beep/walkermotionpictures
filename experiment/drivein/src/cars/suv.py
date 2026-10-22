@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_suv.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.011
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 6500
 
 S_FA, S_RA, RT = 1.40, -1.44, 0.366
 BELT = 1.13
@@ -38,7 +38,7 @@ P = dict(
 )
 HL = (0.36, 0.80, 0.86, 0.975)
 C = dict(
-    name='car_suv', P=P, BOUNDS=((-0.95, -2.42, 0.28), (0.95, 2.42, 1.80)), res=RES, body_target=TARGET,
+    lod=0.4, name='car_suv', P=P, BOUNDS=((-0.95, -2.42, 0.28), (0.95, 2.42, 1.80)), res=RES, body_target=TARGET,
     S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.19, TYRE_W=0.235, X_W=0.76,
     paint=car90.lin((190, 172, 134)), paint_metal=0.25, paint_rough=0.38, interior_color=(0.07, 0.06, 0.05),
     dlo_rear=lambda Z, c_s: np.full_like(Z, -2.18), top_off=0.055, a_off=0.075,
@@ -48,7 +48,7 @@ C = dict(
     hood=(1.13, 0.72, HL[3] + 0.012), lid=(-2.27, 0.76, 0.62), rear_dom=0.55,
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.58,
     grille=(0.34, 0.865, 0.97), grille_bars=3, grille_sur_mat='chrome', lower_intake=(0.50, 0.44, 0.56),
-    tail=(0.68, 0.82, 1.22), tail_panel=False, reverse=(0.70, 0.80, 0.83, 0.90), rplate=0.98,
+    tail=(0.68, 0.82, 1.22), tail_s=-2.24, ws_ztop=1.655, tail_panel=False, reverse=(0.70, 0.80, 0.83, 0.90), rplate=0.98,
     handles=[0.17, -0.91], handle_z=BELT - 0.08, markers=((S_FA + 0.80, 0.86), (S_RA - 0.80, 0.90)), fuel=(S_RA - 0.45, BELT - 0.15),
     rub=(lambda s: np.full_like(s, 0.70), 0.022), clad=lambda s: np.full_like(s, 0.60), arch_lip=0.04,
     roof_rails=(0.60, 0.25, -2.15, 0.05), cross_bars=[-0.5, -1.6], rear_wiper=1.28, mirror_scale=1.1,

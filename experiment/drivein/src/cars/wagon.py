@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_wagon.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.011
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 6500
 
 S_FA, S_RA, RT = 1.55, -1.39, 0.34
 BELT = 0.93
@@ -38,7 +38,7 @@ P = dict(
 )
 HL = (0.40, 0.84, 0.575, 0.68)
 C = dict(
-    name='car_wagon', P=P, BOUNDS=((-1.02, -2.68, 0.14), (1.02, 2.68, 1.51)), res=RES, body_target=TARGET,
+    lod=0.4, name='car_wagon', P=P, BOUNDS=((-1.02, -2.68, 0.14), (1.02, 2.68, 1.51)), res=RES, body_target=TARGET,
     S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.19, TYRE_W=0.225, X_W=0.81,
     paint=car90.lin((34, 64, 46)), paint_metal=0.4, paint_rough=0.36, interior_color=(0.05, 0.047, 0.04),
     dlo_rear=lambda Z, c_s: np.full_like(Z, -2.44), top_off=0.055, a_off=0.075,
@@ -48,7 +48,7 @@ C = dict(
     hood=(1.31, 0.76, HL[3] + 0.012), lid=(-2.47, 0.80, 0.52),
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.66,
     grille=(0.38, 0.565, 0.69), grille_bars=3, grille_vbars=9, grille_sur_mat='chrome', lower_intake=(0.50, 0.26, 0.38),
-    tail=(0.66, 0.55, 0.95), tail_panel=False, reverse=(0.68, 0.79, 0.565, 0.625), rplate=0.72,
+    tail=(0.66, 0.55, 0.95), tail_s=-2.50, tail_panel=False, reverse=(0.68, 0.79, 0.565, 0.625), rplate=0.72,
     handles=[0.07, -1.04], markers=((S_FA + 0.85, 0.60), (S_RA - 0.95, 0.64)), fuel=(S_RA - 0.55, BELT - 0.14),
     rub=(lambda s: np.full_like(s, 0.53), 0.026), rub_raise=0.008,
     roof_rails=(0.62, 0.35, -2.35, 0.05), cross_bars=[-0.6, -1.7], rear_wiper=1.07,

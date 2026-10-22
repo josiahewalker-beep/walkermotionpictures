@@ -14,7 +14,7 @@ import bpy
 TEXD = f'{SCR}/screen_tex'
 os.makedirs(TEXD, exist_ok=True)
 OUT = f'{ROOT}/assets/screen.glb'
-ATLAS = {'wood_old': 2048, 'wood_painted': 1024, 'steel_weathered': 1024, 'concrete': 512}
+ATLAS = {'wood_old': 2048, 'wood_old_rear': 1024, 'wood_painted': 1024, 'steel_weathered': 1024, 'steel_weathered_rear': 512, 'concrete': 512}
 
 
 def panel_tex():
@@ -35,6 +35,8 @@ def panel_tex():
 def main():
     pipe.reset()
     Bk = SG.build()
+    SG.split_visible(Bk, 'wood_old', 'wood_old_rear', SG.visible_from_camera)
+    SG.split_visible(Bk, 'steel_weathered', 'steel_weathered_rear', SG.visible_from_camera)
     bad = SG.check_front_clear(Bk); bad2 = SG.check_sightline(Bk)
     if bad or bad2:
         raise SystemExit(f'REFUSING TO EXPORT: geometry in front of the face: {bad} {bad2}')
@@ -64,11 +66,11 @@ def main():
         tm = BW.texel_size(P, used)
         E = pipe.edge_map(used, tm)
         log(name, 'texel mm', round(tm, 2))
-        if name == 'wood_old':
+        if name.startswith('wood_old'):
             out = W2.weather_wood(P, N, AO, E, AX, K, used, src, per, seed=1, ground=SG.GY)
         elif name == 'wood_painted':
             out = W2.weather_paintwood(P, N, AO, E, AX, K, used, src, per, seed=11, ground=SG.GY, top=18.6)
-        elif name == 'steel_weathered':
+        elif name.startswith('steel_weathered'):
             out = W2.weather_metal(P, N, AO, E, AX, K, used, src, per, seed=21, ground=SG.GY)
         else:
             out = W2.weather_concrete(P, N, AO, E, AX, K, used, seed=31, ground=SG.GY)

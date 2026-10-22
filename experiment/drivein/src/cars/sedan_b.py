@@ -9,7 +9,7 @@ from carlib import smax, sd_round_box, box
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_sedan_b.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.010
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 6500
 
 S_FA, S_RA, RT = 1.42, -1.33, 0.34
 BELT = 1.05
@@ -66,7 +66,7 @@ HL = (0.40, 0.80, 0.80, 0.90)
 in_bed = lambda fm: ((np.abs(fm['c'][:, 0]) < BED['xh'] + 0.005) & (fm['c'][:, 1] > BED['s0'] - 0.005)
                      & (fm['c'][:, 1] < BED['s1'] + 0.005) & (fm['c'][:, 2] < BELT - 0.025) & (fm['c'][:, 2] > BED['floor'] - 0.02))
 C = dict(
-    name='car_sedan_b', P=P, BOUNDS=((-0.92, -2.40, 0.28), (0.92, 2.40, 1.64)), res=RES, body_target=TARGET,
+    lod=0.4, name='car_sedan_b', P=P, BOUNDS=((-0.92, -2.40, 0.28), (0.92, 2.40, 1.64)), res=RES, body_target=TARGET,
     field_mod=field_mod, doors=2, fd1=lambda Z: np.full_like(Z, -0.30),
     S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.19, TYRE_W=0.205, X_W=0.72,
     paint=car90.lin((96, 38, 30)), paint_metal=0.3, paint_rough=0.38, interior_color=(0.06, 0.05, 0.045),
@@ -76,7 +76,7 @@ C = dict(
     hood=(1.05, 0.70, HL[3] + 0.012), lid=(-2.30, 0.80, 0.58),
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.62,
     grille=(0.38, 0.78, 0.92), grille_bars=2, grille_vbars=5, grille_sur_mat='chrome', lower_intake=(0.50, 0.40, 0.44),
-    tail=(0.70, 0.62, 0.98), tail_panel=False, reverse=(0.72, 0.82, 0.63, 0.70), rplate=0.76,
+    tail=(0.70, 0.62, 0.98), tail_s=-2.24, ws_ztop=1.50, tail_panel=False, reverse=(0.72, 0.82, 0.63, 0.70), rplate=0.76,
     handles=[-0.18], markers=((S_FA + 0.78, 0.82), (S_RA - 0.85, 0.86)), fuel=(S_RA + 0.55, BELT - 0.13),
     rub=(lambda s: np.full_like(s, 0.70), 0.018),
     extra_labels={'bedliner': dict(mat='trim_black', depth=0.0, col=0.6)},

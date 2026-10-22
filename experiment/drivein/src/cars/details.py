@@ -78,7 +78,7 @@ def mc_small(field, lo, hi, res, target):
     F = fix_winding(V, F, N)
     return V, F, N
 
-def mirror_parts(parts, field_body, base, side, scale=1.0, mats=('paint', 'trim_black', 'chrome')):
+def mirror_parts(parts, field_body, base, side, scale=1.0, mats=('paint', 'trim_black', 'chrome'), lod=1.0):
     """Side mirror: rounded housing on a stalk. base = (x, s, z) at the door/sail surface (x>0 version)."""
     bx, bs, bz = base
     L = 0.24 * scale; Hh = 0.13 * scale; Dd = 0.095 * scale
@@ -95,10 +95,10 @@ def mirror_parts(parts, field_body, base, side, scale=1.0, mats=('paint', 'trim_
         P = np.stack([x, s, z], -1)
         return sd_capsule(P, (bx - 0.02, bs + 0.01, bz), (cx - L * 0.3, cs + 0.005, cz - 0.01), 0.018 * scale)
     lo = (bx - 0.05, cs - 0.06, cz - Hh / 2 - 0.05); hi = (cx + L / 2 + 0.03, cs + Dd + 0.03, cz + Hh / 2 + 0.03)
-    Vh, Fh, Nh = mc_small(housing, (cx - L / 2 - 0.02, cs - 0.04, cz - Hh / 2 - 0.02), (cx + L / 2 + 0.02, cs + Dd + 0.03, cz + Hh / 2 + 0.02), 0.004, 1800)
+    Vh, Fh, Nh = mc_small(housing, (cx - L / 2 - 0.02, cs - 0.04, cz - Hh / 2 - 0.02), (cx + L / 2 + 0.02, cs + Dd + 0.03, cz + Hh / 2 + 0.02), 0.004, int(1800 * lod))
     # mirror glass = rear face (normal toward -s)
     rear = Nh[Fh].mean(1)[:, 1] < -0.85
-    Vs, Fs, Ns = mc_small(stalk, (bx - 0.06, bs - 0.1, bz - 0.05), (cx + 0.02, bs + 0.06, cz + 0.05), 0.004, 500)
+    Vs, Fs, Ns = mc_small(stalk, (bx - 0.06, bs - 0.1, bz - 0.05), (cx + 0.02, bs + 0.06, cz + 0.05), 0.004, int(500 * lod))
     out = []
     for (V, F, N, m) in [(Vh, Fh[~rear], Nh, mats[0]), (Vh, Fh[rear], Nh, mats[2]), (Vs, Fs, Ns, mats[1])]:
         Vv = V.copy(); Nn = N.copy(); Ff = F.copy()

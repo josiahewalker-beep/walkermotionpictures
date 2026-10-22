@@ -47,7 +47,7 @@ def bark(kind, size=1024, seed=5):
         # tile = 1.2 m around × 1.6 m tall: ~5 plates across, ~4 down
         f1, f2, cid = worley(h, w, 5, 4, seed, warp=(wx, wy))
         edge = f2 - f1                                       # 0 at the furrow
-        plate = smoothstep(0.03, 0.28, edge + 0.04 * fine)
+        plate = smoothstep(0.02, 0.22, edge + 0.02 * fine)
         prand = np.random.default_rng(seed + 9).random(cid.max() + 1)[cid]
         # flaky scales within a plate: small worley, shallow steps
         g1, g2, gid = worley(h, w, 26, 30, seed + 11, warp=(wx * 2, wy * 2))
@@ -81,12 +81,14 @@ def bark(kind, size=1024, seed=5):
         nstr = 8.0
     else:  # fir
         # deep vertical furrows: worley with tall cells → ridges, then cross-breaks
-        f1, f2, cid = worley(h, w, 7, 3, seed + 31, warp=(wx * 1.5, wy * 0.5))
+        # deep vertical furrows between long corky ridges (tall cells), shallow cross-checks on the ridges
+        f1, f2, cid = worley(h, w, 11, 2, seed + 31, warp=(wx * 1.2, wy * 0.3))
         edge = f2 - f1
-        ridge = smoothstep(0.02, 0.35, edge + 0.05 * fine)
+        ridge = smoothstep(0.03, 0.30, edge + 0.025 * fine)
         prand = np.random.default_rng(seed + 32).random(cid.max() + 1)[cid]
-        cross = smoothstep(0.1, 0.5, np.abs(np.sin((np.arange(h)[:, None] / h * 9 + prand * 3) * np.pi))) * 0.25 + 0.75
-        hgt = ridge * cross * (0.8 + 0.2 * prand) + 0.12 * fib * ridge + 0.03 * fine
+        c1, c2, cid2 = worley(h, w, 14, 9, seed + 33, warp=(wx, wy))
+        cross = 0.8 + 0.2 * smoothstep(0.0, 0.10, c2 - c1)
+        hgt = ridge * cross * (0.8 + 0.2 * prand) + 0.12 * fib * ridge + 0.02 * fine
         top = np.array([0.20, 0.135, 0.095])
         side = np.array([0.10, 0.065, 0.045])
         furrow = np.array([0.03, 0.02, 0.015])
@@ -121,7 +123,9 @@ def needle_col(rng, kind, tip=0.0):
     c = base + (hi - base) * rng.uniform(0, 1) * 0.7
     if rng.random() < 0.05:     # a few dead/browning needles
         c = np.array([0.20, 0.10, 0.04]) * rng.uniform(0.6, 1.1)
-    return c * rng.uniform(0.8, 1.15)
+    scale = {'ponderosa': np.array([0.80, 0.85, 1.05]), 'lodgepole': np.array([0.82, 0.87, 1.0]),
+             'fir': np.array([0.85, 0.92, 0.92])}[kind]
+    return c * scale * rng.uniform(0.8, 1.15)
 
 
 def curve(p0, d, L, bend, n=6):

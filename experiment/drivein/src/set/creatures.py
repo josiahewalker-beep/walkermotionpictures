@@ -163,52 +163,52 @@ def build_moth(pipe):
 # ====================================================================== MOUSE
 def mouse_parts():
     belly = lambda i, a: 0.82 if np.sin(a) < -0.2 else 1.0
-    body_rows = [(-0.048, 0.019, 0.003, 0.003), (-0.044, 0.020, 0.013, 0.012), (-0.035, 0.022, 0.020, 0.018), (-0.022, 0.023, 0.022, 0.020),
-                 (-0.008, 0.022, 0.020, 0.019), (0.006, 0.021, 0.017, 0.016), (0.018, 0.021, 0.014, 0.014), (0.028, 0.022, 0.012, 0.0125),
-                 (0.034, 0.023, 0.0105, 0.0115)]
+    body_rows = [(-0.042, 0.018, 0.003, 0.003), (-0.039, 0.019, 0.013, 0.012), (-0.031, 0.021, 0.020, 0.018), (-0.019, 0.022, 0.0215, 0.0195),
+                 (-0.006, 0.0215, 0.019, 0.018), (0.007, 0.021, 0.0155, 0.0155), (0.017, 0.0215, 0.0128, 0.0132), (0.026, 0.0225, 0.0112, 0.0118),
+                 (0.031, 0.023, 0.0105, 0.0112)]
     path, rx, ry = spline_sections(body_rows, 18)
     body = remap_uv(loft(path, rx, ry, m=22, cap1=False, shape=lambda i, a: 0.85 if np.sin(a) < -0.3 else 1.0), 0, 0, 1, 0.5)
-    head_rows = [(0.024, 0.0225, 0.0110, 0.0118), (0.034, 0.0245, 0.0120, 0.0122), (0.044, 0.0240, 0.0105, 0.0105),
-                 (0.054, 0.0215, 0.0075, 0.0075), (0.062, 0.0185, 0.0045, 0.0046), (0.068, 0.0165, 0.0020, 0.0022), (0.0705, 0.0158, 0.0004, 0.0004)]
+    head_rows = [(0.022, 0.0225, 0.0115, 0.0120), (0.031, 0.0250, 0.0127, 0.0125), (0.039, 0.0238, 0.0107, 0.0103),
+                 (0.046, 0.0210, 0.0070, 0.0068), (0.0515, 0.0186, 0.0040, 0.0041), (0.0548, 0.0174, 0.0017, 0.0019), (0.0562, 0.0170, 0.0004, 0.0004)]
     path, rx, ry = spline_sections(head_rows, 14)
     head = remap_uv(loft(path, rx, ry, m=20, cap0=True), 0, 0.5, 1, 1.0)
     skin = Mesh()
-    skin.merge(sphere((0, 0.0160, 0.0700), 0.0019, m=8, n=6))               # nose
+    skin.merge(sphere((0, 0.0172, 0.0554), 0.0018, m=8, n=6))               # nose
     for s in (1, -1):                                                        # ears: rounded, cupped, thin
-        root = np.array([s * 0.0065, 0.0335, 0.038])
-        d = nrm([s * 0.55, 0.85, -0.35]); side = nrm(np.cross(d, [0, 0, 1]) * s)
-        e = blade(root, d, side, 0.0105, lambda t: 0.0048 * np.sin(np.pi * (0.15 + 0.85 * t)) ** 0.6 + 0.0005, nl=5, nw=4,
+        root = np.array([s * 0.0070, 0.0330, 0.0310])
+        d = nrm([s * 0.55, 0.85, -0.30]); side = nrm(np.cross(d, [0, 0, 1]) * s)
+        e = blade(root, d, side, 0.0155, lambda t: 0.0076 * np.sin(np.pi * (0.12 + 0.88 * t)) ** 0.55 + 0.0006, nl=6, nw=4,
                   thick=0.0006, bend=lambda t, q, d=d: nrm(np.cross(d, side)) * 0.0018 * q * q * s)
         skin.merge(remap_uv(e, 0.6, 0.0, 0.9, 0.3))
     eyes = Mesh()
     for s in (1, -1):
-        eyes.merge(sphere((s * 0.0078, 0.0285, 0.0505), 0.0026, m=10, n=7))
+        eyes.merge(sphere((s * 0.0081, 0.0283, 0.0405), 0.0031, m=10, n=7))
     # tail (pivot at the base)
     tz = np.linspace(0, 1, 18)
-    tpath = np.stack([0.012 * np.sin(tz * 3.2) * tz, 0.018 - 0.016 * TL.smoothstep(0, 0.35, tz) + 0.001, -0.044 - 0.092 * tz], 1)
+    tpath = np.stack([0.012 * np.sin(tz * 3.2) * tz, 0.018 - 0.016 * TL.smoothstep(0, 0.35, tz) + 0.001, -0.040 - 0.092 * tz], 1)
     trad = 0.0034 * (1 - tz) + 0.0007
-    tail = remap_uv(loft(tpath, trad, trad, m=8), 0.0, 0.3, 0.5, 1.0)
+    tail = remap_uv(loft(tpath, trad, trad, m=8), 0.0, 0.12, 1.0, 0.16)          # fur texture strip: brown top, white below
     # legs (pivot at the hips/shoulders): thigh/arm tube down to the foot, foot pointing forward
     legs = {}
-    for nm, (hx, hy, hz), (fx, fz), flen, rad in (('leg_FL', (0.008, 0.013, 0.020), (0.010, 0.024), 0.008, 0.0028),
-                                                  ('leg_FR', (-0.008, 0.013, 0.020), (-0.010, 0.024), 0.008, 0.0028),
-                                                  ('leg_HL', (0.013, 0.016, -0.026), (0.016, -0.022), 0.017, 0.0045),
-                                                  ('leg_HR', (-0.013, 0.016, -0.026), (-0.016, -0.022), 0.017, 0.0045)):
+    for nm, (hx, hy, hz), (fx, fz), flen, rad in (('leg_FL', (0.008, 0.013, 0.017), (0.010, 0.021), 0.008, 0.0028),
+                                                  ('leg_FR', (-0.008, 0.013, 0.017), (-0.010, 0.021), 0.008, 0.0028),
+                                                  ('leg_HL', (0.013, 0.016, -0.023), (0.016, -0.019), 0.017, 0.0045),
+                                                  ('leg_HR', (-0.013, 0.016, -0.023), (-0.016, -0.019), 0.017, 0.0045)):
         hip = np.array([hx, hy, hz])
         ankle = np.array([fx, 0.0028, fz - flen * 0.35])
         knee = (hip + ankle) / 2 + np.array([0, 0, 0.004 if 'H' in nm else -0.002])
         m = loft(np.array([hip, knee, ankle]), np.array([rad, rad * 0.6, rad * 0.35]), np.array([rad, rad * 0.6, rad * 0.35]), m=8)
         foot = loft(np.array([ankle + (0, -0.001, 0), ankle + (np.sign(fx) * 0.0005, -0.0018, flen * 0.5), ankle + (np.sign(fx) * 0.001, -0.0022, flen)]),
                     np.array([0.0016, 0.0018, 0.0012]) * (1.25 if 'H' in nm else 1.0), np.array([0.0009, 0.0007, 0.0004]), m=6)
-        leg = remap_uv(m, 0.0, 0.0, 0.5, 0.25)
-        leg.merge(remap_uv(foot, 0.5, 0.3, 0.6, 0.6))
+        leg = remap_uv(m, 0.70, 0.10, 0.80, 0.30)                                   # pale belly fur (white-footed)
+        leg.merge(remap_uv(foot, 0.72, 0.10, 0.78, 0.20))
         legs[nm] = (leg, hip)
     # paws: two little hands under the chin (for holding a kernel), pivot at the chest
     paws = Mesh()
     for s in (1, -1):
-        a = np.array([s * 0.006, 0.016, 0.030]); b = np.array([s * 0.0035, 0.0145, 0.043])
-        paws.merge(remap_uv(loft(np.array([a, (a + b) / 2, b]), np.array([0.0022, 0.0018, 0.0012]), np.array([0.0022, 0.0018, 0.0012]), m=6), 0, 0, 0.5, 0.25))
-        paws.merge(remap_uv(sphere(b + (0, 0, 0.0012), 0.0016, m=6, n=4, squash=(1, 0.7, 1.2)), 0.5, 0.3, 0.6, 0.6))
+        a = np.array([s * 0.006, 0.016, 0.026]); b = np.array([s * 0.0035, 0.0145, 0.038])
+        paws.merge(remap_uv(loft(np.array([a, (a + b) / 2, b]), np.array([0.0022, 0.0018, 0.0012]), np.array([0.0022, 0.0018, 0.0012]), m=6), 0.70, 0.1, 0.8, 0.3))
+        paws.merge(remap_uv(sphere(b + (0, 0, 0.0012), 0.0016, m=6, n=4, squash=(1, 0.7, 1.2)), 0.72, 0.1, 0.78, 0.2))
     return body, head, skin, eyes, tail, legs, paws
 
 
@@ -219,8 +219,8 @@ def tex_mouse():
     u = xx; v = 1 - yy
     # loft u: a = 2*pi*u, a=0 side (+X), pi/2 back, -pi/2 (u .75) belly
     s = np.sin(2 * np.pi * u)
-    back = TL.smoothstep(-0.35, 0.25, s)
-    agouti = np.array([0.115, 0.080, 0.052]); belly = np.array([0.36, 0.31, 0.25]); dark = np.array([0.06, 0.045, 0.032])
+    back = TL.smoothstep(-0.45, -0.15, s)
+    agouti = np.array([0.13, 0.085, 0.05]); belly = np.array([0.52, 0.49, 0.44]); dark = np.array([0.06, 0.045, 0.032])
     c = belly * (1 - back[..., None]) + agouti * back[..., None]
     c = c * (1 - 0.35 * TL.smoothstep(0.75, 1.0, s)[..., None]) + dark * 0.35 * TL.smoothstep(0.75, 1.0, s)[..., None]
     streak = TL.spectral((n, n), r, 1.6, lo=20, hi=None, aniso=(0.12, 1.0))
@@ -253,38 +253,38 @@ def build_mouse(pipe):
     eye = pipe.material('eye', base=(0.012, 0.01, 0.01), rough=0.06)
     root = pipe.empty('mouse')
     ob = to_obj(pipe, 'body', body, parent=root, origin=(0, 0.02, 0)); pipe.assign(ob, fur)
-    neck = np.array([0, 0.023, 0.028])
+    neck = np.array([0, 0.023, 0.025])
     oh = to_obj(pipe, 'head', head, parent=ob, origin=neck); pipe.assign(oh, fur)
     os_ = to_obj(pipe, 'head_skin', skin, parent=oh, origin=neck); pipe.assign(os_, skm)
     oe = to_obj(pipe, 'eyes', eyes, parent=oh, origin=neck); pipe.assign(oe, eye)
-    ot = to_obj(pipe, 'tail', tail, parent=ob, origin=(0, 0.019, -0.044)); pipe.assign(ot, skm)
+    ot = to_obj(pipe, 'tail', tail, parent=ob, origin=(0, 0.019, -0.040)); pipe.assign(ot, fur)
     tris = body.tris() + head.tris() + skin.tris() + eyes.tris() + tail.tris() + paws.tris()
     for nm, (leg, hip) in legs.items():
         o = to_obj(pipe, nm, leg, parent=ob, origin=hip); pipe.assign(o, fur if True else skm)
         tris += leg.tris()
-    chest = np.array([0, 0.016, 0.028])
+    chest = np.array([0, 0.016, 0.025])
     op = to_obj(pipe, 'paws', paws, parent=ob, origin=chest); pipe.assign(op, fur)
-    pipe.empty('kernel_socket', (0, 0.0135, 0.047), parent=op)
+    pipe.empty('kernel_socket', (0, 0.0135, 0.0405), parent=op)
     print('mouse tris', tris)
     pipe.export(f'{ROOT}/assets/mouse.glb')
 
 
 # ====================================================================== OWL
-SPAN_ROOT = 0.075
+SPAN_ROOT = 0.062
 
 
 def owl_wing(side):
     """Wing in owl coords (pivot at the shoulder added by caller). Arm/inner hand as a thick cambered grid,
     then six slotted primaries fanned at the tip and a scalloped trailing edge (secondaries)."""
     m = Mesh()
-    L = 0.33                       # arm + inner hand span from the shoulder
+    L = 0.30                       # arm + inner hand span from the shoulder
     ns, nc = 16, 7
     V, UV = [], []
     def le(s):
-        return 0.055 - 0.015 * s + 0.02 * np.sin(np.pi * s) * 0.5
+        return 0.040 + 0.055 * TL.smoothstep(0.0, 0.62, s) - 0.035 * TL.smoothstep(0.62, 1.0, s)
     def te(s):
         sc = 0.007 * np.abs(np.sin(s * np.pi * 7))            # secondary feather tips
-        return -0.205 + 0.07 * s ** 1.6 - sc
+        return -0.215 + 0.045 * s ** 1.6 - sc
     def thick(s, c):
         return (0.022 * (1 - s) + 0.005) * np.sin(np.pi * np.clip(c, 0, 1) ** 0.6)
     for surf in (0, 1):
@@ -295,7 +295,7 @@ def owl_wing(side):
                 c = j / nc
                 z = le(s) + (te(s) - le(s)) * c
                 y = 0.012 * np.sin(np.pi * c) * (1 - 0.5 * s) + 0.06 * s * x * 0      # camber
-                y += np.tan(np.radians(4)) * x
+                y += np.tan(np.radians(4)) * x - 0.10 * TL.smoothstep(0.55, 1.0, s) * x * 0.5
                 y += thick(s, c) * (0.6 if surf == 0 else -0.4)
                 V.append((x, y, z)); UV.append((x / 0.56, 0.5 + (z + 0.22) / 0.30 * 0.5))
     F = []
@@ -319,16 +319,17 @@ def owl_wing(side):
         grid.F = [f[::-1] for f in grid.F]
     m.merge(grid)
     # primaries: six slotted 'fingers' from the wing tip, fanned
-    tip_le, tip_te = np.array([L, np.tan(np.radians(4)) * L, le(1.0)]), np.array([L, np.tan(np.radians(4)) * L, te(1.0) + 0.01])
+    ytip = np.tan(np.radians(4)) * L - 0.05 * L
+    tip_le, tip_te = np.array([L, ytip, le(1.0)]), np.array([L, ytip, te(1.0) + 0.01])
     angs = np.radians([28, 14, 2, -10, -22, -34])
     lens = [0.19, 0.225, 0.235, 0.225, 0.20, 0.17]
     for k, (a, ln) in enumerate(zip(angs, lens)):
         root = tip_le + (tip_te - tip_le) * (k + 0.5) / 6 + np.array([-0.035, 0, 0])
         d = nrm([np.cos(a), 0.03 + 0.01 * k, np.sin(a)])
-        side = nrm(np.cross([0, 1, 0], d))
+        sd = nrm(np.cross([0, 1, 0], d))
         wf = lambda t: 0.017 * (1 - 0.45 * TL.smoothstep(0.35, 0.6, t)) * np.sqrt(np.clip(1 - t ** 4, 0, 1)) + 0.0015
-        bend = lambda t, q: np.array([0, 0.012 * t * t, 0]) + np.array([0, 0.002 * q, 0])
-        f = blade(root, d, side, ln, wf, nl=7, nw=2, thick=0.0025, bend=bend, uv_rect=(0.62 + 0.06 * k, 0.5, 0.66 + 0.06 * k, 1.0))
+        bend = lambda t, q: np.array([0, 0.018 * t * t - 0.01 * t, 0]) + np.array([0, 0.002 * q, 0])
+        f = blade(root, d, sd, ln, wf, nl=7, nw=2, thick=0.0025, bend=bend, uv_rect=(0.62 + 0.06 * k, 0.5, 0.66 + 0.06 * k, 1.0))
         m.merge(f)
     if side < 0:
         m.transform(lambda v: v * np.array([-1, 1, 1]))
@@ -337,15 +338,15 @@ def owl_wing(side):
 
 
 def owl_body():
-    rows = [(-0.215, 0.000, 0.030, 0.020), (-0.17, 0.002, 0.068, 0.055), (-0.08, 0.004, 0.095, 0.080), (0.02, 0.006, 0.100, 0.088),
-            (0.085, 0.012, 0.088, 0.080), (0.115, 0.022, 0.092, 0.088), (0.165, 0.028, 0.096, 0.090), (0.205, 0.024, 0.080, 0.074),
-            (0.228, 0.018, 0.045, 0.045), (0.236, 0.014, 0.005, 0.005)]
+    rows = [(-0.205, 0.000, 0.022, 0.016), (-0.16, 0.003, 0.052, 0.045), (-0.09, 0.006, 0.072, 0.066), (-0.01, 0.010, 0.077, 0.072),
+            (0.06, 0.016, 0.068, 0.066), (0.095, 0.024, 0.062, 0.061), (0.13, 0.032, 0.074, 0.070), (0.175, 0.036, 0.076, 0.071),
+            (0.205, 0.033, 0.064, 0.061), (0.222, 0.028, 0.036, 0.040), (0.228, 0.025, 0.004, 0.004)]
     path, rx, ry = spline_sections(rows, 16)
     flat = lambda i, a: 1.0
     b = remap_uv(loft(path, rx, ry, m=20), 0.0, 0.0, 0.5, 0.5)
     # ear tufts (the silhouette cue): stiff blades angled up/out/back
     for s in (1, -1):
-        root = np.array([s * 0.045, 0.095, 0.185])
+        root = np.array([s * 0.042, 0.092, 0.180])
         d = nrm([s * 0.35, 0.85, -0.38]); side = nrm(np.cross(d, [0, 0, 1]))
         t1 = blade(root, d, side, 0.070, lambda t: 0.016 * (1 - t) ** 0.8 + 0.001, nl=5, nw=2, thick=0.004,
                    bend=lambda t, q: np.array([0, 0, -0.012 * t * t]))
@@ -358,14 +359,14 @@ def owl_body():
         f = blade((0, 0.0, -0.17), d, side, 0.215, lambda t: 0.012 + 0.013 * t - 0.012 * t ** 6, nl=5, nw=2, thick=0.003)
         b.merge(remap_uv(f, 0.6 + 0.04 * k, 0.0, 0.64 + 0.04 * k, 0.45))
     # beak and tucked feet
-    beak = loft(np.array([[0, 0.002, 0.226], [0, -0.006, 0.240], [0, -0.016, 0.243]]), np.array([0.009, 0.006, 0.001]), np.array([0.008, 0.005, 0.001]), m=6)
+    beak = loft(np.array([[0, 0.024, 0.220], [0, 0.014, 0.234], [0, 0.004, 0.237]]), np.array([0.009, 0.006, 0.001]), np.array([0.008, 0.005, 0.001]), m=6)
     feet = Mesh()
     for s in (1, -1):
-        feet.merge(sphere((s * 0.03, -0.075, -0.08), 0.022, m=8, n=6, squash=(0.9, 0.7, 1.6)))
+        feet.merge(sphere((s * 0.028, -0.058, -0.07), 0.02, m=8, n=6, squash=(0.9, 0.7, 1.6)))
     b.merge(remap_uv(feet, 0.0, 0.0, 0.5, 0.5))
     eyes = Mesh()
     for s in (1, -1):
-        eyes.merge(sphere((s * 0.032, 0.040, 0.212), 0.013, m=10, n=6, squash=(1, 1, 0.6)))
+        eyes.merge(sphere((s * 0.030, 0.046, 0.208), 0.012, m=10, n=6, squash=(1, 1, 0.6)))
     return b, beak, eyes
 
 
@@ -412,7 +413,7 @@ def build_owl(pipe):
     oey = to_obj(pipe, 'eyes', eyes, parent=ob); pipe.assign(oey, pipe.material('eye', base=(0.55, 0.32, 0.04), rough=0.08))
     tris = body.tris() + beak.tris() + eyes.tris()
     for nm, s in (('wing_L', 1), ('wing_R', -1)):
-        piv = np.array([s * SPAN_ROOT, 0.03, 0.05])
+        piv = np.array([s * SPAN_ROOT, 0.035, 0.05])
         w = owl_wing(s)
         w.transform(lambda v, piv=piv: v + piv)
         o = to_obj(pipe, nm, w, parent=ob, origin=piv, smooth=60)

@@ -66,7 +66,8 @@ def build(seed=7):
         for z in (ZF, ZB):
             CUR['k'] = 0.35
             top = 18.55 if z == ZF else 18.58
-            box(W, (x, (FOOT + top) / 2, z), (0.24, top - FOOT, 0.30))
+            for (ya, yb) in ((FOOT, 6.45), (6.45, top)):         # split so the seen part gets the dense atlas
+                box(W, (x, (ya + yb) / 2, z), (0.24, yb - ya, 0.30))
             CUR['k'] = 0
             box(CO, (x, GY + 0.05, z), (0.62, 0.50, 0.66))
             box(CO, (x, GY + 0.27, z), (0.56, 0.06, 0.60))
@@ -79,7 +80,9 @@ def build(seed=7):
         # raked buttress strut behind the back row, on its own footing
         CUR['k'] = 0.35
         a = np.array([x, 15.6, ZB - 0.16]); b = np.array([x, FOOT, -8.0])
-        sweep(W, p_rect(0.22, 0.26), [b, a], up=(1, 0, 0))
+        mid = b + (a - b) * (6.45 - FOOT) / (a[1] - FOOT)
+        sweep(W, p_rect(0.22, 0.26), [b, mid], up=(1, 0, 0))
+        sweep(W, p_rect(0.22, 0.26), [mid, a], up=(1, 0, 0))
         CUR['k'] = 0
         box(CO, (x, GY + 0.05, -8.0), (0.60, 0.50, 0.70))
         box(CO, (x, GY + 0.27, -8.0), (0.54, 0.06, 0.64))
@@ -200,6 +203,30 @@ def build(seed=7):
     PERCH.append((np.array([lx - 0.5, 13.0, -1.35]), 0.4, 0.7))
     # ---------------- light at the top left (old flood for the screen tower, dead)
     return geo.B
+
+
+def split_visible(Bk, src, dst, vis_fn):
+    """Move polygons of bucket src whose centroid fails vis_fn(c) into a new bucket dst (own, cheaper atlas)."""
+    b = Bk[src]
+    V, F, tags = b.arrays()
+    A = np.asarray(b.attr)
+    keep = [vis_fn(V[f].mean(0)) for f in F]
+    for name, sel in ((src, True), (dst, False)):
+        nb = geo.Bucket(name)
+        idx = [i for i, k in enumerate(keep) if k == sel]
+        used = sorted({v for i in idx for v in F[i]})
+        remap = {v: j for j, v in enumerate(used)}
+        nb.V = [V[used]]; nb.n = len(used)
+        nb.F = [[remap[v] for v in F[i]] for i in idx]
+        nb.tags = [int(tags[i]) for i in idx]
+        nb.attr = [list(A[i]) for i in idx]
+        Bk[name] = nb
+    return Bk
+
+
+def visible_from_camera(c):
+    """Rough visibility class for atlas density: under the face, the left flank, or the outer rim of the structure."""
+    return c[1] < 6.5 or c[0] < -10.3 or c[1] > 18.3
 
 
 def check_front_clear(Bk, zlim=-0.15):

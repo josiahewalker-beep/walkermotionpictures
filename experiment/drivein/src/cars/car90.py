@@ -124,7 +124,8 @@ def build(C, out):
     # windscreen / backlight glass (inset inside the frit)
     def fn_ws(V, N):
         x, s, z = V[:, 0], V[:, 1], V[:, 2]; ax = np.abs(x)
-        d = smax(smax(ax - (gw(s, z) - C.get('ws_side', 0.09)), z - (roof_z(s) - C.get('ws_top', 0.06)), 0.05),
+        wtop = C['ws_ztop'] if 'ws_ztop' in C else roof_z(s) - C.get('ws_top', 0.06)
+        d = smax(smax(ax - (gw(s, z) - C.get('ws_side', 0.09)), z - wtop, 0.05),
                  (BELT + 0.03) - z, 0.04)
         return np.where((s > C['ws_dom']) & (N[:, 2] > -0.2), d, 1.0)
     def fn_bl(V, N):
@@ -184,7 +185,7 @@ def build(C, out):
     li = C['lower_intake']
     fn_lowg = plane_fn(lambda X, Z: (X < li[0]) & (Z > li[1]) & (Z < li[2]), front_dom, rnd=0.02)
     tl = C['tail']        # (x0, z0, z1) tail lamp outboard of x0, wraps the corner
-    tail_dom = lambda V, N: (V[:, 1] < S_RA - C.get('rear_dom', 0.6)) & (N[:, 1] < 0.35)
+    tail_dom = lambda V, N: (V[:, 1] < C.get('tail_s', S_RA - C.get('rear_dom', 0.6))) & (N[:, 1] < 0.35)
     fn_tail = plane_fn(lambda X, Z: (X > tl[0]) & (Z > tl[1]) & (Z < tl[2]), tail_dom, rnd=0.015)
     fn_tpanel = plane_fn(lambda X, Z: (X < tl[0] - 0.012) & (Z > tl[1]) & (Z < tl[2]), rear_dom, rnd=0.01) if C.get('tail_panel', True) else (lambda V, N: np.full(len(V), BIG))
     rv = C.get('reverse', (tl[0] + 0.02, tl[0] + 0.13, tl[1] + 0.012, tl[1] + 0.06))
@@ -305,7 +306,7 @@ def build(C, out):
         return np.repeat(a[:, None], 3, 1)
 
     CB.log(C['name'], 'body field')
-    V, F, N = CB.body_surface(B, C['BOUNDS'], C['res'], C['body_target'])
+    V, F, N = CB.body_surface(B, C['BOUNDS'], C['res'], C['body_target'], C.get('max_edge', None), C.get('split_zmin', 0.3))
     cs = CB.run_cuts(B, V, F, N, cuts)
     parts = Parts()
     parts, lab = build_labelled(cs, labels, rules, 'paint', col_fn=ao_col, parts=parts, node='body')
@@ -357,7 +358,7 @@ def build(C, out):
         h = surf([(ms, mz)], 'side', sgn, -0.005)
         if len(h):
             b = h[0].copy(); b[0] = abs(b[0])
-            D.mirror_parts(parts, f, tuple(b), sgn, scale=C.get('mirror_scale', 0.9), mats=('trim_black', 'trim_black', 'chrome'))
+            D.mirror_parts(parts, f, tuple(b), sgn, scale=C.get('mirror_scale', 0.9), mats=('trim_black', 'trim_black', 'chrome'), lod=C.get('lod', 1.0))
     # wipers (parked on the cowl)
     (s0, z0), _ = P['ws_line']
     for (xa, xb) in [(-0.62, 0.0), (0.06, 0.58)]:
@@ -415,6 +416,12 @@ def build(C, out):
         extra(parts, B, f, locals())
     # cabin
     IC = dict(C['interior'])
+    if C.get('lod', 1.0) < 1.0:
+        IC.setdefault('seat_target', 450); IC.setdefault('dash_target', 700); IC['shell_target'] = 900
+    from collections import Counter
+    _cnt = Counter()
+    for _p in parts.nodes['body']: _cnt[_p['mat']] += len(_p['F'])
+    CB.log('body tris by material before cabin', dict(_cnt))
     IN.add_interior(parts, B, IC)
     CB.log('details done', parts.tris('body'))
     xw = C['X_W']

@@ -33,8 +33,8 @@ def weather_wood(P, N, AO, E, AX, K, used, sources, perch, seed=1, ground=2.7):
     # each board its own tone: low-frequency noise plus position hash
     exposed = np.clip(0.35 + 0.45 * ao + 0.25 * np.clip(up, 0, 1), 0, 1)
     silver = np.array([0.205, 0.195, 0.175]); brown = np.array([0.15, 0.10, 0.065]); dark = np.array([0.075, 0.06, 0.05])
-    col = lerp(brown, silver, smoothstep(0.35, 0.95, exposed + 0.15 * lo))
-    col = col * (1 + 0.10 * lo + 0.07 * g1 + 0.05 * g2)[..., None]
+    col = lerp(brown, silver, smoothstep(0.35, 0.95, exposed + 0.06 * lo))
+    col = col * (1 + 0.05 * lo + 0.16 * g1 + 0.10 * g2)[..., None]
     # creosote / old dark preservative on posts, heavier toward the ground, sun-bleached on top
     creo = np.clip(kk * 2, 0, 1) * np.clip(0.55 + 0.3 * lo + 0.4 * smoothstep(4.0, 0.0, gz), 0, 1)
     col = lerp(col, dark * (1 + 0.15 * g1)[..., None], creo * 0.85)
@@ -46,8 +46,8 @@ def weather_wood(P, N, AO, E, AX, K, used, sources, perch, seed=1, ground=2.7):
     col = lerp(col, np.array([0.06, 0.05, 0.035]), foot * 0.6)
     moss = smoothstep(1.0, 1.6, mid + 0.7 * lo + 0.9 * (1 - ao) + 0.8 * foot + 0.4 * np.clip(up, 0, 1)) * (0.4 + 0.6 * smoothstep(3.5, 0, gz))
     col = lerp(col, np.array([0.065, 0.078, 0.038]) * (1 + 0.2 * mid)[..., None], moss * 0.8)
-    lich = smoothstep(2.1, 2.5, fbm(P, 0.02, seed + 140, oct=2) + 0.5 * lo + 0.5 * ao)
-    col = lerp(col, np.array([0.30, 0.31, 0.25]), lich * 0.7)
+    lich = smoothstep(2.3, 2.7, fbm(P, 0.008, seed + 140, oct=2) + 0.3 * lo + 0.5 * ao)
+    col = lerp(col, np.array([0.27, 0.28, 0.23]), lich * 0.45)
     # rust runs below nails/bolts, dirt streaks below horizontal members
     S = streaks(P, N, used, sources, 1.0, seed + 3) if len(sources) else np.zeros_like(up)
     col = lerp(col, np.array([0.12, 0.055, 0.025]), np.clip(S * 0.8, 0, 0.8))
@@ -67,7 +67,7 @@ def weather_wood(P, N, AO, E, AX, K, used, sources, perch, seed=1, ground=2.7):
 
 
 def weather_paintwood(P, N, AO, E, AX, K, used, sources, perch, seed=11, ground=2.7, top=18.6,
-                      paints=((0.48, 0.47, 0.43), (0.42, 0.43, 0.40), (0.52, 0.50, 0.45), (0.36, 0.38, 0.34))):
+                      paints=((0.38, 0.37, 0.34), (0.33, 0.34, 0.31), (0.41, 0.40, 0.36), (0.30, 0.31, 0.28))):
     """Plywood painted over several times (old sign blocks rolled out in slightly different whites), 30+ years of
     weather: chalking, peel along sheet edges and the bottom, dirt runs from the top edge, mildew low down."""
     up = N[..., 2]
@@ -99,7 +99,7 @@ def weather_paintwood(P, N, AO, E, AX, K, used, sources, perch, seed=11, ground=
     S = streaks(P, N, used, sources, 1.0, seed + 3) if len(sources) else np.zeros_like(up)
     col = lerp(col, np.array([0.16, 0.08, 0.04]), np.clip(S * 0.8, 0, 0.8))
     mil = smoothstep(0.8, 1.6, fbm(P, 0.15, seed + 160, oct=4) + 1.2 * smoothstep(5.5, ground, gz) + 0.6 * (1 - ao))
-    col = lerp(col, np.array([0.09, 0.10, 0.07]), mil * 0.6)
+    col = lerp(col, np.array([0.12, 0.13, 0.10]), mil * 0.35)
     D = droppings(P, N, used, perch, seed + 7) if len(perch) else np.zeros_like(up)
     col = lerp(col, np.array([0.62, 0.60, 0.55]), D * 0.9)
     col = col * (0.55 + 0.45 * ao ** 0.8)[..., None]

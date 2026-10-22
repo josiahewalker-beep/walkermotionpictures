@@ -40,14 +40,14 @@ def add_interior(parts, B, C):
         return d
     for xs in (-sx, sx):
         fld = lambda x, s, z, xs=xs: seat_field(x, s, z, xs, ss)
-        V, F, N = D.mc_small(fld, (xs - 0.32, ss - 0.65, hz - 0.12), (xs + 0.32, ss + 0.40, hz + sh + 0.25), 0.016, 900)
+        V, F, N = D.mc_small(fld, (xs - 0.32, ss - 0.65, hz - 0.12), (xs + 0.32, ss + 0.40, hz + sh + 0.25), 0.016, C.get('seat_target', 900))
         col = 0.8 + 0.2 * np.clip((V[:, 2] - hz) / sh, 0, 1)
         parts.add('body', V, F, 'interior', N=N, COL=np.c_[np.repeat(col[:, None], 3, 1), np.ones(len(V))])
     if C.get('rear_seats'):
         rs = C['rear_s']
         for xs in (-sx, sx):
             fld = lambda x, s, z, xs=xs: seat_field(x, s, z, xs, rs)
-            V, F, N = D.mc_small(fld, (xs - 0.32, rs - 0.65, hz - 0.12), (xs + 0.32, rs + 0.40, hz + sh + 0.25), 0.018, 700)
+            V, F, N = D.mc_small(fld, (xs - 0.32, rs - 0.65, hz - 0.12), (xs + 0.32, rs + 0.40, hz + sh + 0.25), 0.018, int(C.get('seat_target', 900) * 0.75))
             parts.add('body', V, F, 'interior', N=N, COL=np.c_[np.full((len(V), 3), 0.85), np.ones(len(V))])
     # dashboard + instrument hood + console
     ds, dz = C['dash_s'], C['dash_z']
@@ -59,7 +59,7 @@ def add_interior(parts, B, C):
         cons = sd_round_box(P, (0, ds - 0.25, C['floor'] + 0.17), (0.11, 0.42, 0.17), 0.04)
         stack = sd_round_box(P, (0, ds - 0.02, dz - 0.25), (0.13, 0.08, 0.2), 0.04)
         return smin(smin(smin(d, hood, 0.03), cons, 0.04), stack, 0.04)
-    V, F, N = D.mc_small(dash, (-w - 0.1, ds - 0.75, C['floor'] - 0.05), (w + 0.1, ds + 0.4, dz + 0.1), 0.018, 1400)
+    V, F, N = D.mc_small(dash, (-w - 0.1, ds - 0.75, C['floor'] - 0.05), (w + 0.1, ds + 0.4, dz + 0.1), 0.018, C.get('dash_target', 1400))
     parts.add('body', V, F, 'interior', N=N, COL=np.c_[np.full((len(V), 3), 0.9), np.ones(len(V))])
     # steering wheel (driver on model x<0 = car's left, glTF +X)
     ws_ = C['wheel_s']; wz = dz - 0.03
