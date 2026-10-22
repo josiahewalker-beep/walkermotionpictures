@@ -28,3 +28,4 @@
 - 10-22 Josiah: the dirt lot should feel lived in, with tyre marks and tracks. A truly flat lot was tried and hid the cars
   under the camera's upward tilt; Josiah chose to keep round 3's ground (gentle rise, hidden lifts) and add the tracks: a
   90 m overlay drawn in code (worn lanes, the ruts of every car into its spot, old faint arcs) over the fine dirt tile.
+- 10-22 Josiah: no telephone pole / streetlamp in frame. The pole is removed; its warm light stays, moved just off frame left.

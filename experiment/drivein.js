@@ -192,7 +192,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const boothBlock = new THREE.Group(); boothBlock.userData.kind = 'booth'; world.add(boothBlock);
   { const dir = aim.clone().sub(lens).setY(0).normalize(), b = new THREE.Mesh(new THREE.BoxGeometry(4.5 * K, 3.2 * K, 4.5 * K), mat(0x4a3828));
     b.position.copy(lens).addScaledVector(dir, -2.3 * K).add(new THREE.Vector3(0, 0.3 * K, 0)); b.lookAt(b.position.clone().add(dir)); boothBlock.add(b); shadowy(boothBlock); }
-  const lampPos = P(...LAMP), lampGroup = new THREE.Group(); lampGroup.userData.kind = 'lamp'; world.add(lampGroup);
+  const lampPos = P(...LAMP), lampGroup = new THREE.Group(); lampGroup.userData.kind = 'lamp'; lampGroup.visible = false; world.add(lampGroup);   // 10-22 Josiah: no pole in frame; its warm light stays, from off frame left
   { const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.1 * K, 0.12 * K, 4.6 * K, 8), mat(0x2a2018)); pole.position.copy(lampPos).add(new THREE.Vector3(0, -2.3 * K, 0)); lampGroup.add(pole);
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.2 * K, 12, 8), new THREE.MeshBasicMaterial({ color: 0xffd9a0, toneMapped: false })); bulb.position.copy(lampPos); lampGroup.add(bulb); }
 
@@ -217,7 +217,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const stand = new THREE.SpotLight(0xffb070, 1.6 * dStand * dStand, 85 * K, 0.62, 0.7, 2); stand.position.copy(standAt); stand.target.position.copy(standAim); stand.castShadow = true;
   stand.shadow.mapSize.set(2048, 2048); stand.shadow.camera.near = 2 * K; stand.shadow.camera.far = 100 * K; stand.shadow.bias = -0.0004; stand.shadow.normalBias = 0.06 * K;
   world.add(stand, stand.target);
-  const lampLight = new THREE.PointLight(0xffa860, 60 * K * K, 34 * K, 2); lampLight.position.copy(lampPos); world.add(lampLight);
+  const lampLight = new THREE.PointLight(0xffa860, 60 * K * K, 34 * K, 2); lampLight.position.copy(P(-18, 4.6, 27)); world.add(lampLight);
   const screenSpill = new THREE.PointLight(0x8ea0c8, 260 * K * K, 70 * K, 2); screenSpill.position.copy(P(0, SCY * 0.8, 9)); world.add(screenSpill);   // the slide lights the lot a little
   // night environment for reflections: dark sky, moon glow behind, warm lot glow low in front
   let envTex = null;
@@ -329,7 +329,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   async function applyAssets() {
     if (applied) return assetsDone; applied = true;
     const names = ['car_hero', 'car_wagon', 'car_sedan_a', 'car_suv', 'car_sedan_b', 'speaker_post', 'pine_a', 'pine_b', 'pine_c', 'pine_a_lod1', 'pine_b_lod1', 'pine_c_lod1',
-      'rock_a', 'rock_b', 'pinecone', 'needle_clump', 'screen', 'booth', 'lamp_pole', 'popcorn_bucket', 'popcorn_kernel', 'moth', 'mouse', 'owl'];
+      'rock_a', 'rock_b', 'pinecone', 'needle_clump', 'screen', 'booth', 'popcorn_bucket', 'popcorn_kernel', 'moth', 'mouse', 'owl'];
     const got = Object.fromEntries((await Promise.all(names.map(loadGLB))).map((g, i) => [names[i], g]));
     for (const [k, g] of Object.entries(got)) if (g) TPL[k] = prep(g);
     for (const k of Object.keys(TPL)) if (/^pine_/.test(k)) crownOn(TPL[k], 0.55);
