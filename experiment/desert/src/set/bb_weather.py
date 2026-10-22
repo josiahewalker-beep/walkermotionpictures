@@ -127,25 +127,27 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     ao = np.clip(AO[..., 0], 0, 1)
     edge = E
     convex = edge * smoothstep(0.55, 0.85, ao)
-    lo = fbm(P, 0.35, seed, oct=5)
-    mid = fbm(P, 0.06, seed + 50, oct=4)
-    hi = fbm(P, 0.012, seed + 90, oct=3)
-    # --- paint: sun-chalked grey-green ---
-    chalk = np.clip(0.45 + 0.35 * up + 0.18 * lo + 0.08 * mid, 0, 1)
+    lo = fbm(P, 0.30, seed, oct=5)
+    mid = fbm(P, 0.03, seed + 50, oct=4)
+    hi = fbm(P, 0.008, seed + 90, oct=3)
+    gy = P[..., 2]
+    base_zone = smoothstep(1.0, 0.35, gy) * smoothstep(-0.2, 0.2, gy)        # splash zone at the foot of the pole
+    # --- paint: sun-chalked dull grey ---
+    chalk = np.clip(0.45 + 0.30 * up + 0.15 * lo + 0.06 * mid, 0, 1)
     col = lerp(np.asarray(paint_lo), np.asarray(paint_hi), chalk)
-    col = col * (1 + 0.05 * hi)[..., None]
-    # --- peel mask ---
-    pv = 0.55 * lo + 0.35 * mid + 0.12 * hi + 1.6 * convex + 0.45 * np.clip(up, 0, 1) + 0.5 * (1 - ao) + peel_amt
-    peel = smoothstep(1.05, 1.15, pv)
-    ring = smoothstep(0.92, 1.05, pv) * (1 - peel)
+    col = col * (1 + 0.04 * hi)[..., None]
+    # --- peel mask: concentrated on edges, joints (low AO), horizontal tops and the base; small scale ---
+    pv = 0.22 * lo + 0.32 * mid + 0.18 * hi + 1.25 * convex + 0.2 * np.clip(up, 0, 1) + 0.75 * (1 - ao) ** 1.5 + 0.45 * base_zone + peel_amt
+    peel = smoothstep(1.10, 1.18, pv)
+    ring = smoothstep(1.00, 1.10, pv) * (1 - peel)
     # --- rust ---
     r_t = np.clip(0.5 + 0.35 * mid + 0.25 * hi, 0, 1)
     rust_dark = np.array([0.075, 0.035, 0.018]); rust_or = np.array([0.30, 0.115, 0.035]); rust_mid = np.array([0.17, 0.07, 0.03])
     rcol = lerp(lerp(rust_dark, rust_mid, smoothstep(0.2, 0.6, r_t)), rust_or, smoothstep(0.6, 0.95, r_t))
-    pits = smoothstep(1.2, 1.9, fbm(P, 0.004, seed + 140, oct=2))
+    pits = smoothstep(1.2 - 0.6 * base_zone, 1.9, fbm(P, 0.004, seed + 140, oct=2))
     rcol = rcol * (1 - 0.5 * pits)[..., None]
     # rust blooms through intact paint (blisters)
-    bloom = smoothstep(1.4, 2.0, mid + 0.6 * lo + 0.6 * (1 - ao)) * (1 - peel)
+    bloom = smoothstep(1.7, 2.3, mid + 0.4 * hi + 0.8 * (1 - ao) + 0.8 * base_zone) * (1 - peel)
     col = lerp(col, lerp(col, rust_mid, 0.75), bloom * 0.8)
     col = lerp(col, col * 1.18 + 0.02, ring * 0.7)          # lifted, chalkier flake edge
     col = lerp(col, rcol, peel)
@@ -154,7 +156,7 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     gr = fbm(P, 0.15, seed + 200, oct=4, stretch=(1, 1, 9))
     grime = np.clip(smoothstep(0.4, 1.6, gr) * (1 - np.abs(up)) * (0.35 + 0.65 * (1 - ao)), 0, 1)
     stain = np.array([0.22, 0.085, 0.03])
-    col = lerp(col, stain, np.clip(S * 0.85, 0, 0.85))
+    col = lerp(col, stain, np.clip(S * 0.9, 0, 0.9))
     col = lerp(col, np.array([0.12, 0.075, 0.045]), grime * 0.35)
     # --- dust/sand on horizontal surfaces and in corners ---
     dust_col = np.array([0.40, 0.31, 0.22])
@@ -167,7 +169,7 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     # --- AO baked mildly into albedo ---
     col = col * (0.55 + 0.45 * ao ** 0.8)[..., None]
     col = np.clip(col, 0.03, 0.85)
-    rough = 0.78 + 0.08 * chalk + 0.10 * peel + 0.08 * dst - 0.05 * D
+    rough = 0.62 + 0.08 * chalk + 0.15 * peel + 0.12 * dst - 0.05 * D
     metal = np.zeros_like(rough)
     h = 0.12 * (1 - peel) + 0.05 * ring - 0.06 * pits * peel + 0.04 * dst * hi + 0.08 * D + 0.03 * bloom
     return col, np.clip(rough, 0.4, 1.0), metal, h
@@ -179,15 +181,21 @@ def weather_steel(P, N, AO, E, used, sources, perch, seed=21):
     ao = np.clip(AO[..., 0], 0, 1)
     gz = -P[..., 1]; gy = P[..., 2]
     frame = ((gz > -0.25) & (gz < 0.05) & (gy > 2.6)).astype(np.float32)
+    gx = P[..., 0]
+    box = ((gy > 0.95) & (gy < 1.75) & (gx > -0.42) & (gx < 0.25) & (gz > -0.30)).astype(np.float32)
     frame = ndi.gaussian_filter(frame, 1.0)
-    # dark painted steel version
-    c1, r1, m1, h1 = weather_painted(P, N, AO, E, used, sources, perch, [0.045, 0.048, 0.045], [0.11, 0.11, 0.10], seed=seed, peel_amt=0.05)
+    box = ndi.gaussian_filter(box, 1.0)
+    # dark painted steel version (face frame)
+    c1, r1, m1, h1 = weather_painted(P, N, AO, E, used, sources, perch, [0.045, 0.047, 0.044], [0.10, 0.10, 0.092], seed=seed, peel_amt=0.0)
+    # faded painted electrical box / meter: light grey enamel, chalky, a little rust bleed
+    c2, r2, m2, h2 = weather_painted(P, N, AO, E, used, sources, perch, [0.17, 0.17, 0.16], [0.25, 0.245, 0.23], seed=seed + 40, peel_amt=-0.12)
     # galvanized: dull zinc grey, white-rust mottling, red rust spots, sand
     lo = fbm(P, 0.25, seed + 300, oct=4); mid = fbm(P, 0.04, seed + 340, oct=4); hi = fbm(P, 0.01, seed + 380, oct=2)
-    g = np.array([0.30, 0.30, 0.29]) * (1 + 0.10 * lo + 0.06 * mid)[..., None]
-    white = smoothstep(0.6, 1.4, mid + 0.3 * lo) * 0.5
-    g = lerp(g, np.array([0.46, 0.45, 0.42]), white)
-    rs = smoothstep(1.2, 1.8, mid + 0.5 * hi + 0.6 * (1 - ao) + 0.3 * lo)
+    g = np.array([0.185, 0.18, 0.168]) * (1 + 0.06 * lo + 0.04 * mid)[..., None]
+    white = smoothstep(0.8, 1.6, mid + 0.3 * lo) * 0.25
+    g = lerp(g, np.array([0.25, 0.24, 0.22]), white)
+    edge_g = E * smoothstep(0.55, 0.85, ao)
+    rs = smoothstep(1.3, 1.6, 0.4 * mid + 0.35 * hi + 1.0 * (1 - ao) ** 1.5 + 1.1 * edge_g)
     rc = lerp(np.array([0.09, 0.04, 0.02]), np.array([0.26, 0.10, 0.035]), np.clip(0.5 + 0.4 * hi, 0, 1))
     g = lerp(g, rc, rs)
     S = streaks(P, N, used, sources, 0.8, seed + 5)
@@ -197,12 +205,15 @@ def weather_steel(P, N, AO, E, used, sources, perch, seed=21):
     D = droppings(P, N, used, perch, seed + 8)
     g = lerp(g, np.array([0.70, 0.68, 0.62]), D * 0.9)
     g = g * (0.55 + 0.45 * ao ** 0.8)[..., None]
-    rg = 0.62 + 0.15 * white + 0.25 * rs + 0.25 * dst + 0.05 * lo
-    mg = np.clip(0.55 * (1 - rs) * (1 - dst) * (1 - white * 0.6) * (1 - D), 0, 1)
+    rg = 0.62 + 0.06 * white + 0.18 * rs + 0.15 * dst + 0.03 * lo
+    mg = np.clip(0.25 * (1 - rs) * (1 - dst) * (1 - white * 0.6) * (1 - D), 0, 1)
     hg = 0.05 * rs * hi + 0.04 * dst + 0.08 * D
-    f = frame[..., None]
-    col = np.clip(c1 * f + g * (1 - f), 0.03, 0.85)
-    return col, np.clip(r1 * frame + rg * (1 - frame), 0.35, 1), m1 * frame + mg * (1 - frame), h1 * frame + hg * (1 - frame)
+    f = frame[..., None]; bx = box[..., None]
+    col = c1 * f + g * (1 - f); col = c2 * bx + col * (1 - bx)
+    rough = r1 * frame + rg * (1 - frame); rough = r2 * box + rough * (1 - box)
+    metal = (m1 * frame + mg * (1 - frame)) * (1 - box)
+    h = h1 * frame + hg * (1 - frame); h = h2 * box + h * (1 - box)
+    return np.clip(col, 0.03, 0.85), np.clip(rough, 0.35, 1), metal, h
 
 
 def weather_concrete(P, N, AO, E, used, seed=31):
@@ -210,7 +221,7 @@ def weather_concrete(P, N, AO, E, used, seed=31):
     ao = np.clip(AO[..., 0], 0, 1)
     edge = E
     lo = fbm(P, 0.3, seed, oct=5); mid = fbm(P, 0.05, seed + 40, oct=4); hi = fbm(P, 0.006, seed + 80, oct=2)
-    col = np.array([0.38, 0.35, 0.31]) * (1 + 0.08 * lo + 0.05 * mid + 0.07 * hi)[..., None]
+    col = np.array([0.30, 0.28, 0.25]) * (1 + 0.08 * lo + 0.05 * mid + 0.07 * hi)[..., None]
     agg = smoothstep(1.0, 1.6, fbm(P, 0.008, seed + 120, oct=2))
     col = lerp(col, np.array([0.30, 0.28, 0.25]), agg * 0.5)
     # rust stain from the base plate: ring on the top around r~0.7, running down the side under the anchors

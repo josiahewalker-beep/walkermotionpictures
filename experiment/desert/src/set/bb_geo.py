@@ -531,6 +531,21 @@ def build(seed=3):
     for dx in (-0.19, 0.19):
         hexbolt(R, pc + [dx, 0, 0.001], (0, 0, 1), r=0.005, head=0.004, tag=3, src=1.2)
 
+    # ---- extra streak sources along seams / drip edges ----
+    for x in np.arange(-FX - 0.1, FX + 0.1, 0.11):
+        SOURCES.append((np.array([x + rs.uniform(-0.04, 0.04), DECK_Y - 0.15, CW_Z1 + 0.08]), rs.uniform(0.15, 0.7), 0.010, rs.uniform(0.15, 0.5)))
+    for x in np.arange(-3.6, 3.6, 0.13):
+        SOURCES.append((np.array([x, hy - 0.155, POLE_Z + rs.choice([-0.08, 0.08])]), rs.uniform(0.2, 0.7), 0.010, rs.uniform(0.2, 0.6)))
+    for k in range(28):
+        a = 2 * np.pi * k / 28
+        rr = rt + 0.01
+        SOURCES.append((np.array([np.cos(a) * rr, POLE_TOP - 0.36, POLE_Z + np.sin(a) * rr]), rs.uniform(0.3, 0.9), 0.02, rs.uniform(0.4, 1.4)))
+        rr = rad(yfl) + 0.005
+        SOURCES.append((np.array([np.cos(a + 0.1) * rr, yfl - 0.05, POLE_Z + np.sin(a + 0.1) * rr]), rs.uniform(0.2, 0.8), 0.015, rs.uniform(0.3, 1.0)))
+    for x in VX:
+        for ys in (FACE_Y0 + 0.95, FY1 - 0.75):
+            SOURCES.append((np.array([x, ys - 0.1, zs - 0.03]), 0.7, 0.012, 0.5))
+
     # ---- old vinyl remnants ----
     vinyl(rs)
     return B
