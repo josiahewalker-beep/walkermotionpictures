@@ -35,15 +35,20 @@ export function skyEnvironment(renderer, sunDir, { sand = 0x9a6a42, ranges = 0x6
 
 // grain + a whisper of vignette, done in the composer so it sits on the world and not on the slide's HTML
 const FinishShader = {
-  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: 0.035 }, uVig: { value: 0.18 } },
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uGrain: { value: 0.035 }, uVig: { value: 0.18 }, uK: { value: 1 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime, uGrain, uVig; varying vec2 vUv;
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uTime, uGrain, uVig, uK; varying vec2 vUv;
     float h(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233)) + uTime * 37.0) * 43758.5453); }
     void main() {
-      vec4 c = texture2D(tDiffuse, vUv);
+      vec4 c = texture2D(tDiffuse, vUv); vec3 o = c.rgb;
       float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
-      c.rgb += (h(gl_FragCoord.xy) - 0.5) * uGrain * (0.35 + 0.65 * (1.0 - abs(l - 0.45) * 1.6));   // luminance-weighted grain
-      vec2 d = vUv - 0.5; c.rgb *= 1.0 - uVig * dot(d, d) * 2.2;
+      // golden-hour print grade: a little contrast and colour, warm highlights, faintly cool shadows
+      vec3 g = (c.rgb - 0.5) * 1.07 + 0.5;
+      g = mix(vec3(l), g, 1.14);
+      g += vec3(0.022, 0.004, -0.028) * smoothstep(0.35, 1.0, l) + vec3(-0.014, 0.0, 0.016) * (1.0 - smoothstep(0.0, 0.35, l));
+      c.rgb = mix(o, g, uK);
+      c.rgb += (h(gl_FragCoord.xy) - 0.5) * uGrain * uK * (0.35 + 0.65 * (1.0 - abs(l - 0.45) * 1.6));   // luminance-weighted grain
+      vec2 d = vUv - 0.5; c.rgb *= 1.0 - uVig * uK * dot(d, d) * 2.2;
       gl_FragColor = c;
     }`,
 };
@@ -65,6 +70,6 @@ export function makeComposer(renderer, scene, camera) {
   addEventListener('resize', resize);
   let t = 0;
   return {
-    render(dt, k = 1) { t += dt; finish.uniforms.uTime.value = t % 100; ao.configuration.intensity = 2.2 * k; bloom.strength = 0.22 * k; composer.render(dt); },
+    render(dt, k = 1) { t += dt; finish.uniforms.uTime.value = t % 100; finish.uniforms.uK.value = k; ao.configuration.intensity = 2.2 * k; bloom.strength = 0.22 * k; composer.render(dt); },
   };
 }

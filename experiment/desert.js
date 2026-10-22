@@ -100,6 +100,13 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
           vec3 c = mix(hor, zen, pow(h, 0.45));
           c = mix(c, haze, (1.0 - smoothstep(0.0, 0.09, h)) * 0.55);              // soft haze band sitting on the horizon
           float g = max(dot(d, sun), 0.0); c += sunCol * (pow(g, 600.0) * 1.2 + pow(g, 8.0) * 0.12);
+          // thin high cirrus, lit warm on the sun side; only a few streaks so the sky stays clean behind the slide
+          { vec2 cp = vec2(atan(d.z, d.x) * 3.0, d.y * 18.0); float cl = 0.0, w = 0.5; vec2 q = cp * vec2(1.0, 3.5);
+            for (int i = 0; i < 5; i++) { cl += w * (0.5 + 0.5 * sin(q.x * 1.7 + sin(q.y * 1.3 + q.x * 0.7) * 1.8)) * (0.5 + 0.5 * sin(q.y * 2.1 + q.x * 0.4)); q *= 2.07; q += 1.7; w *= 0.5; }
+            float band = smoothstep(0.06, 0.14, d.y) * (1.0 - smoothstep(0.34, 0.55, d.y));
+            float cov = smoothstep(0.62, 0.86, cl) * band * 0.55;
+            vec3 cc = mix(vec3(0.95, 0.72, 0.62), vec3(1.0, 0.82, 0.55), pow(g, 3.0));
+            c = mix(c, cc * (0.75 + 0.45 * pow(g, 2.0)), cov); }
           // stars: sparse half-degree cells, a few lit, each twinkling at its own rate; they fade in with uStar
           vec2 uv = vec2(atan(d.z, d.x), asin(clamp(d.y, -1.0, 1.0))) * 114.6; vec2 cell = floor(uv); float hs = hash(cell);
           if (hs > 0.9925 && uStar > 0.0) {
@@ -257,24 +264,31 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const m = new THREE.Mesh(g, groundHook(revHook(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }))));
     m.position.set(C.x, Y0, C.z); m.receiveShadow = true; groundMesh = m; return m;
   }
+  // value noise for terrain
+  const vn = (seed => { const P = new Uint8Array(512), r = rng(seed); for (let i = 0; i < 256; i++) P[i] = i; for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [P[i], P[j]] = [P[j], P[i]]; } for (let i = 0; i < 256; i++) P[i + 256] = P[i];
+    const g = (h, x, y) => ((h & 1) ? x : -x) + ((h & 2) ? y : -y), f = t => t * t * t * (t * (t * 6 - 15) + 10);
+    return (x, y) => { const X = Math.floor(x) & 255, Y = Math.floor(y) & 255; x -= Math.floor(x); y -= Math.floor(y); const u = f(x), v = f(y), A = P[X] + Y, B = P[X + 1] + Y;
+      return (1 - v) * ((1 - u) * g(P[A], x, y) + u * g(P[B], x - 1, y)) + v * ((1 - u) * g(P[A + 1], x, y - 1) + u * g(P[B + 1], x - 1, y - 1)); }; })(91);
+  const ridged = (x, y, oct = 6) => { let a = 0, f = 1, w = 0.5, s2 = 0; for (let i = 0; i < oct; i++) { const n = 1 - Math.abs(vn(x * f, y * f)); a += n * n * w; s2 += w; f *= 2.03; w *= 0.5; } return a / s2; };
   function range(L, R, hMin, hMax, color, seed, mesa) {
-    // a sloped band of ridges: base at R, crest set back, so the sun models the slopes instead of a flat wall
-    const r = rng(seed), N = 420, rows = 4, pos = [], idx = [], ph = r() * 9, ph2 = r() * 9;
-    const crest = [];
-    for (let i = 0; i <= N; i++) { const a = i / N * Math.PI * 2;
-      let y = 0.5 + 0.28 * Math.sin(a * 4 + ph) + 0.16 * Math.sin(a * 11 + ph2) + 0.08 * Math.sin(a * 29 + ph * 3) + 0.05 * (r() - .5);
-      y = hMin + (hMax - hMin) * Math.max(0, Math.min(1, y));
-      if (mesa) y = Math.sin(a * 6 + ph) > 0.3 ? hMax * (0.8 + 0.08 * Math.sin(a * 40)) : hMin * 0.3;
-      crest.push(y); }
+    // eroded ridges: ridged multi-octave noise around the horizon, a deep band so the sun models real slopes,
+    // alluvial fans at the foot (lighter), rock on the steep faces (darker), smooth-shaded
+    const r = rng(seed), N = 1400, rows = 14, pos = [], col = [], idx = [], off = r() * 50;
+    const base = new THREE.Color(color), fan = base.clone().lerp(new THREE.Color(L.sand[0]), 0.55), rock = base.clone().multiplyScalar(0.72), t3 = new THREE.Color();
     for (let i = 0; i <= N; i++) { const a = i / N * Math.PI * 2, cx = Math.cos(a), sz = Math.sin(a);
-      for (let j = 0; j < rows; j++) { const t = j / (rows - 1), rr = R + t * R * 0.12;
-        let y = mesa ? (t < 0.34 ? -200 + (crest[i] + 200) * (t / 0.34) * 0.98 : crest[i]) : -200 + (crest[i] + 200) * Math.pow(Math.sin(t * Math.PI / 2), 1.4);
-        y += (j > 0 && j < rows - 1 && !mesa) ? (r() - .5) * (hMax - hMin) * 0.12 : 0;
-        pos.push(cx * rr, y, sz * rr); }
+      for (let j = 0; j < rows; j++) { const t = j / (rows - 1), rr = R * (1 + t * 0.16);
+        const nx = cx * 3.2 + off, ny = sz * 3.2 + t * 1.3;
+        let hgt = ridged(nx, ny) * (0.55 + 0.45 * vn(nx * 0.35 + 9, ny * 0.35)), prof = Math.sin(Math.min(1, t * 1.25) * Math.PI / 2);
+        if (mesa) hgt = hgt > 0.42 ? 0.9 : hgt * 0.4;
+        const y = -200 + (hMin + (hMax - hMin) * hgt) * prof * (1 - Math.pow(t, 6) * 0.35);
+        pos.push(cx * rr, y, sz * rr);
+        const k = Math.min(1, y / (hMin + (hMax - hMin) * 0.6));
+        t3.copy(fan).lerp(base, Math.min(1, k * 1.6)).lerp(rock, Math.max(0, hgt - 0.55) * 1.4); col.push(t3.r, t3.g, t3.b); }
       if (i < N) for (let j = 0; j < rows - 1; j++) { const k = i * rows + j, k2 = (i + 1) * rows + j; idx.push(k, k + 1, k2, k2, k + 1, k2 + 1); } }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-    const m = new THREE.Mesh(g.toNonIndexed(), groundHook(mat(color, { side: THREE.DoubleSide }))); m.geometry.computeVertexNormals(); m.position.set(C.x, Y0, C.z); return m;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, groundHook(mat(0xffffff, { side: THREE.DoubleSide, vertexColors: true, flatShading: false, roughness: 0.95 }))); m.position.set(C.x, Y0, C.z); m.receiveShadow = false; return m;
   }
+
 
   // ---------- road ----------
   function makeRoad(L, P, az) {      // P: a point on the centre line (world x,z); az: heading in degrees (0 = -z, 90 = +x)
@@ -508,7 +522,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     lookKey = key; const L = LOOKS[key]; Lcur = L; world = new THREE.Group(); trees = []; placed.tree.length = placed.bush.length = placed.rock.length = 0; installHaze(L);
     road = null; const rd = makeRoad(L, roadDef.P, roadDef.az);
     world.add(sky(L), ground(L), rd, billboard(L), scatter(L, eye, view));
-    world.add(range(L, 80000, 1500, 5600, L.mt[1], 3, L.mesa), range(L, 46000, 300, 2600, L.mt[0], 11, L.mesa));
+    world.add(range(L, 82000, 1800, 6200, L.mt[1], 3, L.mesa), range(L, 50000, 500, 3000, L.mt[0], 11, L.mesa), range(L, 30000, 120, 1100, L.mt[0], 17, L.mesa));
     const sd = new THREE.Vector3(...L.sun).normalize();
     const sun = new THREE.DirectionalLight(L.sunCol, L.sunI); sun.position.copy(C).addScaledVector(sd, 9000); sun.target.position.set(C.x, Y0, C.z + 600);
     sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); Object.assign(sun.shadow.camera, { left: -4600, right: 4600, top: 4600, bottom: -4600, near: 100, far: 24000 }); sun.shadow.bias = -0.0003; sun.shadow.normalBias = 6;
@@ -575,6 +589,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     }
     await applySurfaces(done);
     if (done.length) bakeEnv();
+    tuneLight();
     window.__desertAssets = done; return done;
   }
   // road and ground textures from the set thread (desert/tex), mapped in metres
@@ -594,7 +609,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       Object.assign(m, { map: rep(sA, u, v), normalMap: rep(sN, u, v), color: new THREE.Color(0xffffff), flatShading: false }); m.needsUpdate = true; }
     if (groundMesh && gA) {
       const m = groundMesh.material, k = 160000 / (6 * M);
-      Object.assign(m, { map: rep(gA, k, k), normalMap: rep(gN, k, k), roughnessMap: rep(gR, k, k), roughness: 1, flatShading: false, vertexColors: !!gM }); m.needsUpdate = true;
+      Object.assign(m, { map: rep(gA, k, k), normalMap: rep(gN, k, k), roughnessMap: rep(gR, k, k), roughness: 1, flatShading: false, vertexColors: !!gM, color: new THREE.Color(1.0, 0.9, 0.78) }); m.needsUpdate = true;   // warmed a touch: the late sun has been on this sand all day
       if (gM && gM.image) {          // large-scale tone from the macro map, baked into the ground's vertex colours
         const cv = document.createElement('canvas'), W2 = cv.width = gM.image.width, H2 = cv.height = gM.image.height, cx = cv.getContext('2d'); cx.drawImage(gM.image, 0, 0);
         const px = cx.getImageData(0, 0, W2, H2).data, g = groundMesh.geometry, pos = g.attributes.position, col = g.attributes.color, span = 300 * M;
@@ -605,6 +620,16 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       } else if (gM === null) { const col = groundMesh.geometry.attributes.color; for (let i = 0; i < col.count; i++) col.setXYZ(i, 1, 1, 1); col.needsUpdate = true; }
       done.push('sand');
     }
+  }
+  // golden hour: the low warm sun does the work; the sky's blue fill stays weak except in reflections (paint, glass, chrome)
+  function tuneLight() {
+    const T = window.__desertTune || {};
+    if (sunLight) sunLight.intensity = T.sun ?? 4.2;
+    if (hemiLight) hemiLight.intensity = T.hemi ?? 0.18;
+    const strong = /^(paint|glass|chrome|rim|trim)/i;
+    world && world.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) if (m && 'envMapIntensity' in m) m.envMapIntensity = strong.test(m.name || '') ? (m.envMapIntensity || 1) : (T.env ?? 0.32); });
+    for (const k in TPL) TPL[k].traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) if (m && 'envMapIntensity' in m && !strong.test(m.name || '')) m.envMapIntensity = T.env ?? 0.32; });
+    renderer.toneMappingExposure = T.exp ?? 1.0;
   }
   // image-based light and reflections from a physically based sky matched to the sun
   function bakeEnv() {

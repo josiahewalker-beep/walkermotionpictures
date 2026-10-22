@@ -51,11 +51,12 @@ peb_pal = [[0.30, 0.20, 0.13],    # varnished brown (desert varnish)
            [0.26, 0.24, 0.21]]    # grey
 peb_w = [0.24, 0.16, 0.18, 0.08, 0.14, 0.08, 0.12]
 hp = h.copy()
-cov_g = splat_pebbles(hp, col, rng(59), 90000, 0.9, 2.0, peb_pal, peb_w, power=1.5, height_k=0.5, flat=(0.5, 1.0), mask=pave)
-cov_s = splat_pebbles(hp, col, rng(55), 45000, 1.8, 5.0, peb_pal, peb_w, power=2.2, height_k=0.55, flat=(0.5, 1.0), mask=pave)
-cov_l = splat_pebbles(hp, col, rng(56), 2600, 5, 17, peb_pal, peb_w, power=2.8, height_k=0.5, flat=(0.45, 0.9), mask=pave * 0.9)
+cov_g = splat_pebbles(hp, col, rng(59), 110000, 1.0, 2.2, peb_pal, peb_w, power=1.5, height_k=0.5, flat=(0.5, 1.0), mask=pave)
+cov_s = splat_pebbles(hp, col, rng(55), 70000, 1.8, 5.5, peb_pal, peb_w, power=2.2, height_k=0.55, flat=(0.5, 1.0), mask=pave)
+cov_l = splat_pebbles(hp, col, rng(56), 5000, 5, 18, peb_pal, peb_w, power=2.8, height_k=0.5, flat=(0.45, 0.9), mask=pave * 0.9)
 cov = np.maximum(np.maximum(cov_s, cov_l), cov_g)
 h = hp
+col *= (1 + cov * (0.10 * grain + 0.10 * grain2))[..., None]     # mottled stone surfaces
 # sand drift banked against pebbles (leeward, +x) and a dusting over them
 lee = np.clip(gblur(np.roll(cov, 3, 1), 2.5) - cov, 0, 1)
 col = col * (1 - 0.45 * lee[..., None]) + sand_a * 0.95 * 0.45 * lee[..., None]
