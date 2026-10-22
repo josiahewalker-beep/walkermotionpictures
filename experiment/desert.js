@@ -13,7 +13,7 @@ export const LOOKS = {
     asphalt: 0x58585c, shoulder: 0xc9b896, frame: 0x26282d, car: [0xe8e4dc, 0x9b2b25, 0x3b4a5c],
   },
   golden: {   // late afternoon: low warm sun from camera left, long shadows across the road
-    name: 'Golden hour', zenith: 0x5b8cc8, horizon: 0xf2c28e, haze: 0xeac39a, sand: [0xd9a46a, 0xc78e55], bush: [0x7d7a45, 0x8a7d47, 0x6b6a3c],
+    name: 'Golden hour', zenith: 0x3f6fae, horizon: 0xf2c28e, haze: 0xeac39a, sand: [0xd9a46a, 0xc78e55], bush: [0x7d7a45, 0x8a7d47, 0x6b6a3c],
     tree: 'joshua', treeCol: 0x5c5a32, trunk: 0x6b5340, rock: 0xb07a52, mt: [0x8b5f5a, 0xb08479], sun: [-0.86, 0.26, 0.42], sunCol: 0xffc68a, sunI: 3.0, hemi: 0.9,
     asphalt: 0x4b4646, shoulder: 0xc8955f, frame: 0x221f20, car: [0xe8e0d2, 0x2d5a7a, 0x8a2f22],
   },
@@ -32,7 +32,7 @@ export const LOOKS = {
 export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer }) {
   const hero = cssCards[heroId], C = hero.obj.position.clone();
   const W = hero.el.offsetWidth, H = hero.el.offsetHeight;
-  const bottom = C.y - H / 2, clearance = 3.8 * M, Y0 = bottom - clearance;     // ground sits ~3.8 m under the face
+  const bottom = C.y - H / 2, clearance = (window.__clear || 3.8) * M, Y0 = bottom - clearance;     // ground sits ~3.8 m under the face
   const root = new THREE.Group(); root.name = 'desert';
   let world = null, lookKey = 'mojave', road = null, cars = [];
   const hidden = [];
@@ -236,3 +236,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer 
     tick(dt) { for (const c of cars) { const v = 25 * M * dt; c.translateZ(v); } },
   };
 }
+
+// Josiah 10-21: picked framing A + Golden hour, tightened so the slide reads (render I1). Board lowered to 2.8 m clearance,
+// road moved 8 m out from the camera so the double yellow stays in the bottom-left corner.
+export const HERO_SHOT = { look: 'golden', clear: 2.8, theta: 22, h: 1.1, fov: 38, ux: 0.28, uy: 0.24, fw: 0.56, roadAhead: 8, roadTurn: -64 };
