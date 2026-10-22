@@ -159,7 +159,7 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     col = lerp(col, stain, np.clip(S * 0.9, 0, 0.9))
     col = lerp(col, np.array([0.12, 0.075, 0.045]), grime * 0.35)
     # --- dust/sand on horizontal surfaces and in corners ---
-    dust_col = np.array([0.40, 0.31, 0.22])
+    dust_col = np.array([0.34, 0.265, 0.19])
     dst = smoothstep(0.55, 0.9, up) * np.clip(0.55 + 0.45 * lo + 0.3 * (1 - ao), 0, 1) + 0.35 * (1 - ao) * smoothstep(0.0, 0.5, up)
     dst = np.clip(dst * smoothstep(-0.6, 0.6, mid + 0.5), 0, 0.92)
     col = lerp(col, dust_col * (1 + 0.1 * hi)[..., None], dst)
@@ -201,7 +201,7 @@ def weather_steel(P, N, AO, E, used, sources, perch, seed=21):
     S = streaks(P, N, used, sources, 0.8, seed + 5)
     g = lerp(g, np.array([0.22, 0.09, 0.035]), np.clip(S * 0.8, 0, 0.8))
     dst = np.clip(smoothstep(0.55, 0.9, up) * (0.5 + 0.4 * lo) + 0.3 * (1 - ao) * smoothstep(0.0, 0.5, up), 0, 0.9)
-    g = lerp(g, np.array([0.40, 0.31, 0.22]), dst)
+    g = lerp(g, np.array([0.34, 0.265, 0.19]), dst * 0.8)
     D = droppings(P, N, used, perch, seed + 8)
     g = lerp(g, np.array([0.70, 0.68, 0.62]), D * 0.9)
     g = g * (0.55 + 0.45 * ao ** 0.8)[..., None]

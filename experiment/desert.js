@@ -623,7 +623,16 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       loadTex('sand_albedo.jpg', { srgb: true }), loadTex('sand_normal.jpg'), loadTex('sand_rough.jpg'), loadTex('sand_macro.jpg', { srgb: true })]);
     const rep = (t, a, b) => { if (t) { t.repeat.set(a, b); t.needsUpdate = true; } return t; };
     if (R && aA) { const m = R.asphalt.material, u = R.asphalt.userData.w / (4 * M), v = R.asphalt.userData.len / (4 * M);
-      Object.assign(m, { map: rep(aA, u, v), normalMap: rep(aN, u, v), roughnessMap: rep(aR, u, v), roughness: 1, color: new THREE.Color(0xffffff), flatShading: false }); m.needsUpdate = true; done.push('asphalt'); }
+      Object.assign(m, { map: rep(aA, u, v), normalMap: rep(aN, u, v), roughnessMap: rep(aR, u, v), roughness: 1, color: new THREE.Color(0xffffff), flatShading: false });
+      // road-scale wear from the set thread: R albedo ×2R, G tar-sealant (glossier), across the full width, 80 m along
+      const mac = await loadTex('asphalt_macro.png', { aniso: 4 });
+      if (mac) { const prev = m.onBeforeCompile, ku = new THREE.Vector2(1 / u, R.asphalt.userData.len / (80 * M) / v);
+        m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); sh.uniforms.tMacro = { value: mac }; sh.uniforms.uMacK = { value: ku };
+          sh.fragmentShader = 'uniform sampler2D tMacro; uniform vec2 uMacK;\n' + sh.fragmentShader
+            .replace('#include <map_fragment>', '#include <map_fragment>\n vec4 macS = texture2D(tMacro, vec2(clamp(vMapUv.x * uMacK.x, 0.0, 1.0), vMapUv.y * uMacK.y)); diffuseColor.rgb *= 2.0 * macS.r;')
+            .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(roughnessFactor, 0.42, macS.g);'); };
+        const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|macro'; }
+      m.needsUpdate = true; done.push('asphalt'); }
     if (R && lA) for (const [list, alb] of [[R.yellow, lY], [R.white, lW]]) for (const ms of list) { const v = ms.userData.len / (8 * M), m = ms.material;
       Object.assign(m, { map: rep(alb && alb.clone(), 1, v), alphaMap: rep(lA.clone(), 1, v), normalMap: rep(lN && lN.clone(), 1, v), alphaTest: 0.5, color: new THREE.Color(0xffffff), roughness: 0.75, flatShading: false }); m.needsUpdate = true; }
     if (R && sA) { const m = R.shoulder.material, u = R.shoulder.userData.w / (1.5 * M), v = R.shoulder.userData.len / (3 * M);
