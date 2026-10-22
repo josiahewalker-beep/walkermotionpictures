@@ -576,8 +576,8 @@ def vinyl(rs):
         bucket(V).add(Vv, F, 80)
     band(-FX + 0.4, -FX + 3.1, FACE_Y0, -1, 1)
     band(1.2, 4.3, FACE_Y0, -1, 2)
-    band(-2.5, 0.6, FY1, 1, 3)
-    band(3.0, FX - 0.1, FY1, 1, 4)
+    band(-2.5, -0.9, FY1, 1, 3)
+    band(3.6, FX - 0.6, FY1, 1, 4)
     # side bands (vertical): swap axes
     def vband(y0, y1, sx, seed):
         r = np.random.default_rng(seed)
@@ -588,8 +588,8 @@ def vinyl(rs):
         Vv = [(xi, y, zlip) for xi, y in zip(inner, ys)] + [(outer, y, zlip) for y in ys]
         F = [[i, n + i, n + i + 1, i + 1] if sx > 0 else [i, i + 1, n + i + 1, n + i] for i in range(n - 1)]
         bucket(V).add(Vv, F, 81)
-    vband(FACE_Y0 + 0.2, FACE_Y0 + 2.6, -1, 5)
-    vband(FACE_Y0 + 1.1, FY1 - 0.4, 1, 6)
+    vband(FACE_Y0 + 0.2, FACE_Y0 + 1.6, -1, 5)
+    vband(FACE_Y0 + 2.1, FY1 - 0.9, 1, 6)
     # hanging shreds below the bottom edge: wrap over the bottom frame lip and hang down, curling forward a little
     for k in range(9):
         r = np.random.default_rng(100 + k)
@@ -616,9 +616,9 @@ def vinyl(rs):
             F.append([a, a + 2, a + 3, a + 1][::-1])
         bucket(V).add(Vv, F, 82)
     # side shreds hanging off the outer frame wall at the far left and right, beside the face (x outside ±(FX+BORDER))
-    for k, (sx, y0) in enumerate([(-1, 5.6), (-1, 3.9), (1, 4.4), (1, 6.6)]):
+    for k, (sx, y0) in enumerate([(-1, 3.9), (1, 4.4)]):
         r = np.random.default_rng(200 + k)
-        w = r.uniform(0.08, 0.2); Lh = r.uniform(0.25, 0.8)
+        w = r.uniform(0.06, 0.12); Lh = r.uniform(0.2, 0.5)
         ny = max(3, int(Lh / 0.05))
         Vv, F = [], []
         for j in range(ny + 1):

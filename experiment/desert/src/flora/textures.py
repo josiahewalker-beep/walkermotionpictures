@@ -29,36 +29,51 @@ def worley(h, w, ncell_x, ncell_y, seed, stretch_y=1.0, warp=None):
 
 
 def bark(size=1024, seed=3):
+    """Joshua-tree trunk bark: corky, checkered into small oblong plates arranged in vertical columns,
+    separated by deep fissures; fibrous plate tops, weathered grey with brown-grey flanks. Tileable."""
     h = w = size
-    wx = tile_noise(h, w, beta=3.0, seed=seed + 20) * 0.012 + tile_noise(h, w, beta=2.0, seed=seed + 22) * 0.004
-    wy = tile_noise(h, w, beta=3.0, seed=seed + 21) * 0.012
-    f1, f2, cid = worley(h, w, 14, 9, seed, stretch_y=1.0, warp=(wx, wy))
-    # anisotropic plates: vertical furrows deep and continuous, horizontal cracks shallower
-    edge = (f2 - f1)
-    vfur = np.abs(tile_noise(h, w, beta=2.4, ax=0.15, ay=4.0, seed=seed + 30))   # long vertical fissures
-    plates = smoothstep(0.0, 0.018, edge) * smoothstep(0.02, 0.3, vfur)
-    # second, finer crack network inside plates
-    g1, g2, _ = worley(h, w, 26, 40, seed + 1, stretch_y=1.6)
-    cracks = smoothstep(0.0, 0.012, g2 - g1)
-    fib = tile_noise(h, w, beta=2.2, ax=0.35, ay=6.0, seed=seed + 2)     # vertical fibres
-    fine = tile_noise(h, w, beta=1.6, seed=seed + 3)
-    big = tile_noise(h, w, beta=3.2, seed=seed + 4)
     rng = np.random.default_rng(seed)
-    plate_h = rng.random(cid.max() + 1)[cid]                     # each plate at its own height
-    hgt = plates * (0.65 + 0.35 * plate_h) * (0.75 + 0.25 * cracks) + 0.06 * fib + 0.03 * fine + 0.06 * big
-    hgt = ndimage.gaussian_filter(hgt, 0.7, mode='wrap')
-    nmap = height_to_normal(hgt * 14.0)
-    # albedo: weathered grey plate tops, warm brown-grey sides, near-black furrows
+    yy, xx = np.meshgrid((np.arange(h) + 0.5) / h, (np.arange(w) + 0.5) / w, indexing='ij')
+    warp = tile_noise(h, w, beta=3.2, ax=0.5, ay=2.0, seed=seed + 1) * 0.018
+    xw = (xx + warp) % 1.0
+    ncol = 22
+    cx = xw * ncol
+    col = np.floor(cx).astype(int) % ncol
+    fx = cx - np.floor(cx)                                   # 0..1 across a column
+    # irregular column widths: shift the furrow position per row band
+    # horizontal breaks: per column, random phase and plate length
+    plen = rng.uniform(0.045, 0.085, ncol)                   # plate length as a fraction of the tile
+    nrows = np.maximum(1, np.round(1.0 / plen)).astype(int)
+    phase = rng.random(ncol)
+    ywarp = tile_noise(h, w, beta=3.0, seed=seed + 2) * 0.01
+    cy = ((yy + ywarp + phase[col]) % 1.0) * nrows[col]
+    row = np.floor(cy).astype(int)
+    fy = cy - np.floor(cy)
+    pid = col * 64 + row
+    prand = np.random.default_rng(seed + 7).random(ncol * 64 + 64)
+    # distance to plate edge (columns: deep fissures; rows: shallower cross-checks)
+    ex = np.minimum(fx, 1 - fx)
+    ey = np.minimum(fy, 1 - fy) / np.maximum(ncol / nrows[col], 1e-3) * 1.0
+    deep = smoothstep(0.02, 0.30, ex + 0.06 * tile_noise(h, w, beta=2.0, seed=seed + 3))
+    cross = smoothstep(0.02, 0.22, ey * 1.2 + 0.05 * tile_noise(h, w, beta=2.0, seed=seed + 4))
+    plate = deep * (0.15 + 0.85 * cross)
+    fib = tile_noise(h, w, beta=2.0, ax=0.3, ay=6.0, seed=seed + 5)
+    fine = tile_noise(h, w, beta=1.5, seed=seed + 6)
+    big = tile_noise(h, w, beta=3.2, seed=seed + 8)
+    hgt = plate * (0.6 + 0.4 * prand[pid]) + 0.08 * fib * plate + 0.03 * fine + 0.05 * big
+    hgt = ndimage.gaussian_filter(hgt, 0.8, mode='wrap')
+    nmap = height_to_normal(hgt * 18.0)
+    t = np.clip(hgt / np.percentile(hgt, 99), 0, 1)[..., None]
     top = np.array([0.36, 0.33, 0.29])
-    side = np.array([0.28, 0.25, 0.21])
-    furrow = np.array([0.14, 0.12, 0.10])
-    t = np.clip(hgt / max(hgt.max(), 1e-6), 0, 1)[..., None]
-    col = furrow + (side - furrow) * smoothstep(0.05, 0.35, t) + (top - side) * smoothstep(0.45, 0.9, t)
-    col = col * (1 + 0.12 * fine[..., None] + 0.14 * fib[..., None] + 0.10 * big[..., None])
-    # sparse pale lichen / mineral crust patches
-    lich = smoothstep(1.4, 2.2, tile_noise(h, w, beta=2.6, seed=seed + 9)) * smoothstep(0.5, 0.8, t[..., 0])
-    col = col * (1 - lich[..., None] * 0.35) + lich[..., None] * 0.35 * np.array([0.30, 0.29, 0.22])
-    a = save_img(col, 'bark_albedo.jpg')
+    side = np.array([0.26, 0.22, 0.18])
+    furrow = np.array([0.075, 0.062, 0.05])
+    c = furrow + (side - furrow) * smoothstep(0.05, 0.4, t) + (top - side) * smoothstep(0.55, 0.95, t)
+    tint = (prand[pid] - 0.5)[..., None] * np.array([0.05, 0.045, 0.04])
+    c = c + tint * t
+    c = c * (1 + 0.10 * fine[..., None] + 0.12 * fib[..., None] + 0.08 * big[..., None])
+    lich = smoothstep(1.5, 2.3, tile_noise(h, w, beta=2.6, seed=seed + 9)) * smoothstep(0.6, 0.9, t[..., 0])
+    c = c * (1 - lich[..., None] * 0.4) + lich[..., None] * 0.4 * np.array([0.34, 0.33, 0.24])
+    a = save_img(np.clip(c, 0.03, 0.9), 'bark_albedo.jpg')
     n = save_img(nmap, 'bark_normal.jpg', linear_to_srgb=False)
     return a, n
 

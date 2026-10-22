@@ -1,10 +1,12 @@
 """Shared build pipeline: body field -> MC -> decimate -> project -> cuts -> labels/insets -> parts -> GLB."""
 import time
 import numpy as np
-from carlib import mc_mesh, decimate, field_normals, fix_winding, project_to_surface, Parts, normalize, sstep
+from carlib import smooth_normals, mc_mesh, decimate, field_normals, fix_winding, project_to_surface, Parts, normalize, sstep
 from surfops import CutSurface, build_labelled
 import wheels as W
 import blendout
+
+SMOOTH_ITERS = 6
 
 def log(*a):
     print(time.strftime('%H:%M:%S'), *a, flush=True)
@@ -28,6 +30,7 @@ def run_cuts(B, V, F, N, cuts):
     for name, fn, offs in cuts:
         for o in offs:
             cs.cut(name, o)
+    cs.N = smooth_normals(cs.V, cs.F, cs.N, iters=SMOOTH_ITERS)
     log('cut faces', len(cs.F))
     return cs
 

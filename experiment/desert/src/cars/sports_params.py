@@ -30,7 +30,7 @@ P = dict(
                (-1.85, 0.990), (-2.1, 0.965), (-2.3, 0.95)],
     ),
     tuck=0.055, tuck_z0=0.16, tuck_z1=0.46,
-    crease_k=0.30, crease_sharp=0.006, shoulder_k=0.55,
+    crease_k=0.30, crease_sharp=0.010, shoulder_k=0.55,
     crease2_k=0.10,
     flares=[(S_FA, R_TYRE, 0.40, 0.016, 0.07), (S_RA, R_TYRE, 0.40, 0.022, 0.08)],
     haunches=[(S_RA - 0.05, 0.55, 0.66, 0.16, 0.022)],

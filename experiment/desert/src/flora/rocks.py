@@ -14,12 +14,12 @@ from common import nrm, smoothstep, srgb, Part, bpy_reset, build_object, make_ma
     save_img, TEXCACHE, ASSETS
 
 ROCKS = {
-    #      size (x, y, z) metres                  seed  joint cuts  exfoliation
-    'a': dict(size=(2.5, 1.9, 1.55), seed=1, cuts=2, exfol=0.9, sink=0.12, tex=1024, tris=4000),
-    'b': dict(size=(1.6, 1.25, 1.05), seed=2, cuts=3, exfol=0.7, sink=0.10, tex=1024, tris=4000),
-    'c': dict(size=(0.95, 0.8, 0.55), seed=3, cuts=1, exfol=0.5, sink=0.08, tex=1024, tris=3000),
-    'd': dict(size=(0.55, 0.45, 0.32), seed=4, cuts=2, exfol=0.3, sink=0.06, tex=1024, tris=2000),
-    'e': dict(size=(0.30, 0.26, 0.19), seed=5, cuts=1, exfol=0.2, sink=0.05, tex=512, tris=1200),
+    # size (x, y, z) metres; cuts = planar joint faces (k = softness, smaller = crisper); exfol = spalling
+    'a': dict(size=(2.5, 1.9, 1.55), seed=1, cuts=3, ck=0.10, exfol=0.9, sink=0.12, tex=1024, tris=4000),   # big rounded block
+    'b': dict(size=(1.3, 1.15, 1.45), seed=2, cuts=4, ck=0.07, exfol=0.7, sink=0.10, tex=1024, tris=4000),  # upright, faceted
+    'c': dict(size=(1.4, 1.0, 0.5), seed=3, cuts=2, ck=0.08, exfol=0.5, sink=0.08, tex=1024, tris=3000),    # low slab
+    'd': dict(size=(0.55, 0.45, 0.36), seed=4, cuts=2, ck=0.12, exfol=0.3, sink=0.06, tex=1024, tris=2000),
+    'e': dict(size=(0.30, 0.26, 0.19), seed=5, cuts=1, ck=0.14, exfol=0.2, sink=0.05, tex=512, tris=1200),
 }
 
 
@@ -77,10 +77,11 @@ class RockShape:
         self.size = np.array(R['size']) / 2
         # joint planes (granite weathers along orthogonal joints into rounded blocks)
         self.cuts = []
+        ph0 = rng.uniform(0, 2 * math.pi)
         for i in range(R['cuts']):
-            az = rng.uniform(0, 2 * math.pi); el = rng.uniform(-0.15, 0.6)
+            az = ph0 + 2 * math.pi * i / max(R['cuts'], 1) + rng.normal(0, 0.3); el = rng.uniform(-0.1, 0.7)
             n = np.array([math.cos(az) * math.cos(el), math.sin(az) * math.cos(el), math.sin(el)])
-            self.cuts.append((n, rng.uniform(0.62, 0.8)))
+            self.cuts.append((n, rng.uniform(0.55, 0.8)))
         self.planes = []
         for i in range(rng.integers(1, 3)):
             az = rng.uniform(0, 2 * math.pi); el = rng.uniform(-0.3, 0.3)
@@ -96,7 +97,7 @@ class RockShape:
         for n, off in self.cuts:
             dn = d @ n
             plane = np.where(dn > 1e-3, off * (s @ np.abs(n)) / np.maximum(dn, 1e-3), 1e9)
-            k = 0.12 * s.mean()
+            k = self.R['ck'] * s.mean()
             h = np.clip(0.5 + 0.5 * (plane - r) / k, 0, 1)
             r = plane * (1 - h) + r * h - k * h * (1 - h)
         # big lumpy weathering
@@ -109,8 +110,9 @@ class RockShape:
         nz = self.nz
         h = 0.022 * sc * nz.fbm(p / sc, 2.6, oct=4)
         # coarse grus / granular pitting (grains 3–8 mm)
-        h += 0.0035 * nz.fbm(p, 55.0, oct=2)
-        h -= 0.003 * np.clip(nz(p + 1.7, 140.0) - 0.8, 0, None)
+        k = min(sc, 1.0)
+        h += 0.0035 * k * nz.fbm(p, 55.0, oct=2)
+        h -= 0.002 * k * np.clip(nz(p + 1.7, 140.0) - 1.0, 0, None)
         # exfoliation: patches where an outer shell (~1.5 cm) has spalled off; sharp lip, fresher stone inside
         sp = nz.fbm(p / sc + 3.3, 1.8, oct=3) + 0.25 * nz(p, 12.0)
         spall = smoothstep(0.42, 0.50, sp) * self.R['exfol']

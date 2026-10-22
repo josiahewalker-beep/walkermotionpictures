@@ -118,14 +118,14 @@ def tex_vinyl():
     lo = spectral((Hd, Wd), r, 2.8, lo=1, hi=30); mid = spectral((Hd, Wd), r, 2.0, lo=10, hi=400)
     # ghosts of an old print: big colour fields (faded red, sky blue, warm yellow) with a dark band
     yy, xx = np.mgrid[0:Hd, 0:Wd] / np.array([Hd, Wd])[:, None, None]
-    base = np.array([0.62, 0.60, 0.55])
+    base = np.array([0.40, 0.37, 0.32])
     red = np.array([0.55, 0.20, 0.15]); blue = np.array([0.22, 0.33, 0.46]); yel = np.array([0.62, 0.50, 0.25])
     zone = (xx + 0.1 * lo * 0.2)
     c = np.where((zone < 0.38)[..., None], blue, np.where((zone < 0.71)[..., None], red, yel))
     c = c * (1 - 0.15 * (yy > 0.85)[..., None])
     fade = np.clip(0.55 + 0.15 * lo + 0.1 * mid, 0, 0.9)           # heavy UV bleaching toward the backing white
     c = c * (1 - fade[..., None]) + base * fade[..., None]
-    grime = smoothstep(0.2, 1.5, spectral((Hd, Wd), r, 2.0, lo=4, hi=300, aniso=(0.3, 1.0))) * 0.4
+    grime = np.clip(0.25 + 0.4 * smoothstep(0.0, 1.5, spectral((Hd, Wd), r, 2.0, lo=4, hi=300, aniso=(0.3, 1.0))), 0, 0.7)
     c = c * (1 - grime[..., None]) + np.array([0.25, 0.20, 0.15]) * grime[..., None]
     save_srgb(np.clip(c, 0.05, 0.8), f'{TEXD}/vinyl_albedo.png')
 

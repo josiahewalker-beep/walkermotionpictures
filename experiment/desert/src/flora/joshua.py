@@ -193,7 +193,7 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     p, T, N, r, _ = sample_curve(b, s)
     Bv = np.cross(T, N)
     rmax = b.r.max()
-    sides = 5 if lod else int(np.clip(round(rmax * 55), 9, 22))
+    sides = 5 if lod else int(np.clip(round(rmax * 80), 9, 30))
     ang = np.linspace(0, 2 * math.pi, sides + 1)
     A = ang[None, :]
     fur_len = P['fur_len']
@@ -209,8 +209,12 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
         rad = rad * (0.25 + 0.75 * smoothstep(0.0, 0.16, s))[:, None]
     phase = rng.uniform(0, 6.28)
-    bark_mod = 1 + (1 - furness) * (0.05 * np.sin(A * 7 + phase + 0.8 * np.sin(arc[:, None] * 3))
-                                    + 0.035 * np.sin(A * 13 + 2 * phase + arc[:, None] * 1.7))
+    # bark relief: irregular vertical ridges and furrows (stronger toward the old base), slight twist
+    ridge = (np.sin(A * 9 + phase + 0.9 * np.sin(arc[:, None] * 2.3) + arc[:, None] * 0.4)
+             + 0.6 * np.sin(A * 17 + 2 * phase + arc[:, None] * 1.3) + 0.4 * np.sin(A * 5 + 3 * phase))
+    ridge = -np.abs(ridge) * 0.5 + 0.3                                  # sharp furrows, rounded ridges
+    depth = 0.05 + 0.05 * np.exp(-p[:, 2:3] / 0.8)
+    bark_mod = 1 + (1 - furness) * depth * ridge
     R = rad * bark_mod
     radial = np.cos(A)[..., None] * N[:, None, :] + np.sin(A)[..., None] * Bv[:, None, :]
     pos = p[:, None, :] + radial * R[..., None]
@@ -423,13 +427,13 @@ def leaves_for_branch(b, P, rng, parts, dens_live, dens_fur, lod=False):
         bend = rng.uniform(-0.02, 0.10, m)          # most tips curl outward a little
         lift = (r[idx] + 0.035)
         base = p[idx] + Nr[idx] * lift[:, None] + T[idx] * (L * 0.15)[:, None]
-        droop = np.tile([0, 0, -1.0], (m, 1)) * rng.uniform(0.0, 0.06, m)[:, None]
+        droop = np.tile([0, 0, -1.0], (m, 1)) * rng.uniform(0.0, 0.12, m)[:, None]
         if lod:
             groups = [(np.arange(m), [(0.0, 1.0)])]
         else:
-            thin = rng.random(m) < 0.6
-            W = np.where(thin, W * 0.55, W * 1.1)
-            L = np.where(thin, L * 1.1, L)
+            thin = rng.random(m) < 0.35
+            W = np.where(thin, W * 0.7, W * 1.15)
+            L = np.where(thin, L * 1.05, L)
             groups = [(np.flatnonzero(thin), [(0.0, 1.0)]), (np.flatnonzero(~thin), [(0.0, 1.0), (0.6, 0.75)])]
         for gi, rows in groups:
             if len(gi) == 0:
@@ -445,8 +449,11 @@ def fur_emit(part, V, uvt, trt, tt, gi, flare, out_dir, Nr, ss, rng, m):
     dark = rng.random(n) < 0.15
     tone[dark] *= 0.6
     warm = rng.normal(0, 0.025, n)
-    col = np.array([0.43, 0.375, 0.29])[None, :] * tone[:, None]
+    col = np.array([0.40, 0.335, 0.25])[None, :] * tone[:, None]
     col[:, 0] += warm; col[:, 2] -= warm * 0.7
+    # recently dead leaves just below the rosette are tan-brown; they weather to grey further down
+    fresh = (smoothstep(1.1, 0.45, ss[gi]) * rng.uniform(0.5, 1.0, n))[:, None]
+    col = col * (1 - fresh * 0.65) + np.array([0.36, 0.26, 0.14]) * fresh * 0.65
     under = 0.85 + 0.15 * smoothstep(0.08, 0.5, flare[gi])      # flatter blades are under-layers: darker
     col *= under[:, None]
     col = col / 0.48 * 1.05                             # calibrated: visible fur ≈ 0.30–0.35 linear after AO
@@ -506,7 +513,7 @@ def build_tree(name, P, lod=False, seed_override=None):
     if lod:
         live_n, leaf_tris, blade_tris, budget = int(min(70, 2600 / len(tips))), 1, 1, 7600
     else:
-        live_n, leaf_tris, blade_tris, budget = P['live_n'], 2, 1.8, P['budget']
+        live_n, leaf_tris, blade_tris, budget = P['live_n'], 2, 2.3, P['budget']
     dens_live = live_n / LIVE
     live_tris = len(tips) * (live_n + live_n * 0.6 * (DEAD - LIVE) / LIVE * 0 + 0.6 * dens_live * (DEAD - LIVE)) * leaf_tris
     remain = budget - tube_tris - live_tris

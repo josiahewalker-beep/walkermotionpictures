@@ -418,3 +418,16 @@ def project_to_surface(field, V, iters=4, h=0.0015):
         step = step * np.minimum(1, 0.02 / np.maximum(sl, 1e-12))
         V -= step
     return V
+
+def smooth_normals(V, F, N, iters=4, lam=0.6):
+    """Average normals over the 1-ring (area weighted by shared faces) to iron out small wrinkles."""
+    from scipy import sparse
+    n = len(V)
+    i = np.concatenate([F[:, 0], F[:, 1], F[:, 2], F[:, 1], F[:, 2], F[:, 0]])
+    j = np.concatenate([F[:, 1], F[:, 2], F[:, 0], F[:, 0], F[:, 1], F[:, 2]])
+    A = sparse.csr_matrix((np.ones(len(i)), (i, j)), shape=(n, n))
+    deg = np.asarray(A.sum(1)).ravel(); deg[deg == 0] = 1
+    for _ in range(iters):
+        avg = (A @ N) / deg[:, None]
+        N = normalize((1 - lam) * N + lam * avg)
+    return N

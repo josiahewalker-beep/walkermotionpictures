@@ -13,7 +13,7 @@ import sports_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_sports.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0065
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 62000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 50000
 
 B = Body(M.P)
 P = M.P
@@ -93,8 +93,8 @@ fn_fuel = D.proj_fn(catmull_closed(np.array([(-1.40, 0.735), (-1.40, 0.825), (-1
 FASCIA = [(1.86, 0.50), (1.84, 0.56), (1.83, 0.64), (1.90, 0.64), (1.95, 0.50)]
 
 # lights / openings (front & rear projections, |x|)
-HEAD = [(0.36, 0.585), (0.50, 0.596), (0.66, 0.616), (0.80, 0.640), (0.875, 0.655), (0.905, 0.648), (0.905, 0.622),
-        (0.86, 0.598), (0.74, 0.570), (0.58, 0.548), (0.42, 0.540), (0.36, 0.548)]
+HEAD = [(0.34, 0.592), (0.50, 0.604), (0.66, 0.626), (0.80, 0.652), (0.875, 0.668), (0.91, 0.660), (0.91, 0.628),
+        (0.87, 0.600), (0.76, 0.566), (0.62, 0.536), (0.46, 0.522), (0.36, 0.530), (0.33, 0.55)]
 front_dom = lambda V: V[:, 1] > 1.6
 fn_head = D.proj_fn(HEAD, 'front', domain=front_dom, n_per=8)
 GRILLE = [(0.0, 0.500), (0.33, 0.500), (0.46, 0.468), (0.52, 0.40), (0.50, 0.285), (0.44, 0.215), (0.0, 0.215)]
@@ -232,10 +232,10 @@ def build():
                                     seat_h=0.62, rear_seats=False, cabin_bounds=((-0.8, -1.5, 0.2), (0.8, 0.6, 1.24))))
     CB.log('details done', parts.tris('body'))
     axles = [('FL', M.S_FA, M.X_WF, 0.255), ('FR', M.S_FA, M.X_WF, 0.255), ('RL', M.S_RA, M.X_WR, 0.285), ('RR', M.S_RA, M.X_WR, 0.285)]
-    style = dict(r_lip=0.262, r_barrel=0.232, width=0.24, spokes=10, split=0.024, a_face=0.102, dish=0.032,
-                 spoke_depth=0.028, spoke_w0=0.0125, spoke_w1=0.010)
+    style = dict(r_lip=0.262, r_barrel=0.232, width=0.24, spokes=5, split=0.030, a_face=0.102, dish=0.032,
+                 spoke_depth=0.03, spoke_w0=0.016, spoke_w1=0.013)
     cent = W.add_wheels(parts, axles, None, M.R_TYRE, 0.254, 0.255, style, 0.19)
-    mats = CB.base_materials((0.45, 0.02, 0.02), (0.11, 0.11, 0.115), rim_rough=0.32)
+    mats = CB.base_materials((0.45, 0.02, 0.02), (0.22, 0.22, 0.23), rim_rough=0.3)
     mats['plate']['tex_arr'] = D.plate_texture('7ABC123')
     mats['brake']['tex_arr'] = W.disc_texture(0.19)
     CB.export(parts, mats, OUT, cent)
@@ -243,11 +243,11 @@ def build():
 def add_lamp_internals(parts):
     # DRL strip just inside the upper edge of each headlamp, and two projector lenses
     for sgn in (1, -1):
-        pts2 = [(0.38, 0.575), (0.52, 0.586), (0.66, 0.604), (0.80, 0.627), (0.88, 0.641)]
+        pts2 = [(0.37, 0.578), (0.52, 0.590), (0.66, 0.610), (0.80, 0.636), (0.885, 0.652)]
         c = D.surface_curve(f, pts2, 'front', sgn, offset=-0.012)
         if len(c) > 1:
             D.strip_along(parts, D.smooth_path(c, 40), 0.0042, 'light_front', n_seg=8)
-        for (px, pz, r) in [(0.56, 0.566, 0.022), (0.70, 0.585, 0.022)]:
+        for (px, pz, r) in [(0.56, 0.556, 0.024), (0.71, 0.578, 0.024)]:
             h = D.surface_curve(f, [(px, pz)], 'front', sgn, offset=-0.026)
             if len(h) == 0: continue
             n = D.grad(f, h[0])[0]
@@ -307,15 +307,15 @@ def add_front_details(parts):
     def depth_s(x, z):
         h = D.surface_curve(f, [(abs(x), z)], 'front', 1, offset=0.0)
         return (h[0][1] - 0.022) if len(h) else 2.1
-    D.lattice_grille(parts, f, fn_grille.sd, (-0.52, 0.52), (0.215, 0.50), depth_s, pitch=0.034, bar=0.005)
+    D.lattice_grille(parts, f, fn_grille.sd, (-0.52, 0.52), (0.215, 0.50), depth_s, pitch=0.025, bar=0.0038)
     for sgn in (1, -1):
         def depth_si(x, z):
             h = D.surface_curve(f, [(abs(x), z)], 'front', 1, offset=0.0)
             return (h[0][1] - 0.02) if len(h) else 2.0
         sdm = lambda ax, z: fn_intake.sd(ax, z)
-        D.lattice_grille(parts, f, sdm, (0.58, 0.88) if sgn > 0 else (-0.88, -0.58), (0.215, 0.46), depth_si, pitch=0.034, bar=0.005)
+        D.lattice_grille(parts, f, sdm, (0.58, 0.88) if sgn > 0 else (-0.88, -0.58), (0.215, 0.46), depth_si, pitch=0.025, bar=0.0038)
     # front plate on the grille
-    h = D.surface_curve(f, [(0.0, 0.30)], 'front', 1, offset=0.0)
+    h = []  # no front plate (rear only)
     if len(h):
         p = h[0].copy(); p[1] -= 0.035
         D.plate_mesh(parts, p, (0, 1.0, 0.05), (0, 0, 1.0))

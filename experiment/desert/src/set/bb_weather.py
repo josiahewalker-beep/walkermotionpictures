@@ -90,7 +90,7 @@ def droppings(P, N, used, perch, seed=9):
         dist = np.linalg.norm(q - c, axis=1)
         dz = c[2] - q[:, 2]
         near_top = (dist < r) * smoothstep(0.2, 0.7, nz[ii])
-        drip = (dz > 0) * (dz < 0.5) * np.exp(-(np.hypot(q[:, 0] - c[0], q[:, 1] - c[1]) / (r * 0.8)) ** 2) * (1 - nz[ii].clip(0, 1)) * 0.6
+        drip = (dz > 0) * (dz < 0.5) * np.exp(-(np.hypot(q[:, 0] - c[0], q[:, 1] - c[1]) / (r * 0.8)) ** 2) * (1 - nz[ii].clip(0, 1)) * 0.25
         acc[ii] = np.maximum(acc[ii], d * np.maximum(near_top, drip))
     splat = fbm(pts, 0.006, seed, oct=2)
     blob = smoothstep(1.5, 1.9, splat + 0.7 * acc - 0.3)
@@ -149,7 +149,7 @@ def weather_painted(P, N, AO, E, used, sources, perch, paint_lo, paint_hi, seed=
     # rust blooms through intact paint (blisters)
     bloom = smoothstep(1.7, 2.3, mid + 0.4 * hi + 0.8 * (1 - ao) + 0.8 * base_zone) * (1 - peel)
     col = lerp(col, lerp(col, rust_mid, 0.75), bloom * 0.8)
-    col = lerp(col, col * 1.18 + 0.02, ring * 0.7)          # lifted, chalkier flake edge
+    col = lerp(col, col * 1.08 + 0.01, ring * 0.5)          # lifted, chalkier flake edge
     col = lerp(col, rcol, peel)
     # --- streaks ---
     S = streaks(P, N, used, sources, 1.0, seed + 3)

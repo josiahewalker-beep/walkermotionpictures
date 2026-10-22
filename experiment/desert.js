@@ -488,7 +488,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
       const vis = q.z < 1 && Math.abs(q.x) < 1.08 && Math.abs(q.y) < 1.08; if (vis && sIn === null) sIn = sv; if (vis) sOut = sv; }
     if (sIn === null) return;
     const s0 = sIn - dirSign * 6 * M, s1 = sOut + dirSign * 8 * M, v = make(), heading = road.dir.clone().multiplyScalar(dirSign);
-    v.rotation.y = Math.atan2(heading.x, heading.z); world.add(v);
+    v.rotation.y = Math.atan2(heading.x, heading.z); world.add(v); window.__lastCar = { v, sIn, sOut, s0, s1 };
     let sv = s0;
     actors.push({ update(dt) { sv += dirSign * speed * M * dt; v.position.copy(road.at(sv, side)).setY(Y0 + 2);
       for (const w of v.userData.spin) w.rotation.x += speed * M * dt / v.userData.wheelR;
@@ -766,7 +766,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     },
     bakeEnv() { bakeEnv(); }, applyAssets() { return applyAssets(); },
     // QA: jump straight to the landed state
-    get debug() { return { sunLight, hemiLight, envTex, scene, renderer }; },
+    get debug() { return { sunLight, hemiLight, envTex, scene, renderer, actors, clock, lastCar: window.__lastCar }; },
     landNow() { api.approachFrom(camera.position.clone(), camera.position.clone().add(new THREE.Vector3(0, 0, -1)), camera.fov); fly.t = 1; const s2 = pose(1); fly = null; inside = true; setReveal(1); landedAt = 5; return s2; },
     // storyboards: pose and build state at time t of the approach from the current camera
     storyFrom(pos, look, fov) { api.approachFrom(pos, look, fov); fly.dir = 0; },

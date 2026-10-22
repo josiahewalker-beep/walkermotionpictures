@@ -12,7 +12,7 @@ def tyre_profile(r_out, r_bead, width, grooves=4, sidewall_bulge=0.012):
     # inner bead -> inner sidewall -> tread -> outer sidewall -> outer bead (a from -hw to +hw)
     def side(sign):
         sp = []
-        for t in np.linspace(0, 1, 14):
+        for t in np.linspace(0, 1, 9):
             r = r_bead + t * (side_h - 0.012)
             bul = sidewall_bulge * np.sin(np.pi * np.clip(t * 1.05, 0, 1)) ** 0.8
             a = sign * (hw - 0.012 + bul - 0.008 * t)
@@ -45,7 +45,7 @@ def tyre_profile(r_out, r_bead, width, grooves=4, sidewall_bulge=0.012):
     pts.append((-hw + 0.02, r_bead - 0.004))
     return np.array(pts)
 
-def tyre_mesh(r_out, r_bead, width, n_seg=96):
+def tyre_mesh(r_out, r_bead, width, n_seg=72):
     P = tyre_profile(r_out, r_bead, width)
     # revolve: profile (a, r); revolve gives V (a, r cos, r sin)
     V, F, UV = revolve(P, n_seg, closed_profile=True)
@@ -60,8 +60,7 @@ def tyre_mesh(r_out, r_bead, width, n_seg=96):
     # vertex colour: slight dust toward tread, darker in grooves
     r = np.linalg.norm(V[:, 1:], axis=1)
     col = np.ones((len(V), 3))
-    dust = sstep(r_out - 0.03, r_out, r) * 0.25 + sstep(r_bead + 0.01, r_bead + 0.04, r) * 0.08
-    col = col * (1 - dust[:, None]) + dust[:, None] * np.array([2.6, 2.1, 1.6]) * 0.5
+    col = col * (0.85 + 0.15 * sstep(r_out - 0.03, r_out, r))[:, None]
     col[r < r_out - 0.004] *= 1.0
     return V, F, N, UV, np.clip(col, 0, 1)
 
@@ -146,7 +145,7 @@ def rim_field(style):
         return d
     return field
 
-def rim_mesh(style, res=0.0028, target=11000):
+def rim_mesh(style, res=0.0022, target=8000):
     R = style['r_lip'] + 0.01; aw = style['width'] / 2 + 0.012
     f = rim_field(style)
     fld = lambda X, Y, Z: f(X, Y, Z)
