@@ -68,7 +68,7 @@ export function instance(template, matrices) {
 // a vehicle from its GLB: scaled to world units, wheels found for spinning
 export function vehicleFrom(template) {
   const v = template.clone(true); v.scale.setScalar(M);
-  const spin = []; let r = 0.34;
+  const spin = []; let r = 0.34; v.updateMatrixWorld(true);
   v.traverse(o => { if (/^wheel_(FL|FR|RL|RR)/i.test(o.name)) { spin.push(o); const b = new THREE.Box3().setFromObject(o); r = (b.max.y - b.min.y) / 2 / M || r; } });
   const g = new THREE.Group(); g.add(v); g.userData = { spin, wheelR: r * M, scaleInside: M };
   return g;

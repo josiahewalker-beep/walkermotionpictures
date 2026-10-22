@@ -366,6 +366,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     // a composed first row of Joshua trees across the frame, and behind it a strip kept clear of rocks and trees for the tumbleweed
     const dl = (x, z) => view ? { d: (x - view.eye.x) * view.fwd.x + (z - view.eye.z) * view.fwd.z, l: (x - view.eye.x) * view.right.x + (z - view.eye.z) * view.right.z } : null;
     const inStrip = (x, z) => { if (!view) return false; const q = dl(x, z); return q.d > view.row + 1.0 * M && q.d < view.row + 6.0 * M; };
+    // the sightline from the low camera to the tumbleweed's path: anything here stays under ~0.4 m so it can't hide the roll
+    const inSight = (x, z) => { if (!view) return false; const q = dl(x, z); return q.d > 5 * M && q.d < view.row + 1.0 * M && Math.abs(q.l) < q.d * view.tanH * 1.05; };
     const ok = (x, z, clear, kind) => (!road || road.dist(x, z) > road.halfW + clear) && Math.hypot(x - C.x, z - (C.z - 70)) > 2.2 * M && (!eye || Math.hypot(x - eye.x, z - eye.z) > clear * 6 + 4 * M) && (kind === 'bush' || !inStrip(x, z));
     const place = (n, rMin, rMax, clear, fn, kind) => { let k = 0, tries = 0; while (k < n && tries++ < n * 30) {
       const a = r() * Math.PI * 2, d = rMin + Math.pow(r(), 1.6) * (rMax - rMin), x = C.x + Math.cos(a) * d, z = C.z + Math.sin(a) * d;
@@ -374,15 +376,15 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const bushGeo = new THREE.IcosahedronGeometry(1, 1), bushCount = 1400;
     L.bush.forEach((c, bi) => {
       const im = new THREE.InstancedMesh(bushGeo, mat(c), bushCount / 3 | 0), d = new THREE.Object3D(); let i = 0;
-      place(bushCount / 3 | 0, 300, 26000, 0.8 * M, (x, z, dd) => { const s = (0.2 + Math.pow(r(), 2) * 0.45) * M * (dd > 8000 ? 1.5 : 1) * (inStrip(x, z) ? 0.55 : 1); d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r() * .6), s * 0.55, s * (1 + r() * .6)); d.rotation.y = r() * 6; d.updateMatrix(); im.setMatrixAt(i++, d.matrix); placed.bush.push({ x, z, s: s / M, rot: d.rotation.y, i: i - 1, im }); }, 'bush');
+      place(bushCount / 3 | 0, 300, 26000, 0.8 * M, (x, z, dd) => { const s = (0.2 + Math.pow(r(), 2) * 0.45) * M * (dd > 8000 ? 1.5 : 1) * (inStrip(x, z) || inSight(x, z) ? 0.55 : 1); d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r() * .6), s * 0.55, s * (1 + r() * .6)); d.rotation.y = r() * 6; d.updateMatrix(); im.setMatrixAt(i++, d.matrix); placed.bush.push({ x, z, s: s / M, rot: d.rotation.y, i: i - 1, im, sight: inSight(x, z) || inStrip(x, z) }); }, 'bush');
       im.count = i; im.castShadow = true; im.receiveShadow = true; im.userData.kind = 'bush'; g.add(im);
     });
     // rocks
     const rockGeo = new THREE.DodecahedronGeometry(1, 0), rk = new THREE.InstancedMesh(rockGeo, mat(L.rock), 260), d = new THREE.Object3D(); let ri = 0;
-    place(260, 400, 18000, 0.5 * M, (x, z) => { const s = (0.12 + Math.pow(r(), 4) * 1.0) * M; d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r()), s * (0.5 + r() * 0.5), s * (1 + r())); d.rotation.set(r(), r() * 6, r()); d.updateMatrix(); rk.setMatrixAt(ri++, d.matrix); placed.rock.push({ x, z, s: s / M, rot: d.rotation.y, i: ri - 1, im: rk }); });
+    place(260, 400, 18000, 0.5 * M, (x, z) => { const s = (0.12 + Math.pow(r(), 4) * 1.0) * M * (inSight(x, z) ? 0.35 : 1); d.position.set(x, Y0 + s * 0.2, z); d.scale.set(s * (1 + r()), s * (0.5 + r() * 0.5), s * (1 + r())); d.rotation.set(r(), r() * 6, r()); d.updateMatrix(); rk.setMatrixAt(ri++, d.matrix); placed.rock.push({ x, z, s: s / M, rot: d.rotation.y, i: ri - 1, im: rk }); });
     rk.count = ri; rk.castShadow = rk.receiveShadow = true; rk.userData.kind = 'rock'; g.add(rk);
     // a few boulder piles near the billboard
-    for (let k = 0; k < 2; k++) { const bx = C.x + (k - 1) * 9 * M + (r() - .5) * 4 * M, bz = C.z - (3 + r() * 9) * M; if (!ok(bx, bz, M) || inStrip(bx, bz)) continue;
+    for (let k = 0; k < 2; k++) { const bx = C.x + (k - 1) * 9 * M + (r() - .5) * 4 * M, bz = C.z - (3 + r() * 9) * M; if (!ok(bx, bz, M) || inStrip(bx, bz) || inSight(bx, bz)) continue;
       for (let j = 0; j < 4; j++) { const s = (0.4 + r() * 0.7) * M, b = new THREE.Mesh(rockGeo, mat(L.rock)); b.position.set(bx + (r() - .5) * 2 * M, Y0 + s * .3, bz + (r() - .5) * 2 * M); b.scale.set(s * 1.3, s * .8, s); b.rotation.set(r(), r() * 6, r()); b.castShadow = b.receiveShadow = true; b.userData.kind = 'rock'; g.add(b); placed.rock.push({ x: b.position.x, z: b.position.z, s: s * 1.3 / M, rot: b.rotation.y, mesh: b }); } }
     // trees
     const tree = L.tree === 'joshua' ? joshua : saguaro;
@@ -441,19 +443,37 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
 
   // ---------- tumbleweed: a shell of short twigs, flattened a touch ----------
   function tumbleweed(radius, seed) {
-    const r = rng(seed), pos = [], nrm = [], tmp = new THREE.Object3D(), up = new THREE.Vector3(0, 1, 0);
-    const add = (a, b, rad) => { const d = b.clone().sub(a), l = d.length();
-      const cg = new THREE.CylinderGeometry(rad, rad * 0.8, l, 3, 1, false).toNonIndexed();
-      tmp.position.copy(a).add(b).multiplyScalar(0.5); tmp.quaternion.setFromUnitVectors(up, d.normalize()); tmp.scale.set(1, 1, 1); tmp.updateMatrix();
-      cg.applyMatrix4(tmp.matrix); pos.push(...cg.attributes.position.array); nrm.push(...cg.attributes.normal.array); };
-    const rnd = () => new THREE.Vector3(r() * 2 - 1, r() * 2 - 1, r() * 2 - 1).normalize();
-    for (let i = 0; i < 170; i++) { const p = rnd().multiplyScalar(radius * (0.72 + r() * 0.28)), t = rnd().cross(p).normalize(), l = radius * (0.35 + r() * 0.6);
-      add(p.clone().addScaledVector(t, -l / 2), p.clone().addScaledVector(t, l / 2).addScaledVector(p, -0.1 * r()), 0.9 + r() * 0.8); }
-    for (let i = 0; i < 26; i++) { const a = rnd().multiplyScalar(radius * 0.25), b = rnd().multiplyScalar(radius * 0.9); add(a, b, 1.2); }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-    const m = new THREE.Mesh(g, mat(0xb39466, { flatShading: false })); m.scale.y = 0.86; m.castShadow = true;
+    // Russian thistle: a short stub of a stem, ~16 primary branches radiating from it, each forking three or four times,
+    // curving along the shell as they near it, so the ball is a dense, see-through lattice of wiry straw-coloured stems
+    const r = rng(seed), pos = [], nrm = [], col = [], up = new THREE.Vector3(0, 1, 0);
+    const straw = new THREE.Color(0xc9a978), grey = new THREE.Color(0x9a8a74), rust = new THREE.Color(0xa86a48), t3 = new THREE.Color();
+    const tube = (a, b, ra, rb, c) => {
+      const d = b.clone().sub(a).normalize(), s1 = Math.abs(d.y) < 0.9 ? up : new THREE.Vector3(1, 0, 0), u = new THREE.Vector3().crossVectors(d, s1).normalize(), v = new THREE.Vector3().crossVectors(d, u);
+      const ring = (o, rr) => [0, 1, 2, 3].map(k => { const ang = k * Math.PI / 2; return { p: o.clone().addScaledVector(u, Math.cos(ang) * rr).addScaledVector(v, Math.sin(ang) * rr), n: u.clone().multiplyScalar(Math.cos(ang)).addScaledVector(v, Math.sin(ang)) }; });
+      const A = ring(a, ra), B = ring(b, rb);
+      for (let k = 0; k < 4; k++) { const k2 = (k + 1) % 4;
+        for (const q of [A[k], B[k], A[k2], A[k2], B[k], B[k2]]) { pos.push(q.p.x, q.p.y, q.p.z); nrm.push(q.n.x, q.n.y, q.n.z); col.push(c.r, c.g, c.b); } } };
+    const grow = (p, dir, len, rad, depth) => {
+      const n = 3 + Math.floor(r() * 2), seg = len / n; let q = p.clone(), d = dir.clone(), rr = rad;
+      const c = t3.copy(straw).lerp(grey, r() * 0.55).lerp(rust, r() < 0.15 ? 0.4 : 0).clone();
+      for (let i = 0; i < n; i++) {
+        d.add(new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).multiplyScalar(0.55)).normalize();
+        const out = q.clone().normalize(), dist = q.length() / radius;
+        if (dist > 0.55) d.addScaledVector(out, -d.dot(out) * Math.min(1, (dist - 0.55) * 4.5)).normalize();   // curl along the shell
+        if (dist > 0.95) d.addScaledVector(out, -0.8).normalize();                                                // and never past it
+        const nq = q.clone().addScaledVector(d, seg), nr = rr * 0.86; tube(q, nq, rr, nr, c); q = nq; rr = nr;
+      }
+      if (depth < 4) { const kids = depth < 1 ? 3 : 2 + (r() < 0.4 ? 1 : 0);
+        for (let k = 0; k < kids; k++) { const nd = d.clone().add(new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).multiplyScalar(1.3)).normalize();
+          grow(q, nd, len * (0.6 + r() * 0.12), rr * 0.78, depth + 1); } }
+    };
+    for (let i = 0; i < 16; i++) { const d = new THREE.Vector3(r() * 2 - 1, (r() * 2 - 1) * 0.8, r() * 2 - 1).normalize(); grow(d.clone().multiplyScalar(radius * 0.05), d, radius * 0.3, radius * 0.022, 0); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.computeBoundingSphere(); { const bs = g.boundingSphere, k = radius / Math.max(1, bs.radius); g.translate(-bs.center.x, -bs.center.y, -bs.center.z); g.scale(k, k, k); }   // centred, true to size
+    const m = new THREE.Mesh(g, mat(0xffffff, { flatShading: false, vertexColors: true, roughness: 0.85 })); m.scale.y = 0.86; m.castShadow = true; m.receiveShadow = true; m.customDepthMaterial = DEPTH;
     const holder = new THREE.Group(); holder.add(m); return holder;
   }
+
 
   // ---------- the sequence after landing ----------
   // t = 2 s red sports car, left to right in the near lane · t = 10 s blue minivan, right to left in the far lane ·
@@ -484,8 +504,8 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const first = viewInfo ? viewInfo.row : (depths.slice(0, 3).reduce((a, o) => a + o.d, 0) / Math.max(1, Math.min(3, depths.length)) || 22 * M);
     const depth = first + 3.5 * M, half = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const a = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, -half * 1.12), b = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, half * 1.12);
-    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.5 * M, tw = tumbleweed(rad, 31); world.add(tw);
-    const r = rng(77), hops = []; { let t = 0; while (t < dur + 1) { const d = 0.45 + r() * 0.45; hops.push({ t, d, h: (0.2 + r() * 0.6) * M }); t += d; } }
+    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.4 * M, tw = tumbleweed(rad, 31); world.add(tw);
+    const r = rng(77), hops = []; { let t = 0; while (t < dur + 1) { const d = 0.5 + r() * 0.5; hops.push({ t, d, h: (0.3 + r() * 0.75) * M }); t += d; } }
     const axis = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), right).normalize().negate();
     let t = 0, rolled = 0, lastX = 0;
     window.__desertDebug = { firstRow: Math.round(first / M * 10) / 10, weedDepth: Math.round(depth / M * 10) / 10, crossM: Math.round(len / M) };
@@ -574,7 +594,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const shrubs = [cra, crb, bua].filter(Boolean).map(prep);
     if (shrubs.length) {
       const sets = shrubs.map(() => []), dummy = new THREE.Matrix4().makeScale(0, 0, 0);
-      placed.bush.forEach(b => { if (!near(b.x, b.z, 70) || !ahead(b.x, b.z)) return; const v = Math.floor(hash(b.x, b.z) * shrubs.length);
+      placed.bush.forEach(b => { if (!near(b.x, b.z, 70) || !ahead(b.x, b.z) || b.sight) return; const v = Math.floor(hash(b.x, b.z) * shrubs.length);
         sets[v].push(mtx(b.x, b.z, b.rot, M * (0.55 + b.s * 1.4))); b.im.setMatrixAt(b.i, dummy); b.im.instanceMatrix.needsUpdate = true; });
       const g = new THREE.Group(); g.userData.kind = 'asset'; sets.forEach((st, v) => st.length && g.add(instance(shrubs[v], st))); world.add(g); done.push('shrubs');
     }
@@ -734,9 +754,13 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     depart(dur = 3.2) { if (!inside && !fly) return; api.stop(); inside = false; landedAt = -1; fly = { dir: -1, t: 0, dur, from: REV.uRev.value }; },
     // the frame: composed (ambient occlusion, bloom, grain) once landed, plain otherwise. Returns false to let the page render itself.
     render(dt) {
-      if (!(inside && root.visible) || window.__desertNoPost) return false;
+      if (!root.visible || window.__desertNoPost) return false;
+      const leaving = fly && fly.dir < 0;
+      if (!inside && !(leaving && REV.uRev.value > 0.965)) return false;
       if (!composer) composer = makeComposer(renderer, scene, camera);
-      landedAt += dt; const k = Math.min(1, landedAt / 1.2);
+      let k;
+      if (inside) { landedAt += dt; k = Math.min(1, landedAt / 1.2); }
+      else k = Math.min(1, (REV.uRev.value - 0.965) / 0.035);          // fades out over the first moments of the un-build
       composer.render(dt, k * k * (3 - 2 * k)); return true;
     },
     bakeEnv() { bakeEnv(); }, applyAssets() { return applyAssets(); },
