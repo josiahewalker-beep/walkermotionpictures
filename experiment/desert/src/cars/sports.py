@@ -83,7 +83,7 @@ fn_door = D.proj_fn(DOOR, 'side', domain=side_dom2, n_per=6)
 HOOD = [(0.0, 2.14), (0.35, 2.12), (0.52, 2.08), (0.60, 2.0), (0.615, 1.5), (0.60, 0.72), (0.0, 0.72)]
 HOOD = np.concatenate([np.array(HOOD), np.array(HOOD)[::-1][1:-1] * [-1, 1]])
 fn_hood = D.proj_fn(HOOD, 'top', domain=lambda V: (V[:, 2] > 0.55) & (V[:, 1] > 0.4), n_per=8, mirror=False)
-DECK = [(0.0, -1.78), (0.60, -1.80), (0.64, -1.95), (0.62, -2.21), (0.0, -2.22)]
+DECK = [(0.0, -1.78), (0.60, -1.80), (0.64, -1.95), (0.62, -2.21), (0.62, -2.45), (0.0, -2.45)]
 DECK = np.concatenate([np.array(DECK), np.array(DECK)[::-1][1:-1] * [-1, 1]])
 fn_deck = D.proj_fn(DECK, 'top', domain=lambda V: (V[:, 2] > 0.86) & (V[:, 1] < -1.6), n_per=8, mirror=False)
 FUEL = [(-1.40, 0.73), (-1.40, 0.83), (-1.55, 0.83), (-1.55, 0.73)]

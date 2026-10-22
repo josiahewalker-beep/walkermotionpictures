@@ -20,10 +20,10 @@ col, h, stone, h_stone, dust_amt, dust_field, dust = cs['col'], cs['h'], cs['sto
 # ---------------- surface tonal variation ----------------
 t_lo = spectral((N, N), r, 2.6, lo=1, hi=60)            # metre-scale mottling
 t_mid = spectral((N, N), r, 2.0, lo=8, hi=300)
-bleach = 1 + 0.10 * t_lo + 0.05 * t_mid
+bleach = 1 + 0.035 * t_lo + 0.05 * t_mid
 col *= bleach[..., None]
 # warm dust film over everything (more where t_lo is high), stays honest
-film = np.clip(0.10 + 0.08 * t_lo, 0, 0.3)
+film = np.clip(0.10 + 0.03 * t_lo, 0, 0.3)
 col = col * (1 - film[..., None]) + dust * film[..., None]
 
 # ---------------- fine transverse cracks (run across the road = along columns) ----------------

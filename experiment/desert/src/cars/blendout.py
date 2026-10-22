@@ -125,8 +125,6 @@ def build(parts, matspecs, out_path, node_origins=None, root_name='car'):
         me.polygons.foreach_set('loop_start', (np.arange(len(F)) * 3).astype(np.int32))
         me.polygons.foreach_set('loop_total', np.full(len(F), 3, np.int32))
         me.polygons.foreach_set('material_index', M.astype(np.int32))
-        me.update(calc_edges=True)
-        me.validate(clean_customdata=False)
         for mn in matnames:
             me.materials.append(mats[mn])
         uvl = me.uv_layers.new(name='UVMap')
@@ -135,6 +133,8 @@ def build(parts, matspecs, out_path, node_origins=None, root_name='car'):
         ca = me.color_attributes.new('Col', 'FLOAT_COLOR', 'POINT')
         ca.data.foreach_set('color', np.clip(C, 0, 1).astype(np.float32).ravel())
         me.color_attributes.active_color = ca
+        me.update(calc_edges=True)
+        me.validate(clean_customdata=False)
         me.shade_smooth()
         me.normals_split_custom_set_from_vertices(N.astype(np.float32))
         ob = bpy.data.objects.new(node, me)
