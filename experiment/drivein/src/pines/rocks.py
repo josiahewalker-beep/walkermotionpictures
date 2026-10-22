@@ -129,7 +129,7 @@ def build_rock(key):
     R = ROCKS[key]
     shape = RockShape(R)
     # ------- low poly: icosphere sub 4 (5120 tris) → decimate by choosing sub level and removing below-ground
-    sub = 4 if R['tris'] >= 3000 else 3 if R['tris'] >= 1200 else 3
+    sub = 5 if R['tris'] >= 2500 else 4
     D, F = icosphere(sub)
     r = shape.base_radius(D)
     P = D * r[:, None]
@@ -178,7 +178,7 @@ def collapse_short(P, D, F, target):
     L = np.linalg.norm(P[E[:, 0]] - P[E[:, 1]], axis=1)
     # prefer flat areas: weight by normal deviation
     order = np.argsort(L)
-    need = (len(F) - target) // 2 + 1
+    need = max(1, (len(F) - target) // 4)      # small steps: avoid overshooting the budget
     locked = np.zeros(len(P), bool)
     mp = np.arange(len(P))
     done = 0

@@ -259,8 +259,8 @@ def build(C, out):
         'rub': dict(mat=C.get('rub_mat', 'trim_black'), depth=-C.get('rub_raise', 0.006), wall='trim_black', wall_col=0.6, col=0.9),
         'lower': dict(mat='trim_black', depth=-0.002, col=0.75, wall='trim_black'),
         'clad': dict(mat='trim_black', depth=0.0, col=0.75),
-        'well': dict(mat='trim_black', depth=0.0, col=0.25),
-        'under': dict(mat='trim_black', depth=0.0, col=0.3),
+        'well': dict(mat='trim_black', depth=0.0, col=0.25, dec=C.get('dec_hidden', 0.15)),
+        'under': dict(mat='trim_black', depth=0.0, col=0.3, dec=C.get('dec_hidden', 0.15)),
     }
     labels.update(C.get('extra_labels', {}))
     rules = list(C.get('extra_rules', [])) + [

@@ -284,7 +284,7 @@ def owl_wing(side):
         return 0.040 + 0.055 * TL.smoothstep(0.0, 0.62, s) - 0.035 * TL.smoothstep(0.62, 1.0, s)
     def te(s):
         sc = 0.007 * np.abs(np.sin(s * np.pi * 7))            # secondary feather tips
-        return -0.215 + 0.045 * s ** 1.6 - sc
+        return -0.215 + 0.035 * s - 0.025 * np.sin(np.pi * s) + 0.03 * TL.smoothstep(0.7, 1.0, s) - sc
     def thick(s, c):
         return (0.022 * (1 - s) + 0.005) * np.sin(np.pi * np.clip(c, 0, 1) ** 0.6)
     for surf in (0, 1):
@@ -321,13 +321,13 @@ def owl_wing(side):
     # primaries: six slotted 'fingers' from the wing tip, fanned
     ytip = np.tan(np.radians(4)) * L - 0.05 * L
     tip_le, tip_te = np.array([L, ytip, le(1.0)]), np.array([L, ytip, te(1.0) + 0.01])
-    angs = np.radians([28, 14, 2, -10, -22, -34])
-    lens = [0.19, 0.225, 0.235, 0.225, 0.20, 0.17]
+    angs = np.radians([13, 6, -1, -8, -15, -23])
+    lens = [0.205, 0.235, 0.245, 0.235, 0.215, 0.19]
     for k, (a, ln) in enumerate(zip(angs, lens)):
-        root = tip_le + (tip_te - tip_le) * (k + 0.5) / 6 + np.array([-0.035, 0, 0])
+        root = tip_le + (tip_te - tip_le) * (0.08 + 0.84 * (k + 0.5) / 6) + np.array([-0.07, 0, 0])
         d = nrm([np.cos(a), 0.03 + 0.01 * k, np.sin(a)])
         sd = nrm(np.cross([0, 1, 0], d))
-        wf = lambda t: 0.017 * (1 - 0.45 * TL.smoothstep(0.35, 0.6, t)) * np.sqrt(np.clip(1 - t ** 4, 0, 1)) + 0.0015
+        wf = lambda t: 0.024 * (1 - 0.5 * TL.smoothstep(0.45, 0.65, t)) * np.sqrt(np.clip(1 - t ** 4, 0, 1)) + 0.0015
         bend = lambda t, q: np.array([0, 0.018 * t * t - 0.01 * t, 0]) + np.array([0, 0.002 * q, 0])
         f = blade(root, d, sd, ln, wf, nl=7, nw=2, thick=0.0025, bend=bend, uv_rect=(0.62 + 0.06 * k, 0.5, 0.66 + 0.06 * k, 1.0))
         m.merge(f)

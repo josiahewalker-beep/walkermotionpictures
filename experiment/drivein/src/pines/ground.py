@@ -263,9 +263,9 @@ def forest(seed=31):
         x, y = rng.uniform(0, S, 2)
         L2.line(needle_path(rng, x, y, rng.uniform(0.08, 0.3) * PX, rng.uniform(0, 6.3), rng.normal(0, 0.5)),
                 rng.uniform(3, 6), np.array([0.11, 0.08, 0.06]) * rng.uniform(0.8, 1.3), 3.5, 0.85)
-    draw_needles(L2, rng, 6500, 2.0, (0.35, 0.85), fascicle_p=0.3, len_cm=(10, 21), width_px=1.4)
+    draw_needles(L2, rng, 6500, 2.0, (0.45, 0.95), fascicle_p=0.3, len_cm=(10, 21), width_px=1.4)
     layers.append((L2, 0.3))
-    L3 = Layer(); draw_needles(L3, rng, 2600, 3.5, (0.0, 0.45), fascicle_p=0.45, len_cm=(13, 23), width_px=1.5)
+    L3 = Layer(); draw_needles(L3, rng, 2600, 3.5, (0.12, 0.6), fascicle_p=0.45, len_cm=(13, 23), width_px=1.5)
     for k in range(4):
         draw_cone(L3, rng, *rng.uniform(0, S, 2), 4.5, old=k >= 2)
     layers.append((L3, 0.35))

@@ -8,7 +8,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0075
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 46000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 38000
 
 S_FA, S_RA, RT = 1.42, -1.32, 0.316
 BELT = 0.92
@@ -62,7 +62,7 @@ C = dict(
                   glass_band=(BELT + 0.02, 1.30)),
     wheel=dict(type='cover', r_cover=0.198, a_face=0.07, dome=0.012, roll=0.03, ring_r=0.125, ring_h=0.005, cap_h=0.012,
                cap_r=0.05, holes=10, hole_r=0.155, hole_len=0.05, hole_w=0.022),
-    wheel_target=4000, tyre_seg=56, rim_color=(0.62, 0.63, 0.65), rim_rough=0.32,
+    wheel_target=3000, tyre_seg=48, rim_color=(0.62, 0.63, 0.65), rim_rough=0.32,
 )
 
 if __name__ == '__main__':

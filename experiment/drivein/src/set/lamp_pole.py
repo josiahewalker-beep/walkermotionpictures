@@ -9,7 +9,7 @@ import clib
 
 H = 5.25
 ARM_Y = 4.75
-BULB = np.array([0.95, 4.38, 0.0])
+BULB = np.array([0.90, 4.38, 0.0])
 W, ST = 'wood_old', 'steel_weathered'
 
 
@@ -27,24 +27,33 @@ def build(seed=4):
     CUR['k'] = 0.55
     path = [pole_at(y) for y in np.linspace(-0.05, H, 9)]
     rr = np.linspace(0.135, 0.095, 9)
-    sweep(W, p_circle(1.0, 14), path, up=(1, 0, 0), scale=list(rr))
+    sweep(W, p_circle(1.0, 20), path, up=(1, 0, 0), scale=list(rr))
     # pole top bevel cap (weathered end grain)
     cyl(W, pole_at(H), pole_at(H + 0.03), 0.095, 0.06, n=14)
     PERCH.append((pole_at(H + 0.03), 0.12, 1.0))
+    # old crossarm near the top (lines long gone): 1.2 m arm across Z, two braces, two glass insulators
     CUR['k'] = 0.0
+    ca = pole_at(5.0)
+    box(W, ca + (-0.11, 0, 0), (0.09, 0.11, 1.25))
+    for sz in (-1, 1):
+        sweep(W, p_rect(0.012, 0.05), [pole_at(4.55) + (-0.10, 0, 0), ca + (-0.11, -0.05, sz * 0.45)], up=(1, 0, 0))
+        p = ca + (-0.11, 0.055, sz * 0.52)
+        ins = clib.lathe([(0.012, 0.0), (0.035, 0.01), (0.04, 0.03), (0.03, 0.045), (0.032, 0.06), (0.02, 0.085), (0.001, 0.095)], m=10, c=p)
+        V, F, _ = ins.arrays(); geo.bucket('glass_insulator').add(V, F)
+    PERCH.append((ca + (-0.11, 0.06, 0.3), 0.25, 0.7))
     # gooseneck arm: steel pipe out from a pole bracket, curving down to the shade
     CUR['k'] = 1.0
     base = pole_at(ARM_Y) + np.array([0.10, 0, 0])
     box(ST, base + (0.0, 0, 0), (0.02, 0.32, 0.12))
     for dy in (-0.11, 0.11):
         hexbolt(ST, base + (0.012, dy, 0), (1, 0, 0), r=0.010, head=0.012, src=1.0)
-    t = np.linspace(0, 1, 12)
-    arm = [base + np.array([0.02 + 0.80 * s, 0.10 * np.sin(np.pi * s * 0.9) - 0.0, 0]) for s in t[:8]]
-    end = arm[-1]
-    c = end + np.array([0.0, -0.13, 0])
-    for a in np.linspace(np.pi / 2, -0.05, 6)[1:]:
-        arm.append(c + np.array([0.13 * np.cos(a) * 1.0 + 0.0, 0.13 * np.sin(a), 0]) + np.array([0.0, 0, 0]))
-    arm.append(np.array([BULB[0], BULB[1] + 0.20, 0]))
+    # gooseneck: straight run with a slight rise, a 0.18 m radius bend, then down into the shade neck
+    arm = [base + np.array([0.02 + 0.63 * s, 0.03 * np.sin(np.pi * s), 0]) for s in np.linspace(0, 1, 7)]
+    c = np.array([base[0] + 0.65, ARM_Y - 0.18, 0])
+    for a in np.linspace(np.pi / 2, 0, 8)[1:]:
+        arm.append(c + np.array([0.18 * np.cos(a), 0.18 * np.sin(a), 0]))
+    arm[-1] = np.array([BULB[0], arm[-1][1], 0])
+    arm.append(np.array([BULB[0], BULB[1] + 0.21, 0]))
     arm = np.array(arm)
     sweep(ST, p_circle(0.021, 8), arm, up=(0, 0, 1))
     # support strap under the arm
@@ -52,7 +61,7 @@ def build(seed=4):
     hexbolt(ST, base + (0.012, -0.45, 0), (1, 0, 0), r=0.009, head=0.01, src=1.0)
     # shade: enamel RLM dome (outside: green enamel, chipped; inside: white reflector)
     sh = np.array([BULB[0], BULB[1] - 0.02, 0])
-    prof = [(0.028, 0.23), (0.032, 0.20), (0.05, 0.16), (0.10, 0.12), (0.16, 0.075), (0.205, 0.035), (0.235, 0.008), (0.245, 0.0)]
+    prof = [(0.001, 0.205), (0.03, 0.20), (0.05, 0.18), (0.075, 0.15), (0.10, 0.12), (0.16, 0.075), (0.205, 0.035), (0.235, 0.008), (0.245, 0.0)]
     outer = clib.lathe([(r, y) for r, y in prof], m=24, c=sh)
     add_mesh(ST, outer)
     inner = clib.flip(clib.lathe([(r - 0.004, y - 0.004) for r, y in prof[1:]], m=24, c=sh))
@@ -61,7 +70,8 @@ def build(seed=4):
     rim = clib.lathe([(0.245, 0.0), (0.249, -0.004), (0.241, -0.008), (0.236, -0.004)], m=24, c=sh)
     add_mesh(ST, rim)
     # socket + bulb
-    cyl(ST, sh + (0, 0.17, 0), sh + (0, 0.11, 0), 0.03, 0.028, n=10)
+    cyl(ST, sh + (0, 0.25, 0), sh + (0, 0.19, 0), 0.032, 0.036, n=10)
+    cyl(ST, sh + (0, 0.16, 0), sh + (0, 0.10, 0), 0.03, 0.028, n=10)
     bulb = clib.sphere(BULB, 0.042, m=12, n=8, squash=(1, 1.2, 1)).merge(clib.lathe([(0.02, 0.05), (0.028, 0.08)], m=12, c=BULB))
     V, F, _ = bulb.arrays()
     geo.bucket('light_bulb').add(V, F)
@@ -116,5 +126,6 @@ if __name__ == '__main__':
                'steel_weathered': (512, 'metal', {'seed': 25, 'paint_lo': (0.025, 0.06, 0.04), 'paint_hi': (0.05, 0.10, 0.065)})},
         tex_name='pole_tex', out_glb=f'{ROOT}/assets/lamp_pole.glb', sources=geo.SOURCES, perch=geo.PERCH, root_name='lamp_pole',
         plain={'reflector': (1.0, lambda: pipe.material('reflector', base=(0.72, 0.71, 0.66), rough=0.35, double=True)),
+               'glass_insulator': (1.0, lambda: pipe.material('glass_insulator', base=(0.20, 0.38, 0.30), rough=0.12, alpha=0.8)),
                'light_bulb': (1.0, lambda: pipe.material('light_bulb', base=(0.9, 0.8, 0.6), rough=0.2, emissive=(1.0, 0.62, 0.30), emissive_strength=4.0))},
         ground=0.0, ao_dist=0.5, ao_ground=(0, 0, 0, 10), extra=extra)

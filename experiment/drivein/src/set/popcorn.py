@@ -156,10 +156,10 @@ def tex_paper():
 def tex_popcorn():
     n = 512
     r = TL.rng(61)
-    a = TL.spectral((n, n), r, 2.0, lo=4, hi=None)
-    b = TL.spectral((n, n), r, 1.4, lo=30, hi=None)
-    F1, F2, _, _ = TL.worley((n, n), 28, r)
-    cell = np.clip((F2 - F1) / 10, 0, 1)
+    a = TL.spectral((n, n), r, 2.0, lo=4, hi=50)
+    b = TL.spectral((n, n), r, 1.4, lo=30, hi=140)
+    F1, F2, _, _ = TL.worley((n, n), 22, r)
+    cell = np.sqrt(np.clip((F2 - F1) / 9, 0, 1))
     fluff = np.array([0.80, 0.74, 0.58]); butter = np.array([0.72, 0.52, 0.20])
     t = TL.smoothstep(-0.6, 1.2, a)
     c = fluff * (1 - t[..., None]) + butter * t[..., None]

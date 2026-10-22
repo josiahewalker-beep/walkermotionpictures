@@ -97,7 +97,16 @@ def build_labelled(cs, labels, rules, default, col_fn=None, parts=None, node='bo
         d = depth_of[li]
         Vl = V[used] - N[used] * d
         col = COL[used] * labels[ln].get('col', 1.0)
-        parts.add(node, Vl, remap[Fm], labels[ln]['mat'], N=N[used], COL=np.c_[col, np.ones(len(col))])
+        Fl = remap[Fm]; Nl = N[used]
+        pass
+        if labels[ln].get('dec') and len(Fl) > 200:
+            # hidden/dark areas (underside, wheel wells): border-preserving decimation, attributes re-sampled by nearest
+            from carlib import decimate_fqmr
+            from scipy.spatial import cKDTree
+            V2, F2 = decimate_fqmr(Vl, Fl, max(100, int(len(Fl) * labels[ln]['dec'])), preserve_border=True)
+            idx = cKDTree(Vl).query(V2)[1]
+            Vl, Fl, Nl, col = V2, F2, Nl[idx], col[idx]
+        parts.add(node, Vl, Fl, labels[ln]['mat'], N=Nl, COL=np.c_[col, np.ones(len(col))])
     # walls along edges between labels with different depth
     E = np.concatenate([F[:, [0, 1]], F[:, [1, 2]], F[:, [2, 0]]])
     EL = np.tile(lab, 3)

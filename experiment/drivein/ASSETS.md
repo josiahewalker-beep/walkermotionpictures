@@ -79,12 +79,12 @@ meshes or textures. Pipeline and helpers adapted from `desert/src/flora` (vertex
 
 | file | size x × y(up) × z, m | tris | GLB | materials |
 |---|---|---|---|---|
-| `pine_a.glb` | 11.51 × 29.67 × 11.36 | 42,818 | 4.3 MB | bark, needles |
-| `pine_a_lod1.glb` | 11.85 × 30.25 × 11.67 | 5,798 | 0.8 MB | bark, needles |
-| `pine_b.glb` | 4.31 × 23.26 × 4.44 | 34,778 | 4.1 MB | bark, needles |
-| `pine_b_lod1.glb` | 4.29 × 23.36 × 4.51 | 5,800 | 0.9 MB | bark, needles |
-| `pine_c.glb` | 10.84 × 32.57 × 10.43 | 56,900 | 5.4 MB | bark, needles |
-| `pine_c_lod1.glb` | 11.09 × 33.69 × 10.98 | 5,800 | 0.8 MB | bark, needles |
+| `pine_a.glb` | 11.51 × 29.68 × 11.41 | 56,738 | 5.2 MB | bark, needles |
+| `pine_a_lod1.glb` | 11.70 × 30.24 × 11.69 | 5,798 | 0.8 MB | bark, needles |
+| `pine_b.glb` | 4.34 × 23.26 × 4.45 | 46,222 | 5.0 MB | bark, needles |
+| `pine_b_lod1.glb` | 4.34 × 23.37 × 4.56 | 5,800 | 0.9 MB | bark, needles |
+| `pine_c.glb` | 10.84 × 32.57 × 10.43 | 56,900 | 5.3 MB | bark, needles |
+| `pine_c_lod1.glb` | 11.21 × 33.45 × 10.91 | 5,800 | 0.8 MB | bark, needles |
 | `rock_a.glb` | 2.40 × 1.29 × 1.83 | 2,998 | 0.6 MB | rock |
 | `rock_b.glb` | 1.24 × 1.08 × 1.08 | 1,164 | 0.6 MB | rock |
 | `pinecone.glb` | 0.10 × 0.07 × 0.07 | 480 | 0.2 MB | bark |
@@ -97,15 +97,20 @@ and the pinecone have their AO in the albedo instead). Normals int8 via `KHR_mes
 **Trees.** `pine_a` ponderosa pine, 30 m: clear cinnamon/orange plated trunk (dbh 0.82 m) to ~46 % of height, open
 rounded crown ~10 m wide, long-needle bottlebrush tufts clumped at the branch ends. `pine_b` lodgepole pine, 23.5 m:
 very straight grey-brown pole (dbh 0.36 m), narrow ~3.5 m crown in the top 40 %, dead grey branch stubs below.
-`pine_c` Douglas fir, 33 m: dense dark-green cone from ~2 m to a pointed leader, ~10 m wide at the base, drooping
+`pine_c` Douglas fir, 32.5 m: dense dark-green cone from ~2 m to a pointed leader, ~10 m wide at the base, drooping
 branches with upturned tips.
 - `bark`: tiling bark (1024 albedo + normal; u around the trunk, v up; ponderosa tile 1.2 × 1.6 m), roughness 0.92,
   single-sided. Branches and stubs are in the same material. The trunk is lightly darkened at the foot.
 - `needles`: RGBA atlas (2 × 2 variants of the species' tuft/spray), alphaMode MASK, cutoff 0.4, double-sided,
-  roughness 0.62. Pines: crossed card pairs along the twig direction; fir: pairs of flat sprays rolled ±20-45°.
-  Visible foliage albedo ≈ linear (0.05, 0.09, 0.04) ponderosa/lodgepole, (0.035, 0.07, 0.045) fir, after the AO:
-  dark green that turns olive-brown under the amber key, as intended. Card shading normals are bent outward from the
-  trunk axis and up, so the crowns light as volumes.
+  roughness 0.82, `KHR_materials_specular` 0.3 (low sheen: higher specular made the backlit crowns read frosted).
+  Pines: three card planes 60° apart around each twig (hero) / crossed pairs (LOD1); fir: pairs of flat sprays
+  rolled ±20-45°. Visible foliage albedo after AO ≈ linear (0.04, 0.07, 0.035), olive-brown shifted on inner/older
+  tufts, darker toward the crown core (vertex colour).
+- Normals: every needle card carries the same **radial** normal (outward from the trunk axis plus a little up), and
+  its winding faces outward too. So from the camera the near side of a crown faces the viewer and stays dark against
+  the moon, and the moon only catches the moonward flank and the tops. Keep three.js's default double-sided
+  handling (back faces flip the normal): that is what keeps cards seen from behind, through crown gaps, facing the
+  viewer and dark. Do not patch it out.
 - `_lod1` (≤ 6k tris, 512 px textures): same trunk axis, ponderosa keeps its 45 thickest limbs; the hero's tufts are
   k-means clustered into ~1,200-1,400 larger crossed cards with each cluster's mean colour → the same silhouette and
   colour from ~60 m on. Switch at 50-70 m (the whole ring at 70-200 m can be LOD1; flank trees at 25-60 m hero).
@@ -113,9 +118,8 @@ branches with upturned tips.
   lodgepole for a Front-Range montane look; lodgepoles look best in small groups.
 - Alpha-tested foliage thins in the mip chain at distance; the atlases' alpha is pre-thickened. If the far ring looks
   sparse, set `material.alphaToCoverage = true` (with MSAA) or lower `alphaTest` to 0.3 on the LOD1 material.
-- Moon backlight: the needle cards are single-layer and opaque; a cheap rim/translucency term (e.g. add
-  `0.25 * moonColor * pow(saturate(dot(-viewDir, moonDir)), 4)` to emissive on `needles`) makes the tuft edges glow
-  against the sky the way Josiah described.
+- Moon backlight: for a stronger rim on the tuft edges, a small view-dependent term on `needles` works better than
+  more light (e.g. emissive += `0.15 * moonColor * pow(1 - |dot(N, V)|, 3) * saturate(dot(-V, moonDir))`).
 
 **Ground textures** (`tex/`, 2048², 4 m × 4 m, seamless; albedo sRGB, normal OpenGL +Y = +v, rough grey = roughness):
 - `lot_*`: compacted decomposed-granite dirt (mean albedo ≈ 0.19/0.145/0.10 linear), fine-scale tyre-packed crust,

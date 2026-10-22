@@ -9,7 +9,7 @@ from carlib import smax, sd_round_box, box
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_sedan_b.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.010
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 6500
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 5000
 
 S_FA, S_RA, RT = 1.42, -1.33, 0.34
 BELT = 1.05
@@ -79,7 +79,7 @@ C = dict(
     tail=(0.70, 0.62, 0.98), tail_s=-2.24, ws_ztop=1.50, tail_panel=False, reverse=(0.72, 0.82, 0.63, 0.70), rplate=0.76,
     handles=[-0.18], markers=((S_FA + 0.78, 0.82), (S_RA - 0.85, 0.86)), fuel=(S_RA + 0.55, BELT - 0.13),
     rub=(lambda s: np.full_like(s, 0.70), 0.018),
-    extra_labels={'bedliner': dict(mat='trim_black', depth=0.0, col=0.6)},
+    extra_labels={'bedliner': dict(mat='trim_black', depth=0.0, col=0.6, dec=0.35)},
     extra_rules=[('bedliner', in_bed)],
     extras=[bumpers], exhaust=(0.45, S_RA - 0.85, 0.40),
     interior=dict(seat_s=-0.02, seat_x=0.36, floor=0.48, dash_s=0.70, dash_z=1.05, dash_w=0.72, wheel_s=0.38, hip_z=0.70,
@@ -87,7 +87,7 @@ C = dict(
                   glass_band=(BELT + 0.02, 1.53), shell_target=1400),
     wheel=dict(type='steel', hole_type='round', r_cover=0.19, a_face=0.06, dome=0.008, roll=0.035, ring_r=0.155, ring_h=0.006,
                cap_h=0.0, cap_r=0.05, holes=6, hole_r=0.125, hole_w=0.04),
-    wheel_target=1300, tyre_seg=30, rim_color=(0.55, 0.56, 0.58), rim_rough=0.45,
+    wheel_target=1000, tyre_seg=26, rim_color=(0.55, 0.56, 0.58), rim_rough=0.45,
 )
 
 if __name__ == '__main__':

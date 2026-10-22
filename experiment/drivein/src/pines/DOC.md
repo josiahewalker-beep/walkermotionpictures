@@ -13,15 +13,20 @@ and the pinecone have their AO in the albedo instead). Normals int8 via `KHR_mes
 **Trees.** `pine_a` ponderosa pine, 30 m: clear cinnamon/orange plated trunk (dbh 0.82 m) to ~46 % of height, open
 rounded crown ~10 m wide, long-needle bottlebrush tufts clumped at the branch ends. `pine_b` lodgepole pine, 23.5 m:
 very straight grey-brown pole (dbh 0.36 m), narrow ~3.5 m crown in the top 40 %, dead grey branch stubs below.
-`pine_c` Douglas fir, 33 m: dense dark-green cone from ~2 m to a pointed leader, ~10 m wide at the base, drooping
+`pine_c` Douglas fir, 32.5 m: dense dark-green cone from ~2 m to a pointed leader, ~10 m wide at the base, drooping
 branches with upturned tips.
 - `bark`: tiling bark (1024 albedo + normal; u around the trunk, v up; ponderosa tile 1.2 × 1.6 m), roughness 0.92,
   single-sided. Branches and stubs are in the same material. The trunk is lightly darkened at the foot.
 - `needles`: RGBA atlas (2 × 2 variants of the species' tuft/spray), alphaMode MASK, cutoff 0.4, double-sided,
-  roughness 0.62. Pines: crossed card pairs along the twig direction; fir: pairs of flat sprays rolled ±20-45°.
-  Visible foliage albedo ≈ linear (0.05, 0.09, 0.04) ponderosa/lodgepole, (0.035, 0.07, 0.045) fir, after the AO:
-  dark green that turns olive-brown under the amber key, as intended. Card shading normals are bent outward from the
-  trunk axis and up, so the crowns light as volumes.
+  roughness 0.82, `KHR_materials_specular` 0.3 (low sheen: higher specular made the backlit crowns read frosted).
+  Pines: three card planes 60° apart around each twig (hero) / crossed pairs (LOD1); fir: pairs of flat sprays
+  rolled ±20-45°. Visible foliage albedo after AO ≈ linear (0.04, 0.07, 0.035), olive-brown shifted on inner/older
+  tufts, darker toward the crown core (vertex colour).
+- Normals: every needle card carries the same **radial** normal (outward from the trunk axis plus a little up), and
+  its winding faces outward too. So from the camera the near side of a crown faces the viewer and stays dark against
+  the moon, and the moon only catches the moonward flank and the tops. Keep three.js's default double-sided
+  handling (back faces flip the normal): that is what keeps cards seen from behind, through crown gaps, facing the
+  viewer and dark. Do not patch it out.
 - `_lod1` (≤ 6k tris, 512 px textures): same trunk axis, ponderosa keeps its 45 thickest limbs; the hero's tufts are
   k-means clustered into ~1,200-1,400 larger crossed cards with each cluster's mean colour → the same silhouette and
   colour from ~60 m on. Switch at 50-70 m (the whole ring at 70-200 m can be LOD1; flank trees at 25-60 m hero).
@@ -29,9 +34,8 @@ branches with upturned tips.
   lodgepole for a Front-Range montane look; lodgepoles look best in small groups.
 - Alpha-tested foliage thins in the mip chain at distance; the atlases' alpha is pre-thickened. If the far ring looks
   sparse, set `material.alphaToCoverage = true` (with MSAA) or lower `alphaTest` to 0.3 on the LOD1 material.
-- Moon backlight: the needle cards are single-layer and opaque; a cheap rim/translucency term (e.g. add
-  `0.25 * moonColor * pow(saturate(dot(-viewDir, moonDir)), 4)` to emissive on `needles`) makes the tuft edges glow
-  against the sky the way Josiah described.
+- Moon backlight: for a stronger rim on the tuft edges, a small view-dependent term on `needles` works better than
+  more light (e.g. emissive += `0.15 * moonColor * pow(1 - |dot(N, V)|, 3) * saturate(dot(-V, moonDir))`).
 
 **Ground textures** (`tex/`, 2048², 4 m × 4 m, seamless; albedo sRGB, normal OpenGL +Y = +v, rough grey = roughness):
 - `lot_*`: compacted decomposed-granite dirt (mean albedo ≈ 0.19/0.145/0.10 linear), fine-scale tyre-packed crust,
