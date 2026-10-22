@@ -1205,6 +1205,10 @@ function resize() {
   if (window.__desert && window.__desert.inside && window.__desert.landedFov) camera.fov = window.__desert.landedFov;   // landed in the desert: only the lens follows the window
   camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
+  // guard (see GUARDRAILS.md): the grid canvas must show at exactly the window size, or on Retina screens the grid sits
+  // crooked and off-centre under the cards. If anything ever breaks the #gl CSS rule, size it here and say so.
+  { const r = gl.domElement.getBoundingClientRect(); if (Math.abs(r.width - w) > 1 || Math.abs(r.height - h) > 1) {
+    gl.domElement.style.width = w + 'px'; gl.domElement.style.height = h + 'px'; console.warn('[guard] grid canvas was', r.width, 'x', r.height, 'for a', w, 'x', h, 'window; forced to fit'); } }
   if (!flight && !(window.__desert && (window.__desert.inside || window.__desert.flying))) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
 addEventListener('resize', resize); resize();
@@ -1508,6 +1512,10 @@ if (DESERT_ON) import('./desert.js').then(m => {
   if (window.__desertManualClock) D.clock.manual = true;
   if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
   // #desert: the site holds on the bird's-eye view; clicking the first slide flies in and builds the world (#desert-b, #desert-c: other build styles)
+  // guard (see GUARDRAILS.md): the billboard is built for the intro slide at exactly 1180 x 462 px (10.93 x 4.28 m).
+  // If the slide's size or copy changes, the billboard would no longer fit it, so the page lands on the plain slide instead.
+  { const he = cards.hero.el, okW = Math.abs(he.offsetWidth - m.BILLBOARD_FACE.w) <= 2, okH = Math.abs(he.offsetHeight - m.BILLBOARD_FACE.h) <= 2;
+    if (!okW || !okH) { console.warn('[guard] intro slide is', he.offsetWidth, 'x', he.offsetHeight, 'but the billboard face is', m.BILLBOARD_FACE.w, 'x', m.BILLBOARD_FACE.h, '- desert off'); window.__desert = null; return; } }
   const shot = m.HERO_SHOT;
   const style = ({ a: 0, b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] ?? 2;     // build C (cell by cell) is the default
   D.prepareHero(shot, style);

@@ -813,6 +813,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
 // frame). A window of another shape only changes the lens: wider screens keep the height and see more desert at the sides;
 // narrower ones widen the lens until the same width of the scene fits, and see more sky and ground. Nothing else moves.
 export const REF_ASPECT = 16 / 9;
+export const BILLBOARD_FACE = { w: 1180, h: 462 };   // the intro slide in px; desert/assets/billboard.glb is built around it (10.93 x 4.28 m)
 export function heroFov(baseFov, aspect = innerWidth / innerHeight) {
   if (aspect >= REF_ASPECT) return baseFov;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(baseFov / 2)) * REF_ASPECT / aspect));
