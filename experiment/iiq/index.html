@@ -1,0 +1,449 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Private screening · Walker Motion Pictures</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#f6f7f9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700&family=Inter:wght@400;500&display=swap">
+<style>
+:root { --bg:#f6f7f9; --card:#ffffff; --ink:#0b1220; --mid:#4a5568; --dim:#8a94a6; --line:#e3e7ee; --accent:#2f5bff; --accent-2:#00b39b; --warn:#e5484d;
+  --head:'Inter Tight','Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif; --body:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif; color-scheme:light; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html { -webkit-text-size-adjust:100%; }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5; min-height:100vh; display:flex; flex-direction:column;
+  background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size:64px 64px; background-position:-1px -1px; }
+body::before { content:''; position:fixed; inset:0; pointer-events:none; background:radial-gradient(1200px 600px at 85% -10%, rgba(47,91,255,.10), transparent 60%), radial-gradient(900px 500px at -10% 110%, rgba(0,179,155,.08), transparent 60%), linear-gradient(180deg, rgba(246,247,249,.55), rgba(246,247,249,.92)); }
+body > * { position:relative; }
+a { color:inherit; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:6px; }
+[tabindex="-1"]:focus, [tabindex="-1"]:focus-visible { outline:none; }
+header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:calc(env(safe-area-inset-top,0px) + 18px) max(16px,3vw) 18px; }
+.brand { display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap; min-width:0; }
+.jw { display:inline-flex; align-items:baseline; gap:7px; font-size:13px; font-weight:500; color:var(--ink); text-decoration:none; padding:7px 12px; border-radius:999px; border:1px solid var(--line); background:var(--card); white-space:nowrap; }
+.jw span { color:var(--dim); font-weight:400; }
+.jw:hover { border-color:var(--accent); color:var(--accent); }
+.name { font-family:var(--head); font-weight:700; font-size:clamp(18px,1.6vw,21px); letter-spacing:-.01em; text-decoration:none; background:none; border:0; padding:0; color:var(--ink); cursor:pointer; }
+.name:hover { color:var(--accent); }
+.tag { font-size:clamp(12px,1vw,13.5px); color:var(--mid); white-space:nowrap; }
+.tag b { font-weight:500; color:var(--ink); }
+.tag .sep { color:var(--dim); margin:0 6px; }
+nav { display:flex; gap:6px; flex-shrink:0; }
+nav a, nav button { font:inherit; font-size:13.5px; font-weight:500; color:var(--mid); text-decoration:none; padding:8px 12px; border-radius:999px; border:1px solid transparent; background:none; cursor:pointer; }
+nav a:hover, nav button:hover { color:var(--ink); border-color:var(--line); background:var(--card); }
+nav .cta { color:#fff; background:var(--ink); }
+nav .cta:hover { color:#fff; background:var(--accent); border-color:var(--accent); }
+main { flex:1; width:100%; margin:0 auto; padding:clamp(28px,6vw,80px) max(16px,3vw); }
+#lock { max-width:25rem; margin:clamp(10px,5vh,60px) auto 0; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:clamp(22px,3vw,32px); box-shadow:0 1px 2px rgba(11,18,32,.04), 0 12px 40px -12px rgba(11,18,32,.14); }
+#reel { max-width:72rem; margin:0 auto; }
+#reel .list.one ~ .meta, #reel .lede { max-width:60rem; }
+.kicker { display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:500; color:var(--accent); background:rgba(47,91,255,.08); border:1px solid rgba(47,91,255,.18); padding:5px 11px; border-radius:999px; margin:0 0 18px; }
+.kicker::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 0 3px rgba(0,179,155,.18); }
+h1 { margin:0 0 10px; font-family:var(--head); font-weight:600; font-size:clamp(34px,5.4vw,64px); line-height:1.02; letter-spacing:-.035em; }
+#lock h1 { font-size:clamp(26px,3vw,32px); letter-spacing:-.02em; }
+.lede { font-size:clamp(15px,1.3vw,17.5px); color:var(--mid); max-width:40rem; margin:0 0 clamp(24px,3.5vw,40px); }
+#lock .lede { margin-bottom:6px; }
+label { display:block; font-size:13px; font-weight:500; color:var(--mid); margin:18px 0 6px; }
+input { width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--bg); border:1px solid var(--line); padding:11px 13px; border-radius:10px; }
+input:focus { border-color:var(--accent); background:#fff; outline:none; box-shadow:0 0 0 4px rgba(47,91,255,.12); }
+.btn { font:inherit; font-weight:500; font-size:15px; color:#fff; background:var(--ink); border:0; border-radius:10px; padding:12px 16px; min-height:46px; cursor:pointer; margin-top:14px; width:100%; }
+.btn:hover { background:var(--accent); }
+.btn[disabled] { opacity:.6; cursor:progress; }
+.msg { min-height:1.4em; margin-top:12px; font-size:13px; color:var(--warn); }
+.list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(24px,3vw,40px) clamp(16px,2vw,24px); }
+@media (max-width:1000px) { .list { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:620px) { .list { grid-template-columns:1fr; } }
+.list.one { grid-template-columns:1fr; max-width:60rem; }
+#intro[hidden] + .list { margin-top:clamp(22px,2.8vw,36px); }
+figure { margin:0; }
+.frame { position:relative; width:100%; aspect-ratio:16/9; background:#0b1220; border-radius:16px; overflow:hidden; box-shadow:0 1px 2px rgba(11,18,32,.06), 0 24px 60px -24px rgba(11,18,32,.35); }
+.frame iframe, .frame video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#0b1220; }
+.load { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; font-size:13px; font-weight:500; color:#c9d1e0; }
+.bar { width:min(260px,60%); height:3px; border-radius:3px; background:rgba(255,255,255,.14); overflow:hidden; }
+.bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .2s; }
+.load button { font:inherit; color:#fff; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2); padding:8px 14px; border-radius:999px; cursor:pointer; }
+figcaption { display:flex; align-items:baseline; justify-content:space-between; gap:6px 14px; flex-wrap:wrap; margin-top:12px; }
+.t { font-family:var(--head); font-weight:600; font-size:17px; letter-spacing:-.01em; }
+.c, .n { font-size:13px; color:var(--dim); }
+.n { margin-right:10px; font-variant-numeric:tabular-nums; }
+.meta { display:flex; gap:8px; flex-wrap:wrap; margin:clamp(18px,2.4vw,26px) 0 0; padding:0; list-style:none; }
+.meta li { font-size:13px; color:var(--mid); background:var(--card); border:1px solid var(--line); padding:6px 12px; border-radius:999px; }
+.out { font:inherit; font-size:13px; color:var(--dim); background:none; border:0; padding:0; cursor:pointer; }
+.out:hover { color:var(--ink); }
+footer { display:flex; justify-content:space-between; gap:16px; padding:22px max(16px,3vw) calc(env(safe-area-inset-bottom,0px) + 22px); font-size:13px; color:var(--dim); }
+@media (max-width:720px) { .brand { gap:8px; } .jw span { display:none; } }
+/* ---- scrolling deck (iiQ design workflow) ---- */
+:root { --navy:#1c2f6e; --navy-2:#243f8c; --hl:#ffc21a; --hl-ink:#1c2f6e; }
+#deckwrap { max-width:72rem; margin:clamp(36px,5vw,64px) auto 0; }
+.dk-h { position:relative; z-index:0; }
+.deck mark { position:relative; z-index:-1; background:var(--hl); color:var(--hl-ink); border-radius:999px; padding:0 .26em; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
+.dk { padding:clamp(56px,9vw,120px) 0; border-top:1px solid var(--line); }
+.dk.cover { border-top:0; padding-top:0; }
+.dk-eyebrow { font-size:13.5px; font-weight:500; color:var(--navy); margin:0 0 clamp(40px,8vw,90px); display:flex; align-items:center; gap:10px; }
+.dk-eyebrow::before { content:''; width:18px; height:18px; border-radius:50%; border:2px solid var(--navy); box-shadow:inset 0 0 0 3px var(--bg), inset 0 0 0 6px var(--navy); opacity:.9; }
+.dk-kicker { font-size:13.5px; font-weight:600; color:var(--navy-2); margin:0 0 14px; }
+.dk-h { font-family:var(--head); font-weight:700; color:var(--navy); font-size:clamp(30px,4.6vw,56px); line-height:1.2; letter-spacing:-.035em; margin:0 0 16px; }
+.dk-xl { font-size:clamp(38px,6.4vw,82px); line-height:1.17; }
+.dk-sub { font-size:clamp(15.5px,1.4vw,18px); color:var(--mid); margin:0; max-width:40rem; }
+.dk-date { font-size:13px; color:var(--dim); margin:clamp(26px,4vw,44px) 0 0; }
+.steps { list-style:none; margin:clamp(40px,6vw,72px) 0 0; padding:0; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:18px; position:relative; }
+.steps::before { content:''; position:absolute; left:10%; right:10%; top:27px; height:2px; background:linear-gradient(90deg,#c9d6f3,#dfe6f6); }
+.steps li { position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; }
+.steps .dot { width:56px; height:56px; border-radius:50%; display:grid; place-items:center; font-family:var(--head); font-weight:700; font-size:20px; margin-bottom:12px; position:relative; }
+.steps .you .dot { background:var(--hl); color:var(--navy); box-shadow:0 0 0 6px var(--bg); }
+.steps .either .dot { background:#fff; color:var(--navy); border:2.5px solid var(--navy); box-shadow:0 0 0 6px var(--bg); }
+.steps .me .dot { background:var(--navy); color:#fff; box-shadow:0 0 0 6px var(--bg); }
+.steps .who { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#d39a00; }
+.steps .me .who, .steps .either .who { color:var(--navy-2); }
+.steps b { font-family:var(--head); font-size:clamp(16px,1.5vw,19px); color:var(--navy); letter-spacing:-.01em; }
+.steps li > span:last-child { font-size:13.5px; color:var(--mid); max-width:13rem; }
+@media (max-width:760px) {
+  .steps { grid-template-columns:1fr; gap:0; }
+  .steps::before { left:27px; right:auto; top:28px; bottom:28px; width:2px; height:auto; background:#d6e0f5; }
+  .steps li { display:grid; grid-template-columns:56px 1fr; grid-template-rows:auto auto auto; column-gap:16px; text-align:left; align-items:start; padding:0 0 22px; }
+  .steps .dot { grid-row:1 / span 3; margin:0; }
+  .steps .who { padding-top:6px; }
+}
+/* sticky step rail, like the deck's top progress bar */
+.flow { position:relative; }
+.rail { position:sticky; top:10px; z-index:5; display:grid; grid-template-columns:repeat(5,1fr); gap:10px; padding:12px 16px 11px; margin:0;
+  background:rgba(255,255,255,.78); -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); border:1px solid rgba(227,231,238,.9); border-radius:14px; box-shadow:0 10px 30px -18px rgba(11,18,32,.25); }
+.rail a { text-decoration:none; color:var(--dim); font-size:12.5px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.rail i { display:block; height:3px; border-radius:3px; background:#dfe6f2; overflow:hidden; position:relative; }
+.rail i::after { content:''; position:absolute; inset:0; background:var(--hl); transform:scaleX(0); transform-origin:left; transition:transform .5s cubic-bezier(.22,.9,.24,1); }
+.rail a.done i::after, .rail a.on i::after { transform:scaleX(1); }
+.rail span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rail b { font-weight:600; }
+.rail a.on { color:var(--navy); font-weight:600; }
+.rail em { font-style:normal; }
+@media (max-width:620px) { .rail em { display:none; } .rail span { font-size:12px; } }
+.step { scroll-margin-top:60px; }
+.cols { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:clamp(24px,4vw,56px); align-items:center; margin-top:clamp(28px,4vw,48px); }
+.cols.wide-left { grid-template-columns:minmax(0,8fr) minmax(0,4fr); }
+.cols.narrow-left { grid-template-columns:minmax(0,4fr) minmax(0,8fr); align-items:start; }
+@media (max-width:860px) { .cols, .cols.wide-left, .cols.narrow-left { grid-template-columns:1fr; } .cols.wide-left .txt { order:-1; } }
+.lead { font-size:clamp(16px,1.45vw,19px); color:var(--ink); margin:0 0 18px; line-height:1.45; }
+.refs { list-style:none; padding:0; margin:0; display:grid; gap:16px; }
+.refs li { display:grid; grid-template-columns:22px 1fr; column-gap:10px; }
+.refs li::before { content:''; grid-row:1 / span 2; width:0; height:0; margin-top:5px; border-left:11px solid var(--navy); border-top:7px solid transparent; border-bottom:7px solid transparent; opacity:.85; }
+.refs b { font-family:var(--head); font-weight:600; color:var(--navy); font-size:16.5px; }
+.refs span { color:var(--mid); font-size:14.5px; }
+.shot { margin:0; }
+.shot img { display:block; width:100%; height:auto; border-radius:16px; background:#e9eef7; box-shadow:0 1px 2px rgba(11,18,32,.06), 0 24px 60px -28px rgba(11,18,32,.35); aspect-ratio:var(--ar, 16/9); object-fit:cover; }
+.shot img:not([src]) { background:linear-gradient(100deg,#e9eef7 30%,#f3f6fb 50%,#e9eef7 70%); background-size:200% 100%; animation:shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+.shot figcaption { margin-top:12px; font-size:13px; color:var(--dim); }
+.shot.wide { margin-top:clamp(28px,4vw,48px); }
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin:0; }
+.chips span { font-size:13px; font-weight:500; color:var(--navy); background:#e6ecfa; padding:6px 12px; border-radius:999px; }
+.script { background:var(--card); border:1px solid var(--line); border-left:3px solid var(--hl); border-radius:14px; padding:clamp(18px,2.4vw,28px); box-shadow:0 1px 2px rgba(11,18,32,.04), 0 18px 44px -26px rgba(11,18,32,.25); }
+.script-h { font-weight:600; font-size:14px; color:var(--navy); margin:0 0 14px; }
+.script dl { display:grid; grid-template-columns:minmax(9.5rem,auto) 1fr; gap:10px 22px; margin:0; }
+.script dt { font-size:13.5px; font-weight:500; color:#5d77b8; }
+.script dd { margin:0; font-size:14.5px; color:var(--ink); line-height:1.45; }
+@media (max-width:560px) { .script dl { grid-template-columns:1fr; gap:2px; } .script dd { margin-bottom:10px; } }
+.icons { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+.icons li { display:flex; align-items:center; gap:10px; font-weight:500; color:var(--navy); font-size:16px; }
+.icons svg { width:20px; height:20px; fill:none; stroke:var(--navy-2); stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+.check { display:flex; align-items:center; gap:10px; font-weight:600; color:var(--navy); margin:0; font-size:15px; }
+.check::before { content:''; flex:none; width:18px; height:18px; border-radius:50%; border:1.6px solid #d39a00; background:no-repeat center/10px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8'%3E%3Cpath d='M1 4.2 3.8 7 9 1' fill='none' stroke='%23d39a00' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.checks { display:flex; gap:14px 34px; flex-wrap:wrap; margin:22px 0 0; }
+.navy { position:relative; isolation:isolate; color:#fff; border-top:0; }
+.navy::before { content:''; position:absolute; z-index:-1; top:0; bottom:0; left:50%; width:100vw; transform:translateX(-50%); background:radial-gradient(900px 500px at 80% 10%, rgba(255,255,255,.07), transparent 60%), linear-gradient(160deg,var(--navy) 0%, #20398a 100%); }
+.navy .dk-h, .navy .lead, .navy .check { color:#fff; }
+.navy .shot figcaption { color:#aebce2; }
+.navy .shot img { box-shadow:0 30px 70px -30px rgba(0,0,0,.6); background:#2a4596; }
+.navy + .dk, .flow:has(.navy:last-child) + .dk-brand { border-top:0; }
+.navy .check::before { border-color:var(--hl); background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8'%3E%3Cpath d='M1 4.2 3.8 7 9 1' fill='none' stroke='%23ffc21a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.dk-brand { margin:clamp(40px,6vw,70px) 0 0; font-size:13px; font-weight:500; color:var(--dim); text-align:center; }
+/* reveal on scroll */
+.rv { opacity:0; transform:translateY(18px); transition:opacity .8s cubic-bezier(.22,.9,.24,1), transform .8s cubic-bezier(.22,.9,.24,1); }
+.rv.in { opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce) { .rv { opacity:1; transform:none; transition:none; } .rail i::after { transition:none; } }
+/* leave note: a grid line grows from the click, a card grows at its end */
+#tether { position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:40; overflow:visible; }
+#tether path { fill:none; stroke:var(--accent); stroke-width:1.25; vector-effect:non-scaling-stroke; }
+#tether .guide { stroke:rgba(47,91,255,.22); stroke-width:1; stroke-dasharray:2 4; }
+#tether rect { fill:var(--card); stroke:var(--accent); stroke-width:1.25; }
+#scrim { position:fixed; inset:0; z-index:39; background:transparent; }
+#warn { position:fixed; z-index:41; width:min(21rem, calc(100vw - 32px)); background:var(--card); color:var(--ink); border:1px solid var(--accent); border-radius:14px;
+  box-shadow:0 1px 2px rgba(11,18,32,.06), 0 18px 50px -18px rgba(11,18,32,.35); padding:18px 18px 16px; text-align:left; }
+#warn .ttl { font-size:11.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; display:flex; align-items:center; gap:8px; }
+#warn .ttl::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 0 3px rgba(0,179,155,.18); }
+#warn h2 { font-family:var(--head); font-weight:600; font-size:19px; line-height:1.2; letter-spacing:-.02em; margin:0 0 8px; }
+#warn p { margin:0; color:var(--mid); font-size:14.5px; line-height:1.5; }
+#warn em { font-style:italic; color:var(--warn); font-weight:500; }
+#warn .fine { margin-top:8px; font-size:13px; color:var(--dim); }
+.acts { display:flex; gap:8px; margin-top:16px; }
+.acts button, .acts a { flex:1; font:inherit; font-weight:500; font-size:14px; border-radius:9px; padding:10px 12px; min-height:42px; cursor:pointer; text-decoration:none; display:flex; align-items:center; justify-content:center; text-align:center; }
+.stay { background:var(--ink); color:#fff; border:0; }
+.stay:hover { background:var(--accent); }
+.risk { background:transparent; color:var(--warn); border:1px solid rgba(229,72,77,.35); }
+.risk:hover { background:rgba(229,72,77,.08); border-color:var(--warn); }
+</style></head><body>
+<header>
+  <div class="brand">
+    <a class="name" href="../">Walker Motion Pictures</a>
+    <a class="jw leave" href="https://josiahwalker.com/" data-dest="https://josiahwalker.com/">Josiahwalker.com <span>Narrative filmmaking</span></a>
+  </div>
+  <nav aria-label="Site">
+    <a class="cta" href="../#next">Contact</a>
+  </nav>
+</header>
+<main>
+  <section id="lock" aria-labelledby="lockh">
+    <p class="kicker">Private screening</p>
+    <h1 id="lockh">Enter the password</h1>
+    <p class="lede">This page was shared with you directly.</p>
+    <form id="f" autocomplete="off">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" required>
+      <button class="btn" id="go" type="submit">Watch</button>
+      <div class="msg" id="msg" role="alert" aria-live="assertive"></div>
+    </form>
+  </section>
+  <section id="reel" hidden aria-labelledby="reelh">
+    <p class="kicker">Corporate video</p>
+    <h1 id="reelh">Corporate Work</h1>
+    <p class="lede" id="intro" hidden></p>
+    <div class="list" id="list"></div>
+    <ul class="meta" id="meta" hidden></ul>
+  </section>
+  <div id="deckwrap" hidden></div>
+</main>
+<footer><span>© 2026 Walker Motion Pictures</span><button class="out" id="out" type="button" hidden>Lock page</button></footer>
+<div id="scrim" hidden></div>
+<svg id="tether" hidden aria-hidden="true"><path class="guide" id="tguide" d=""/><path id="tline" d=""/><rect id="tnode" width="7" height="7" x="0" y="0"/><rect id="tjoint" width="7" height="7" x="0" y="0"/></svg>
+<div id="warn" role="dialog" aria-modal="true" aria-labelledby="warnh" aria-describedby="warnp" hidden>
+  <p class="ttl">Before you go</p>
+  <h2 id="warnh">Are you sure about this decision?</h2>
+  <p id="warnp">This will take you away from corporate video and into a narrative world full of mystery and&hellip; <em>murder</em>.</p>
+  <p class="fine">Click at your own risk&hellip;</p>
+  <div class="acts">
+    <button class="stay" type="button" id="stay">Stay here</button>
+    <a class="risk" id="risk" href="https://josiahwalker.com/">Enter at my own risk</a>
+  </div>
+</div>
+<script>
+(() => {
+  const BLOB = {"v": 1, "rounds": 600000, "salt": "62y+r1eFcalMrEPPWTP6lA==", "iv": "OYzcZXLDXQeU942G", "ct": "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"};
+  const $ = id => document.getElementById(id);
+  const KEY = 'corp-pw:' + location.pathname;
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const store = { get() { try { return sessionStorage.getItem(KEY); } catch (e) { return null; } },
+                  set(v) { try { sessionStorage.setItem(KEY, v); } catch (e) {} },
+                  del() { try { sessionStorage.removeItem(KEY); } catch (e) {} } };
+
+  async function decrypt(pw) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt: b64(BLOB.salt), iterations: BLOB.rounds },
+      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(BLOB.iv) }, key, b64(BLOB.ct));
+    return { d: JSON.parse(new TextDecoder().decode(plain)), key };
+  }
+
+  // Self-hosted video: the file on the server is AES-GCM ciphertext under the page key. Download it with progress,
+  // decrypt it in the browser and play it from memory.
+  async function loadFile(v, key, frame, label) {
+    frame.textContent = '';
+    const box = el('div', 'load'), txt = el('span', null, 'Loading video'), bar = el('div', 'bar'), fill = el('i');
+    bar.append(fill); box.append(txt, bar); frame.append(box);
+    try {
+      const res = await fetch(v.file, { cache: 'force-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const total = v.bytes || +res.headers.get('content-length') || 0;
+      let buf;
+      if (res.body && total) {
+        buf = new Uint8Array(total); let got = 0; const rd = res.body.getReader();
+        for (;;) { const { done, value } = await rd.read(); if (done) break;
+          if (got + value.length > buf.length) { const nb = new Uint8Array(got + value.length); nb.set(buf.subarray(0, got)); buf = nb; }
+          buf.set(value, got); got += value.length; fill.style.width = Math.min(100, got / total * 100).toFixed(1) + '%'; }
+        buf = buf.subarray(0, got);
+      } else buf = new Uint8Array(await res.arrayBuffer());
+      txt.textContent = 'Preparing';
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(v.iv) }, key, buf);
+      const vid = el('video');
+      vid.src = URL.createObjectURL(new Blob([plain], { type: v.mime || 'video/mp4' }));
+      vid.controls = true; vid.playsInline = true; vid.preload = 'auto';
+      vid.setAttribute('controlsList', 'nodownload'); vid.disablePictureInPicture = false;
+      vid.title = label; vid.addEventListener('contextmenu', e => e.preventDefault());
+      vid.addEventListener('play', () => pauseOthers(vid));
+      frame.textContent = ''; frame.append(vid);
+    } catch (e) {
+      txt.textContent = 'The video did not load'; bar.remove();
+      const again = el('button', null, 'Try again'); again.type = 'button';
+      again.addEventListener('click', () => loadFile(v, key, frame, label)); box.append(again);
+    }
+  }
+
+  function pauseOthers(except) {
+    document.querySelectorAll('.frame video').forEach(x => { if (x !== except && !x.paused) x.pause(); });
+    document.querySelectorAll('.frame iframe').forEach(f => { if (f !== except) f.contentWindow.postMessage(JSON.stringify({ method: 'pause' }), 'https://player.vimeo.com'); });
+  }
+
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  function renderDeck(d, key) {
+    const w = $('deckwrap'); w.innerHTML = d.deck; w.hidden = false;
+    // images: decrypt each asset and drop it in; keep the box the right shape while it loads
+    w.querySelectorAll('img[data-asset]').forEach(async img => {
+      const a = (d.assets || {})[img.dataset.asset]; if (!a) return;
+      try {
+        const res = await fetch(a.file, { cache: 'force-cache' }); if (!res.ok) throw new Error(res.status);
+        const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(a.iv) }, key, await res.arrayBuffer());
+        const url = URL.createObjectURL(new Blob([plain], { type: a.mime }));
+        const probe = new Image(); probe.onload = () => { img.style.setProperty('--ar', probe.naturalWidth + '/' + probe.naturalHeight); img.src = url; }; probe.src = url;
+      } catch (e) { img.alt = img.alt + ' (did not load)'; }
+    });
+    const ar = { refs: '2200/1205', storyboard: '2200/1104', review: '2136/1332', execute: '2200/681' };
+    w.querySelectorAll('img[data-asset]').forEach(img => { if (ar[img.dataset.asset]) img.style.setProperty('--ar', ar[img.dataset.asset]); });
+    // reveal as sections scroll into view
+    const els = w.querySelectorAll('.rv');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+      els.forEach(e => io.observe(e));
+    } else els.forEach(e => e.classList.add('in'));
+    // step rail follows the section in the middle of the screen
+    const links = [...w.querySelectorAll('.rail a')], steps = [...w.querySelectorAll('.step')];
+    const mark = () => {
+      const mid = innerHeight * 0.45; let cur = 0;
+      steps.forEach((s, i) => { if (s.getBoundingClientRect().top <= mid) cur = i + 1; });
+      links.forEach((l, i) => { l.classList.toggle('on', i + 1 === cur); l.classList.toggle('done', i + 1 < cur); });
+    };
+    addEventListener('scroll', mark, { passive: true }); addEventListener('resize', mark); mark();
+    links.forEach(l => l.addEventListener('click', e => { e.preventDefault(); const t = w.querySelector(l.getAttribute('href')); if (t) t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }));
+  }
+
+  function render(d, key) {
+    if (d.title) { $('reelh').textContent = d.title; document.title = d.title + ' · Walker Motion Pictures'; }
+    if (d.intro) { $('intro').textContent = d.intro; $('intro').hidden = false; }
+    if (d.meta && d.meta.length) { const m = $('meta'); m.textContent = ''; d.meta.forEach(x => m.append(el('li', null, x))); m.hidden = false; }
+    const list = $('list'); list.textContent = ''; const one = d.videos.length === 1; list.classList.toggle('one', one);
+    d.videos.forEach((v, i) => {
+      const fig = el('figure'), frame = el('div', 'frame'), label = v.title || ('Video ' + (i + 1));
+      if (v.file) loadFile(v, key, frame, label); else {
+      const f = el('iframe');
+      const q = new URLSearchParams({ title: '0', byline: '0', portrait: '0', dnt: '1', playsinline: '1' }); if (v.h) q.set('h', v.h);
+      f.src = 'https://player.vimeo.com/video/' + encodeURIComponent(v.vimeo) + '?' + q;
+      f.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write';
+      f.allowFullscreen = true;
+      f.loading = i < 2 ? 'eager' : 'lazy';
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      f.title = v.title || ('Video ' + (i + 1));
+      frame.append(f);
+      }
+      const cap = el('figcaption'), left = el('div');
+      if (!one) left.append(el('span', 'n', String(i + 1).padStart(2, '0')));
+      if (v.title) left.append(el('span', 't', v.title));
+      cap.append(left);
+      if (v.client) cap.append(el('span', 'c', v.client));
+      fig.append(frame, cap); list.append(fig);
+    });
+    if (d.deck) renderDeck(d, key);
+    $('lock').hidden = true; $('reel').hidden = false; $('out').hidden = false;
+    $('reelh').focus && $('reelh').setAttribute('tabindex', '-1');
+  }
+
+  // One video at a time: when one starts, pause the others (Vimeo player postMessage API).
+  addEventListener('message', ev => {
+    if (!/^https:\/\/player\.vimeo\.com$/.test(ev.origin)) return;
+    let m = ev.data; if (typeof m === 'string') { try { m = JSON.parse(m); } catch (e) { return; } }
+    const frames = [...document.querySelectorAll('.frame iframe')];
+    if (m && m.event === 'ready') frames.forEach(f => { if (f.contentWindow === ev.source) f.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: 'play' }), 'https://player.vimeo.com'); });
+    if (m && m.event === 'play') { document.querySelectorAll('.frame video').forEach(x => x.pause()); frames.forEach(f => { if (f.contentWindow !== ev.source) f.contentWindow.postMessage(JSON.stringify({ method: 'pause' }), 'https://player.vimeo.com'); }); }
+  });
+
+  async function tryOpen(pw, quiet) {
+    $('go').disabled = true; $('msg').textContent = quiet ? '' : 'Checking…'; $('msg').style.color = 'var(--mid)';
+    try { const { d, key } = await decrypt(pw); store.set(pw); render(d, key); $('reelh').focus(); }
+    catch (e) { store.del(); if (!quiet) { $('msg').style.color = ''; $('msg').textContent = window.crypto && crypto.subtle ? 'That password is not right.' : 'This browser cannot open the page. Try a current browser.'; $('pw').select(); } }
+    finally { $('go').disabled = false; if (quiet) $('msg').textContent = ''; }
+  }
+
+  $('f').addEventListener('submit', e => { e.preventDefault(); const pw = $('pw').value; if (pw) tryOpen(pw, false); });
+  $('out').addEventListener('click', () => { store.del(); location.reload(); });
+  const saved = store.get(); if (saved) tryOpen(saved, true); else $('pw').focus();
+})();
+</script>
+<script>
+(() => {
+  const warn = document.getElementById('warn'), risk = document.getElementById('risk'), stay = document.getElementById('stay');
+  const svg = document.getElementById('tether'), line = document.getElementById('tline'), guide = document.getElementById('tguide');
+  const node = document.getElementById('tnode'), joint = document.getElementById('tjoint'), scrim = document.getElementById('scrim');
+  const INCH = 96, EASE = 'cubic-bezier(.22,.9,.24,1)';
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let open = false, anims = [], opener = null;
+
+  function place(x, y) {
+    const vw = innerWidth, vh = innerHeight, w = warn.offsetWidth, h = warn.offsetHeight, m = 16;
+    // The card sits about an inch below the click (above it if there is no room), its edge near the click's column.
+    let below = y + INCH + h + m <= vh || y < vh / 2;
+    let top = below ? y + INCH : y - INCH - h;
+    top = Math.max(m, Math.min(vh - h - m, top));
+    let left = x - 28; if (x > vw / 2) left = x - w + 28;
+    left = Math.max(m, Math.min(vw - w - m, left));
+    // The line leaves the click straight down (or up) like a grid rule, turns once if the card is offset, and meets the card's edge.
+    const ey = below ? top : top + h;
+    const ex = Math.max(left + 18, Math.min(left + w - 18, x));
+    const midY = y + (ey - y) * 0.55;
+    const d = ex === x ? `M${x},${y} L${x},${ey}` : `M${x},${y} L${x},${midY} L${ex},${midY} L${ex},${ey}`;
+    return { top, left, d, ex, ey, below };
+  }
+
+  function show(x, y, href) {
+    if (open) return; open = true; risk.href = href;
+    warn.hidden = false; warn.style.visibility = 'hidden';
+    const g = place(x, y);
+    warn.style.top = g.top + 'px'; warn.style.left = g.left + 'px';
+    warn.style.transformOrigin = `${g.ex - g.left}px ${g.below ? 0 : warn.offsetHeight}px`;
+    line.setAttribute('d', g.d);
+    guide.setAttribute('d', `M${x},0 L${x},${innerHeight} M0,${y} L${innerWidth},${y}`);
+    node.setAttribute('x', x - 3.5); node.setAttribute('y', y - 3.5);
+    joint.setAttribute('x', g.ex - 3.5); joint.setAttribute('y', g.ey - 3.5);
+    svg.removeAttribute('hidden'); scrim.hidden = false; warn.style.visibility = '';
+    const len = line.getTotalLength();
+    line.style.strokeDasharray = len; line.style.strokeDashoffset = still ? 0 : len;
+    anims.forEach(a => a.cancel()); anims = [];
+    if (still) { stay.focus(); return; }
+    const T = 380;
+    anims.push(guide.animate([{ opacity: 0 }, { opacity: 1, offset: .3 }, { opacity: 0 }], { duration: 900, easing: 'ease-out', fill: 'forwards' }));
+    anims.push(node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'ease-out', fill: 'both' }));
+    anims.push(line.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: T, delay: 80, easing: EASE, fill: 'both' }));
+    anims.push(joint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: 80 + T - 60, fill: 'both' }));
+    const r = 14;
+    const from = g.below ? `inset(0 ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 100% ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`
+                         : `inset(100% ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 0 ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`;
+    anims.push(warn.animate([{ clipPath: from, opacity: .4, transform: 'scale(.96)' }, { clipPath: `inset(0 0 0 0 round ${r}px)`, opacity: 1, transform: 'scale(1)' }],
+      { duration: 460, delay: 80 + T - 40, easing: EASE, fill: 'both' }));
+    [...warn.children].forEach((c, i) => anims.push(c.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: 80 + T + 160 + i * 45, easing: 'ease-out', fill: 'both' })));
+    setTimeout(() => open && stay.focus({ preventScroll: true }), 80 + T + 200);
+  }
+
+  function hide() {
+    if (!open) return; open = false;
+    const done = () => { warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; anims.forEach(a => a.cancel()); anims = []; if (opener) opener.focus({ preventScroll: true }); };
+    if (still) return done();
+    const len = line.getTotalLength();
+    warn.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.97)' }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
+    joint.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' });
+    node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, delay: 200, fill: 'forwards' });
+    const a = line.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: len }], { duration: 240, delay: 100, easing: 'ease-in', fill: 'forwards' });
+    a.onfinish = done;
+  }
+
+  document.querySelectorAll('.leave').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); opener = a;
+    let x = e.clientX, y = e.clientY;
+    if (!x && !y) { const r = a.getBoundingClientRect(); x = r.left + r.width / 2; y = r.bottom; }   // keyboard: from the link itself
+    show(x, y, a.dataset.dest || a.getAttribute('href'));
+  }));
+  stay.addEventListener('click', hide);
+  scrim.addEventListener('click', hide);
+  addEventListener('keydown', e => {
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); hide(); }
+    if (e.key === 'Tab') { const f = [stay, risk], i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
+  });
+  addEventListener('resize', () => { if (open) { anims.forEach(a => a.finish && a.finish()); warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; open = false; } });
+})();
+</script>
+</body></html>

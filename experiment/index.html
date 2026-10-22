@@ -1,0 +1,1550 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Experiment · Walker Motion Pictures</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
+<link rel="canonical" href="https://walkermotionpictures.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Walker Motion Pictures">
+<meta property="og:url" content="https://walkermotionpictures.com/">
+<meta property="og:title" content="Walker Motion Pictures · Corporate video">
+<meta property="og:description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
+<meta property="og:image" content="https://walkermotionpictures.com/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f6f7f9">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap">
+<style>
+:root { --bg:#f6f7f9; --card:#ffffff; --ink:#0b1220; --ink-2:#111a2e; --mid:#4a5568; --dim:#8a94a6; --line:#e3e7ee; --accent:#2f5bff; --accent-2:#00b39b; --glow:rgba(47,91,255,.35);
+  --head:'Inter Tight','Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif; --body:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif; color-scheme:light; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--ink); font-family:var(--body); -webkit-text-size-adjust:100%; }
+a { color:inherit; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+#void, #gl, #css { position:fixed; inset:0; }
+#void { background:var(--bg); }
+body.ending::after { opacity:var(--glow, 1); }
+body::after { transition:none; }
+header, .rail, .hint, .ctl, .build { transition:opacity 1.4s ease; }
+body.ending header, body.ending .rail, body.ending .hint, body.ending .ctl, body.ending .build { opacity:0; pointer-events:none; }
+/* the black hole */
+#hole { position:fixed; z-index:6; left:0; top:0; width:40px; height:40px; margin:-20px 0 0 -20px; padding:0; border:0; border-radius:50%; cursor:pointer; background:radial-gradient(circle, #000 0 38%, rgba(0,0,0,.92) 48%, rgba(11,18,32,.35) 62%, transparent 72%); box-shadow:0 0 0 1px rgba(47,91,255,.25), 0 0 18px 2px rgba(47,91,255,.22), inset 0 0 6px rgba(0,179,155,.4); transition:opacity .6s ease; will-change:transform; }
+#hole::before { content:''; position:absolute; inset:-30%; border-radius:50%; border:1px solid rgba(47,91,255,.35); animation:spin 9s linear infinite; mask:conic-gradient(from 0deg, transparent 0 40%, #000 70%, transparent 100%); -webkit-mask:conic-gradient(from 0deg, transparent 0 40%, #000 70%, transparent 100%); }
+@keyframes spin { to { transform:rotate(360deg); } }
+#hole:hover, #hole:focus-visible { box-shadow:0 0 0 1px rgba(47,91,255,.5), 0 0 26px 4px rgba(47,91,255,.35), inset 0 0 8px rgba(0,179,155,.6); outline:none; }
+#hole.orb { background:radial-gradient(circle, #fff 0 30%, rgba(255,255,255,.9) 42%, rgba(255,255,255,.25) 60%, transparent 72%); box-shadow:0 0 30px 8px rgba(255,255,255,.55), 0 0 90px 30px rgba(180,200,255,.25); animation:breathe 3.2s ease-in-out infinite; }
+#hole.orb::before { border-color:rgba(255,255,255,.35); }
+@keyframes breathe { 50% { box-shadow:0 0 40px 14px rgba(255,255,255,.7), 0 0 120px 44px rgba(180,200,255,.3); } }
+#hole .tip { position:absolute; left:50%; top:100%; transform:translate(-50%, 14px); white-space:nowrap; font:500 13px/1.3 var(--body); color:var(--ink); background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:9px; padding:7px 11px; box-shadow:0 10px 30px -14px rgba(11,18,32,.35); opacity:0; pointer-events:none; transition:opacity .25s; }
+#hole:hover .tip, #hole:focus-visible .tip, #hole.showtip .tip { opacity:1; }
+#hole.orb .tip { color:#fff; background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.25); }
+#hole.busy { pointer-events:none; } #hole.busy .tip { opacity:0 !important; }
+@media (hover:none) { #hole .tip { opacity:1; } }
+@media (prefers-reduced-motion:reduce) { #hole::before, #hole.orb { animation:none; } }
+#css { touch-action:none; cursor:grab; }
+#css.dragging { cursor:grabbing; }
+body::after { content:''; position:fixed; inset:0; pointer-events:none; z-index:1; background:radial-gradient(1100px 560px at 85% -10%, rgba(47,91,255,.10), transparent 60%), radial-gradient(900px 500px at -10% 110%, rgba(0,179,155,.08), transparent 60%); }
+.glass { background:rgba(255,255,255,.72); -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); border:1px solid rgba(227,231,238,.95); }
+
+/* ---------- chrome ---------- */
+header { position:fixed; z-index:10; top:0; left:0; right:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:calc(env(safe-area-inset-top,0px) + 14px) max(14px,2.6vw) 14px; pointer-events:none; }
+header > * { pointer-events:auto; }
+.brand { display:flex; align-items:center; gap:10px; border-radius:12px; padding:7px 13px 7px 8px; cursor:pointer; font:inherit; color:var(--ink); }
+.mark { width:24px; height:24px; flex:none; }
+.brand b { font-family:var(--head); font-weight:700; font-size:15.5px; letter-spacing:-.015em; white-space:nowrap; }
+.lead { display:flex; align-items:center; gap:8px; min-width:0; }
+.jw { display:inline-flex; align-items:baseline; gap:7px; border-radius:12px; padding:10px 13px; font-size:13px; font-weight:500; color:var(--ink); text-decoration:none; white-space:nowrap; }
+.jw span { color:var(--dim); font-weight:400; }
+.jw:hover { color:var(--accent); }
+@media (max-width:1080px) { .jw span { display:none; } }
+@media (max-width:620px) { .lead { flex-direction:column; align-items:flex-start; gap:6px; } .jw { padding:6px 11px; font-size:12px; border-radius:10px; } .brand b { font-size:14px; } nav.top button.cta { font-size:12.5px; padding:7px 10px; } }
+nav.top { display:flex; gap:2px; border-radius:12px; padding:4px; }
+nav.top button { font:inherit; font-size:13.5px; font-weight:500; color:var(--mid); background:none; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; white-space:nowrap; }
+nav.top button:hover { color:var(--ink); background:rgba(11,18,32,.05); }
+nav.top button.on { color:var(--ink); background:#fff; box-shadow:0 1px 2px rgba(11,18,32,.08); }
+nav.top button.cta { color:#fff; background:var(--ink); margin-left:2px; }
+nav.top button.cta:hover { background:var(--accent); }
+@media (max-width:820px) { nav.top button:not(.cta) { display:none; } }
+.rail { position:fixed; z-index:10; right:max(14px,2.2vw); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:4px; padding:8px 6px; border-radius:14px; }
+.rail button { position:relative; display:flex; align-items:center; justify-content:flex-end; gap:10px; background:none; border:0; padding:6px 6px; cursor:pointer; font:inherit; }
+.rail i { width:8px; height:8px; border-radius:50%; background:#c7cfdc; transition:all .3s; }
+.rail button.done i { background:#8fa3d6; }
+.rail button.on i { background:var(--accent); box-shadow:0 0 0 4px rgba(47,91,255,.18); height:22px; border-radius:6px; }
+.rail span { position:absolute; right:30px; white-space:nowrap; font-size:12.5px; font-weight:500; color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:8px; padding:5px 9px; opacity:0; transform:translateX(6px); transition:.2s; pointer-events:none; box-shadow:0 8px 20px -12px rgba(11,18,32,.3); }
+.rail button:hover span, .rail button:focus-visible span { opacity:1; transform:none; }
+@media (max-width:620px) { .rail { display:none; } }
+.count { display:none; align-self:center; font-size:13px; font-weight:500; color:var(--mid); border-radius:999px; padding:7px 11px; font-variant-numeric:tabular-nums; }
+@media (max-width:620px) { .count { display:none; } }
+.hint { position:fixed; z-index:10; left:max(14px,2.6vw); bottom:calc(env(safe-area-inset-bottom,0px) + 14px); display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--mid); border-radius:999px; padding:8px 14px; transition:opacity .5s; pointer-events:none; }
+.hint kbd { font:inherit; font-size:11px; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 5px; background:#fff; color:var(--ink); }
+.ctl { position:fixed; z-index:10; left:0; top:0; display:flex; gap:10px; align-items:center; will-change:transform; }
+.ctl button { font:inherit; font-size:15px; font-weight:500; color:var(--ink); border-radius:999px; padding:12px 20px; min-height:46px; cursor:pointer; box-shadow:0 10px 30px -14px rgba(11,18,32,.35); }
+.ctl button:hover { border-color:var(--accent); color:var(--accent); }
+.ctl .bird { display:inline-flex; align-items:center; gap:8px; } .ctl .bird svg { width:18px; height:18px; flex:none; }
+@media (max-width:620px) { .ctl .bird span { display:none; } .ctl .bird { padding:11px 13px; } }
+.listbar { position:sticky; top:0; z-index:2; display:flex; justify-content:center; padding:0 0 18px; margin-top:-30px; }
+.listbar button { font:inherit; font-size:15px; font-weight:500; color:#fff; background:var(--ink); border:0; border-radius:999px; padding:12px 20px; min-height:46px; cursor:pointer; box-shadow:0 10px 30px -14px rgba(11,18,32,.45); }
+.listbar button:hover { background:var(--accent); }
+.ctl .next { background:var(--ink); color:#fff; border-color:var(--ink); }
+.ctl .next:hover { background:var(--accent); border-color:var(--accent); color:#fff; }
+@media (max-width:620px) { .hint { display:none; } .ctl { gap:6px; } .ctl button { font-size:14px; padding:11px 14px; min-height:44px; } }
+.ctl button { white-space:nowrap; }
+.aud { position:fixed; z-index:12; left:50%; top:calc(env(safe-area-inset-top,0px) + 96px); transform:translateX(-50%); display:flex; gap:4px; align-items:center; padding:5px 6px 5px 12px; border-radius:12px; max-width:calc(100vw - 24px); overflow:auto; }
+.aud span { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-right:6px; white-space:nowrap; }
+.aud button { font:inherit; font-size:13px; font-weight:500; color:var(--mid); background:none; border:0; border-radius:8px; padding:7px 10px; cursor:pointer; white-space:nowrap; }
+.aud button:hover { color:var(--ink); background:rgba(11,18,32,.05); }
+.aud button.on { color:#fff; background:var(--ink); }
+.build { position:fixed; z-index:10; left:50%; top:calc(env(safe-area-inset-top,0px) + 66px); transform:translateX(-50%); font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); background:rgba(47,91,255,.08); border:1px solid rgba(47,91,255,.2); border-radius:999px; padding:4px 10px; pointer-events:none; }
+
+/* ---------- 3D cards ---------- */
+.card { width:var(--w); background:var(--card); border:1px solid var(--line); border-radius:22px; padding:34px 34px 30px; box-shadow:0 1px 2px rgba(11,18,32,.06), 0 40px 90px -40px rgba(11,18,32,.4); cursor:pointer; user-select:none; -webkit-user-select:none; transition:box-shadow .35s, border-color .35s; font-size:15px; line-height:1.5; }
+.card:hover { border-color:rgba(47,91,255,.5); box-shadow:0 1px 2px rgba(11,18,32,.06), 0 50px 100px -40px var(--glow); }
+.card.here { cursor:default; border-color:rgba(47,91,255,.55); }
+.card.night { background:radial-gradient(800px 400px at 100% 0%, rgba(47,91,255,.28), transparent 60%), radial-gradient(600px 400px at 0% 100%, rgba(0,179,155,.16), transparent 60%), var(--ink); color:#e8ecf5; border-color:rgba(255,255,255,.08); }
+.card.night p, .card.night .sub { color:#aab5cc; }
+.card.bare { background:none; border:0; box-shadow:none; padding:0; }
+.card.bare:hover { box-shadow:none; }
+.chip { display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:500; color:var(--accent); background:rgba(47,91,255,.08); border:1px solid rgba(47,91,255,.2); padding:5px 11px; border-radius:999px; margin:0 0 18px; }
+.chip::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent-2); box-shadow:0 0 0 3px rgba(0,179,155,.2); }
+.night .chip { color:#a9bcff; background:rgba(47,91,255,.16); border-color:rgba(120,150,255,.3); }
+h1, h2, h3 { font-family:var(--head); letter-spacing:-.035em; margin:0; }
+h1 { font-weight:800; font-size:80px; line-height:.98; letter-spacing:-.045em; }
+h2 { font-weight:700; font-size:44px; line-height:1.05; margin-bottom:12px; }
+h3 { font-weight:600; font-size:19px; letter-spacing:-.015em; line-height:1.25; margin-bottom:6px; }
+.sub { font-size:18px; color:var(--mid); margin:0; max-width:38rem; }
+p { margin:0; color:var(--mid); }
+.grad { background:linear-gradient(90deg,var(--accent),#7b5cff 55%,var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.ph { display:inline-block; font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:.82em; font-weight:500; letter-spacing:0; color:var(--accent); border:1px dashed rgba(47,91,255,.5); border-radius:6px; padding:1px 7px; background:rgba(47,91,255,.05); }
+.night .ph { color:#b9c7ff; border-color:rgba(185,199,255,.45); background:rgba(255,255,255,.04); }
+.row { display:flex; gap:10px; flex-wrap:wrap; }
+.btn { display:inline-flex; align-items:center; gap:8px; font:inherit; font-weight:500; font-size:15px; border-radius:12px; padding:13px 18px; cursor:pointer; border:1px solid transparent; }
+.btn.pri { background:var(--ink); color:#fff; } .btn.pri:hover { background:var(--accent); }
+.btn.sec { background:#fff; color:var(--ink); border-color:var(--line); } .btn.sec:hover { border-color:var(--accent); color:var(--accent); }
+.night .btn.pri { background:#fff; color:var(--ink); } .night .btn.pri:hover { background:var(--accent); color:#fff; }
+
+/* video placeholder tile */
+.vid { position:relative; aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:linear-gradient(135deg,#0b1220 0%,#1c2f6e 55%,#2f5bff 100%); }
+.vid.t2 { background:linear-gradient(135deg,#071d1c 0%,#0a5c56 55%,#00b39b 100%); }
+.vid.t3 { background:linear-gradient(135deg,#140f2a 0%,#3b2d7a 55%,#7c6cff 100%); }
+.vid.t4 { background:linear-gradient(135deg,#0b1220 0%,#24324f 60%,#5d6f93 100%); }
+.vid::before { content:''; position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px); background-size:28px 28px; }
+.vid img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.vid .pl { position:absolute; left:50%; top:50%; width:58px; height:58px; margin:-29px 0 0 -29px; border-radius:50%; background:rgba(255,255,255,.94); box-shadow:0 10px 30px rgba(0,0,0,.3); transition:transform .25s; }
+.vid .pl::after { content:''; position:absolute; left:23px; top:18px; border-left:17px solid var(--ink); border-top:11px solid transparent; border-bottom:11px solid transparent; }
+.card:hover .vid .pl { transform:scale(1.06); }
+.vid .ph { position:absolute; left:12px; bottom:10px; color:#fff; border-color:rgba(255,255,255,.55); background:rgba(0,0,0,.25); }
+.vid .dur { position:absolute; right:12px; bottom:10px; font-size:12px; font-weight:500; color:#fff; background:rgba(0,0,0,.45); border-radius:6px; padding:2px 7px; }
+
+/* hero */
+.hero { display:grid; grid-template-columns:1.25fr 1fr; gap:44px; align-items:center; }
+.hero .kick { font-size:14px; font-weight:500; color:var(--mid); margin:0 0 22px; display:flex; align-items:center; gap:10px; }
+.hero .kick b { color:var(--ink); font-weight:600; }
+.hero h1 { margin-bottom:24px; } .hero h1.heroh { font-size:66px; }
+.hero .sub { margin-bottom:30px; }
+.hero .vid { box-shadow:0 30px 80px -30px rgba(11,18,32,.6); }
+.hero .note { margin-top:14px; font-size:13px; color:var(--dim); display:flex; justify-content:space-between; }
+
+/* services */
+.three { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:28px; }
+.tile { border:1px solid var(--line); border-radius:16px; padding:16px 16px 18px; background:#fbfcfe; }
+.tile .vid { margin-bottom:16px; }
+.night .tile { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); }
+.tile .tag { display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:var(--accent); margin-bottom:8px; }
+.night .tile .tag { color:#a9bcff; }
+.also { margin-top:22px; font-size:15px; color:var(--mid); }
+.also b { color:var(--ink); }
+
+/* work */
+.work { display:grid; grid-template-columns:1.35fr 1fr; gap:30px; margin-top:26px; align-items:start; }
+.work .feat .vid { aspect-ratio:1600/880; }
+.frames { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+.frames figure { margin:0; }
+.frames img { width:100%; aspect-ratio:432/228; object-fit:cover; border-radius:9px; display:block; }
+.frames figcaption { font-size:12px; color:#8f9bb5; margin-top:6px; }
+.work h3 { font-size:24px; margin-bottom:10px; }
+.work .logline { font-size:16px; margin-bottom:14px; }
+.work .meta { font-size:13px; color:#a9bcff; font-weight:500; margin-bottom:22px; }
+.more { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.more .vid { aspect-ratio:16/10; }
+.more .vid .pl { width:40px; height:40px; margin:-20px 0 0 -20px; } .more .vid .pl::after { left:16px; top:12px; border-left-width:12px; border-top-width:8px; border-bottom-width:8px; }
+
+/* onsite */
+.tiers { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:28px; align-items:end; }
+.tier { border-radius:18px; padding:22px; border:1px solid var(--line); background:#fbfcfe; }
+.tier:nth-child(2) { background:#f1f4ff; border-color:#dfe6ff; padding-top:34px; }
+.tier:nth-child(3) { background:var(--ink); border-color:var(--ink); color:#e8ecf5; padding-top:46px; }
+.tier:nth-child(3) p { color:#aab5cc; } .tier:nth-child(3) .tag { color:#a9bcff; }
+.tier .tag { font-size:12px; font-weight:600; color:var(--accent); margin-bottom:10px; display:block; }
+.scale { display:flex; align-items:center; gap:8px; margin-top:24px; font-size:12.5px; color:var(--dim); }
+.scale i { flex:1; height:2px; border-radius:2px; background:linear-gradient(90deg,#c9d4f5,var(--accent)); }
+
+/* event package */
+.flowx { display:grid; grid-template-columns:1fr auto 1.3fr; gap:22px; align-items:center; margin-top:30px; }
+.cap, .del { border-radius:18px; padding:22px; }
+.cap { border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); }
+.del { background:linear-gradient(135deg,var(--accent),#5b3dff); color:#fff; box-shadow:0 30px 60px -30px rgba(47,91,255,.8); }
+.cap h3, .del h3 { font-size:13px; font-weight:600; letter-spacing:.02em; color:#a9bcff; margin-bottom:14px; font-family:var(--body); }
+.del h3 { color:rgba(255,255,255,.8); }
+.cap ul { list-style:none; margin:0; padding:0; display:grid; gap:10px; color:#e8ecf5; font-size:15px; }
+.cap .fine { margin-top:18px; font-size:13px; color:#8f9bb5; }
+.del ol { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.del li { display:grid; grid-template-columns:44px 1fr; align-items:baseline; font-size:15px; }
+.del li b { font-family:var(--head); font-size:24px; font-weight:700; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+.arrow { display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#a9bcff; text-align:center; }
+.arrow svg { width:44px; height:20px; }
+.total { display:flex; align-items:baseline; gap:12px; margin-top:4px; }
+.total b { font-family:var(--head); font-weight:800; font-size:64px; letter-spacing:-.05em; line-height:1; }
+
+/* process */
+.steps { list-style:none; margin:34px 0 0; padding:0; display:grid; grid-template-columns:repeat(5,1fr); gap:16px; position:relative; }
+.steps::before { content:''; position:absolute; left:9%; right:9%; top:25px; height:2px; background:repeating-linear-gradient(90deg,#c9d4f5 0 8px,transparent 8px 14px); }
+.steps li { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
+.steps i { font-style:normal; width:52px; height:52px; border-radius:16px; display:grid; place-items:center; font-family:var(--head); font-weight:700; font-size:19px; margin-bottom:14px; box-shadow:0 0 0 6px #fff; }
+.steps .y i { background:#e7edff; color:var(--accent); border:1.5px solid #c9d6ff; }
+.steps .e i { background:#fff; color:var(--ink); border:1.5px dashed #9aa6bb; }
+.steps .m i { background:var(--ink); color:#fff; }
+.steps .who { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+.steps .y .who { color:var(--accent); }
+.steps b { font-family:var(--head); font-size:17px; font-weight:600; letter-spacing:-.01em; color:var(--ink); }
+.steps li > span:last-child { font-size:14px; color:var(--mid); }
+.legend { display:flex; gap:18px; margin-top:26px; font-size:13px; color:var(--mid); flex-wrap:wrap; }
+.legend span { display:inline-flex; align-items:center; gap:8px; }
+.legend i { width:12px; height:12px; border-radius:4px; display:inline-block; }
+
+/* plans */
+.ways { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:24px; }
+.way { border:1px solid var(--line); border-radius:16px; padding:18px 20px; background:#fbfcfe; }
+.way em { font-style:normal; font-family:var(--head); font-weight:700; font-size:22px; color:var(--accent); display:block; margin-bottom:6px; }
+.plans { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:14px; }
+.plan { border-radius:18px; padding:22px; border:1px solid var(--line); background:#fff; position:relative; }
+.plan .tag { font-size:12px; font-weight:600; color:var(--accent); display:block; margin-bottom:10px; }
+.plan h3 { font-size:24px; letter-spacing:-.025em; margin-bottom:10px; }
+.plan.full { background:var(--ink); color:#e8ecf5; border-color:var(--ink); } .plan.full p { color:#aab5cc; } .plan.full .tag { color:#a9bcff; }
+.plan.sup { background:linear-gradient(135deg,var(--accent),#5b3dff); color:#fff; border:0; } .plan.sup p, .plan.sup .tag { color:rgba(255,255,255,.85); }
+.plan.full::after { content:'Most teams'; position:absolute; top:-11px; right:16px; font-size:11px; font-weight:600; background:var(--accent-2); color:#fff; padding:3px 9px; border-radius:999px; }
+.credits { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:20px; font-size:13px; color:var(--mid); }
+.credits b { color:var(--ink); font-weight:600; margin-right:4px; }
+.credits span { background:#eef2ff; color:var(--ink); border-radius:999px; padding:5px 11px; }
+.credits span i { font-style:normal; color:var(--accent); font-weight:600; }
+.price { margin-top:16px; font-size:14px; color:var(--mid); }
+
+/* includes */
+.checks { list-style:none; margin:24px 0 0; padding:0; display:grid; gap:12px; }
+.checks li { display:flex; align-items:center; gap:12px; font-size:16px; color:var(--ink); }
+.checks li::before { content:''; flex:none; width:22px; height:22px; border-radius:50%; background:#e7f8f5 no-repeat center/11px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 8'%3E%3Cpath d='M1 4.2 3.8 7 9 1' fill='none' stroke='%2300b39b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.off { display:flex; align-items:center; gap:18px; margin-top:24px; background:var(--ink); color:#fff; border-radius:16px; padding:18px 22px; }
+.off b { font-family:var(--head); font-weight:800; font-size:40px; letter-spacing:-.04em; line-height:1; } .off b small { font-size:18px; font-weight:600; margin-left:4px; }
+.off span { color:#c9d1e0; font-size:15px; }
+
+/* next steps */
+.next3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:26px; }
+.n { border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:18px; background:rgba(255,255,255,.04); }
+.n em { font-style:normal; font-family:var(--head); font-weight:700; font-size:22px; color:#a9bcff; display:block; margin-bottom:8px; }
+.n p { color:#dbe2f0; font-size:15px; }
+.reach { display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-top:28px; padding-top:24px; border-top:1px solid rgba(255,255,255,.1); }
+.reach .mail { font-family:var(--head); font-size:26px; font-weight:600; letter-spacing:-.02em; color:#fff; }
+
+.stats { display:flex; gap:28px; flex-wrap:wrap; margin:26px 0 0; padding-top:20px; border-top:1px solid rgba(255,255,255,.1); }
+.stats span { display:flex; align-items:baseline; gap:10px; font-size:14px; color:#aab5cc; }
+.stats b { font-family:var(--head); font-weight:800; font-size:30px; letter-spacing:-.04em; color:#fff; font-variant-numeric:tabular-nums; }
+.onsite { margin-top:22px; padding:18px 20px; border-radius:16px; background:#f1f4ff; border:1px solid #dfe6ff; font-size:15px; color:var(--mid); }
+.onsite b { color:var(--ink); font-weight:600; }
+.onsite .scale { margin-top:14px; }
+.ways1 { margin-top:22px; padding-top:18px; border-top:1px solid var(--line); font-size:15px; color:var(--mid); }
+.ways1 span { color:var(--accent); font-weight:500; cursor:pointer; }
+.ways1 span:hover { text-decoration:underline; }
+
+.vid[data-vid] { cursor:pointer; }
+.vid .vcap { position:absolute; z-index:1; left:10px; right:10px; bottom:9px; font-size:12px; font-weight:500; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,.6); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.vid .dur:empty { display:none; }
+.vid .vcap + .dur { bottom:auto; top:9px; }
+.vid img.th { opacity:0; transition:opacity .5s; } .vid img.th.on { opacity:1; }
+.vid::after { content:''; position:absolute; inset:0; background:linear-gradient(transparent 55%, rgba(0,0,0,.45)); pointer-events:none; }
+#lb { position:fixed; inset:0; z-index:30; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; background:rgba(5,8,16,.88); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); }
+#lb .frame { position:relative; width:min(1200px, 100%, calc((100vh - 140px) * 16 / 9)); aspect-ratio:16/9; border-radius:14px; overflow:hidden; background:#000; box-shadow:0 30px 90px -20px rgba(0,0,0,.8); }
+#lb iframe, #lb video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
+#lb .bar { width:min(1200px, 100%, calc((100vh - 140px) * 16 / 9)); display:flex; align-items:center; justify-content:space-between; gap:16px; color:#e8ecf5; font-size:15px; font-weight:500; }
+#lb button { font:inherit; font-size:14px; font-weight:500; color:#fff; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:10px 18px; cursor:pointer; }
+#lb button:hover { background:rgba(255,255,255,.2); }
+@media (min-width:701px) { .card { width:min(var(--w), calc(100vw - 110px)); } }
+
+/* short laptop screens: denser cards so they still land at 1:1 */
+@media (min-width:701px) and (max-height:820px) {
+  .card { padding:24px 26px 22px; }
+  h1 { font-size:60px; } h2 { font-size:34px; margin-bottom:8px; } .sub { font-size:16px; } .chip { margin-bottom:12px; }
+  .hero { gap:32px; } .hero h1 { margin-bottom:16px; } .hero .sub { margin-bottom:20px; } .hero .kick { margin-bottom:14px; }
+  .work { gap:22px; margin-top:16px; } .work .feat .vid { aspect-ratio:16/8; } .frames { margin-top:8px; } .frames figcaption { display:none; }
+  .work h3 { font-size:20px; margin-bottom:6px; } .work .logline { font-size:14.5px; margin-bottom:8px; } .work .meta { margin-bottom:14px; }
+  .more .vid { aspect-ratio:16/9; } .stats { margin-top:16px; padding-top:14px; } .stats b { font-size:24px; }
+  .three { margin-top:18px; gap:12px; } .tile { padding:12px 12px 14px; } .tile .vid { margin-bottom:10px; aspect-ratio:16/8; } .tile p { font-size:14px; }
+  .onsite { margin-top:14px; padding:12px 16px; font-size:14px; } .onsite .scale { margin-top:8px; }
+}
+
+.vid .big { position:absolute; z-index:1; left:6%; bottom:44%; max-width:40%; font-family:var(--head); font-weight:800; font-size:50px; line-height:.95; letter-spacing:-.04em; color:#fff; text-shadow:0 2px 24px rgba(0,0,0,.45); pointer-events:none; }
+.vid .big ~ .pl { left:6%; top:62%; margin:0; }   /* play button sits under the title, off her face */
+@media (max-width:700px) { .vid .big { font-size:27px; bottom:46%; } .vid .big ~ .pl { top:60%; width:44px; height:44px; } .vid .big ~ .pl::after { left:17px; top:13px; border-left-width:13px; border-top-width:9px; border-bottom-width:9px; } }
+@media (min-width:701px) and (max-height:820px) { .vid .big { font-size:42px; } }
+
+/* Portfolio selects */
+.sel { margin:24px 0 22px; }
+.sel .tag { margin:0 0 10px; font-size:12px; font-weight:600; color:var(--accent); }
+.row5 { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:22px; }
+.row5 .vid .pl, .pair .vid .pl { width:38px; height:38px; margin:-19px 0 0 -19px; } .row5 .vid .pl::after, .pair .vid .pl::after { left:15px; top:11px; border-left-width:12px; border-top-width:8px; border-bottom-width:8px; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.pair { display:grid; grid-template-columns:1.1fr 1fr; gap:16px; align-items:center; }
+.pair h3 { font-size:18px; margin:0 0 6px; } .pair p:not(.tag) { font-size:14px; line-height:1.45; color:var(--mute,#5b6475); margin:0; }
+@media (max-width:700px) { .row5 { grid-template-columns:repeat(2,1fr); } .row5 .vid:last-child { grid-column:span 2; } .two, .pair { grid-template-columns:1fr; } .pair { gap:10px; } }
+@media (min-width:701px) and (max-height:820px) { .sel { margin:16px 0 14px; } .row5 { margin-bottom:14px; } .pair p:not(.tag) { font-size:13px; } }
+
+/* Onsite */
+.evt { display:grid; grid-template-columns:1.3fr 1fr; gap:30px; align-items:center; margin-top:24px; }
+.evt .vid { aspect-ratio:16/9; box-shadow:0 30px 80px -30px rgba(0,0,0,.7); }
+.evt .tag, .night .sel .tag { font-size:12px; font-weight:600; color:#a9bcff; margin:0 0 12px; }
+.crew { margin:0 0 10px; color:#aab5cc; font-size:15px; display:flex; align-items:baseline; gap:10px; }
+.crew b { font-family:var(--head); font-weight:800; font-size:68px; line-height:.9; letter-spacing:-.04em; color:#fff; }
+.evtx { color:#cfd7e8; font-size:15px; line-height:1.5; margin:0; }
+.scale3 { margin-top:18px; border-top:1px solid rgba(255,255,255,.12); }
+.scale3 div { display:grid; grid-template-columns:118px 1fr; gap:12px; padding:9px 0; border-bottom:1px solid rgba(255,255,255,.12); }
+.scale3 b { color:#fff; font-weight:600; font-size:14px; } .scale3 span { color:#aab5cc; font-size:13.5px; line-height:1.4; }
+.night .scale { color:#8f9bb5; margin-top:14px; }
+@media (max-width:700px) { .evt { grid-template-columns:1fr; gap:16px; } .crew b { font-size:56px; } .scale3 div { grid-template-columns:104px 1fr; } }
+@media (min-width:701px) and (max-height:820px) { .evt { margin-top:16px; } .crew b { font-size:54px; } .scale3 { margin-top:12px; } .scale3 div { padding:6px 0; } .night .scale { margin-top:10px; } }
+
+/* On your team */
+.embed { display:grid; grid-template-columns:1fr 1.15fr; gap:36px; align-items:center; margin-top:6px; }
+.embed h2 { margin-bottom:14px; } .embed .sub { margin-bottom:22px; }
+.embed .vid { box-shadow:0 30px 80px -34px rgba(11,18,32,.55); }
+@media (max-width:700px) { .embed { grid-template-columns:1fr; gap:20px; } }
+
+/* Start a project: the email form unfolds under the button */
+.reach { justify-content:flex-start; }
+.mailbox { display:grid; grid-template-rows:0fr; transition:grid-template-rows .55s cubic-bezier(.2,.7,.2,1); }
+.mailbox > form { overflow:hidden; min-height:0; }
+.mailbox.open { grid-template-rows:1fr; }
+.mailform { display:grid; grid-template-columns:repeat(3,1fr); gap:12px 14px; }
+.mailbox.open .mailform { padding-top:20px; }
+.mailform .wide { grid-column:1 / -1; }
+.mailform label span { display:block; font-size:12.5px; font-weight:600; color:#a9bcff; margin-bottom:6px; } .mailform label i { font-style:normal; font-weight:400; color:#7f8aa3; }
+.mailform input, .mailform textarea { width:100%; box-sizing:border-box; font:inherit; font-size:15px; color:#fff; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.16); border-radius:12px; padding:12px 14px; outline:none; resize:vertical; transition:border-color .2s, background .2s; }
+.mailform input:focus, .mailform textarea:focus { border-color:#7d97ff; background:rgba(255,255,255,.09); }
+.mailform .bad { border-color:#ff7a8a; }
+.mailform .hp { position:absolute; left:-9999px; width:1px; height:1px; opacity:0; }
+.sendrow { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.mstat { margin:0; font-size:14px; color:#aab5cc; } .mstat a { color:#fff; }
+@media (max-width:700px) { .mailform { grid-template-columns:1fr; } .mailform input, .mailform textarea { font-size:16px; } }   /* 16px stops iOS zooming into the field */
+
+/* ---------- radio globe (Radio Garden): floats in open space, no panel behind it ---------- */
+.radio { position:fixed; z-index:11; right:max(18px,2.6vw); bottom:calc(env(safe-area-inset-bottom,0px) + 14px); display:grid; grid-template-columns:auto auto; grid-template-areas:"top globe" "info globe"; column-gap:14px; align-items:end; text-align:right; color:var(--ink); }
+.rrow { display:contents; } .rtop { grid-area:top; } .globe { grid-area:globe; align-self:center; } .rinfo { grid-area:info; } .radio > .rby { grid-area:by; }
+.radio p { text-shadow:0 0 6px #f6f7f9, 0 0 12px #f6f7f9, 0 0 2px #f6f7f9; }                 /* a halo of the page colour keeps text readable over grid lines */
+.rtop { margin:0; font-size:12.5px; font-weight:600; white-space:nowrap; }
+.globe { width:92px; height:92px; padding:0; border:0; background:none; border-radius:50%; cursor:pointer; position:relative; }
+.globe::after { content:''; position:absolute; left:18%; right:18%; bottom:-7px; height:12px; border-radius:50%; background:radial-gradient(closest-side, rgba(11,18,32,.18), transparent); z-index:-1; }  /* contact shadow: it sits in the space */
+.globe canvas { width:92px; height:92px; display:block; }
+.globe:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.rinfo { max-width:230px; margin-top:3px; }
+.rst { margin:0; font-size:13px; font-weight:600; line-height:1.25; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; transition:opacity .35s; }
+.rpl { margin:2px 0 0; font-size:12px; color:var(--mid); line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-height:15.6px; transition:opacity .35s; }
+.radio.tuning .rst, .radio.tuning .rpl { opacity:.45; }
+.radio .rmini, .radio .rby2 { display:none; }
+.rctl { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:6px; }
+.rbtn { width:32px; height:32px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(11,18,32,.22); background:rgba(246,247,249,.6); color:var(--ink); cursor:pointer; padding:0; }
+.rbtn:hover { border-color:var(--accent); color:var(--accent); }
+.rbtn svg { width:14px; height:14px; fill:currentColor; }
+.rbtn .i-play { display:none; } .radio.paused .rbtn .i-play { display:inline; } .radio.paused .rbtn .i-pause { display:none; }
+.knob { --v:.7; position:relative; width:32px; height:32px; border-radius:50%; cursor:ns-resize; touch-action:none; background:conic-gradient(from 225deg, var(--accent) calc(var(--v) * 270deg), rgba(11,18,32,.14) 0 270deg, transparent 0); }
+.knob::before { content:''; position:absolute; inset:4px; border-radius:50%; background:#f6f7f9; }
+.knob i { position:absolute; left:50%; top:50%; width:2px; height:8px; margin-left:-1px; border-radius:1px; background:var(--ink); transform-origin:50% 100%; transform:translateY(-100%) rotate(calc(-135deg + var(--v) * 270deg)); }
+.knob:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.rby { margin:6px 0 0; font-size:10.5px; color:var(--mid); white-space:nowrap; } .rby a { color:var(--ink); font-weight:600; text-decoration:none; } .rby a:hover { color:var(--accent); }
+@media (max-height:780px) and (min-width:621px) { .globe, .globe canvas { width:80px; height:80px; } .rctl { margin-top:4px; } .rby { margin-top:3px; } .rbtn, .knob { width:28px; height:28px; } }
+/* small laptop windows: a tighter corner so it never reaches the Next / Back buttons */
+@media (min-width:621px) and (max-width:1180px), (min-width:621px) and (max-height:700px) { .radio { column-gap:10px; right:14px; bottom:10px; } .globe, .globe canvas { width:64px; height:64px; } .rtop { font-size:11.5px; white-space:normal; max-width:118px; justify-self:end; line-height:1.25; } .rst { font-size:12px; } .rpl { font-size:11px; min-height:0; } .rinfo { max-width:140px; } .rctl { gap:8px; margin-top:4px; } .rbtn, .knob { width:26px; height:26px; } .rbtn svg { width:12px; height:12px; } }
+@media (max-width:620px) {
+  /* phones (Josiah 10-21): the globe rides in the bottom bar, left of List view; the station pops up above it after each spin */
+  .radio { left:0; top:0; right:auto; bottom:auto; display:block; text-align:left; will-change:transform; }
+  .rtop, .radio > .rby, .rctl, .radio .rby2 { display:none; }
+  .rrow { display:block; position:relative; width:46px; height:46px; }
+  .globe, .globe canvas { width:46px; height:46px; } .globe::after { bottom:-4px; height:7px; }
+  .radio .rmini { display:grid; position:absolute; right:-7px; bottom:-3px; width:24px; height:24px; background:rgba(255,255,255,.9); box-shadow:0 4px 12px -6px rgba(11,18,32,.4); } .rmini svg { width:10px; height:10px; }
+  .radio.paused .rmini .i-play { display:inline; } .radio.paused .rmini .i-pause { display:none; }
+  .rinfo { position:absolute; left:-2px; bottom:calc(100% + 10px); width:max-content; max-width:min(250px, calc(100vw - 24px)); margin:0; padding:8px 12px 7px; border-radius:12px; background:rgba(255,255,255,.82); -webkit-backdrop-filter:saturate(1.4) blur(14px); backdrop-filter:saturate(1.4) blur(14px); border:1px solid rgba(227,231,238,.95); box-shadow:0 10px 30px -14px rgba(11,18,32,.35); opacity:0; transform:translateY(6px); pointer-events:none; transition:opacity .35s, transform .35s; }
+  .radio.peek .rinfo { opacity:1; transform:none; pointer-events:auto; }
+  .radio p { text-shadow:none; }
+  .rst { font-size:12.5px; -webkit-line-clamp:1; } .rpl { font-size:11px; min-height:0; }
+  /* Next and Back a size down so the globe fits beside List view */
+  .ctl #nextbtn, .ctl #backbtn { font-size:13px; padding:9px 11px; min-height:40px; }
+}
+@media (max-width:380px) { .ctl { gap:5px; } .ctl #listbtn { font-size:13.5px; padding:10px 12px; } .ctl .bird { padding:10px 11px; } .ctl #nextbtn, .ctl #backbtn { padding:9px 9px; } }   /* 360-px Androids still fit the globe */
+}
+
+/* ---------- first load: the grid fades in, then the stops ---------- */
+#gl { transition:opacity 1.6s ease; }
+body.intro #gl { opacity:0; }
+#css .card { transition:opacity 1s ease; }
+body.intro #css .card, body.intro-c #css .card { opacity:0; }
+header, .rail, .hint, .ctl, .radio { transition:opacity .9s ease; }
+body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.intro .radio, body.intro-c header, body.intro-c .rail, body.intro-c .hint, body.intro-c .ctl, body.intro-c .radio { opacity:0; pointer-events:none; }
+
+/* phones: narrower cards, single columns */
+@media (max-width:700px) {
+  .card { width:var(--wm, 360px); padding:24px 22px 22px; }
+  h1 { font-size:46px; } h2 { font-size:30px; } .sub { font-size:16px; }
+  .hero, .work, .three, .tiers, .flowx, .ways, .plans, .next3 { grid-template-columns:1fr; }
+  .steps { grid-template-columns:1fr; gap:14px; } .steps::before { display:none; }
+  .steps li { display:grid; grid-template-columns:52px 1fr; column-gap:14px; } .steps i { grid-row:1 / span 3; margin:0; }
+  .arrow svg { transform:rotate(90deg); } .tier { padding-top:22px !important; } .total b { font-size:48px; }
+  .more { grid-template-columns:1fr 1fr; }
+}
+
+/* list view: the same cards, stacked, for anyone who prefers to read */
+#list { position:fixed; inset:0; z-index:20; overflow:auto; background:var(--bg); padding:calc(env(safe-area-inset-top,0px) + 84px) max(14px,3vw) 90px; }
+#list .wrap { max-width:68rem; margin:0 auto; display:grid; gap:22px; }
+#list .card { width:auto; cursor:default; }
+@media (prefers-reduced-motion:reduce) { .hint, .rail i, .rail span { transition:none; } }
+/* leave note: a grid line grows from the click, a card grows at its end */
+#tether { position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:40; overflow:visible; }
+#tether path { fill:none; stroke:var(--accent); stroke-width:1.25; vector-effect:non-scaling-stroke; }
+#tether .guide { stroke:rgba(47,91,255,.22); stroke-width:1; stroke-dasharray:2 4; }
+#tether rect { fill:#fff; stroke:var(--accent); stroke-width:1.25; }
+#scrim { position:fixed; inset:0; z-index:39; background:transparent; }
+#warn { position:fixed; z-index:41; width:min(21rem, calc(100vw - 32px)); background:#fff; color:var(--ink); border:1px solid var(--accent); border-radius:14px;
+  box-shadow:0 1px 2px rgba(11,18,32,.06), 0 18px 50px -18px rgba(11,18,32,.35); padding:18px 18px 16px; text-align:left; }
+#warn .ttl { font-size:11.5px; font-weight:500; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:0 0 8px; display:flex; align-items:center; gap:8px; }
+#warn .ttl::before { content:''; width:6px; height:6px; border-radius:50%; background:#00b39b; box-shadow:0 0 0 3px rgba(0,179,155,.18); }
+#warn h2 { font-family:var(--head); font-weight:600; font-size:19px; line-height:1.2; letter-spacing:-.02em; margin:0 0 8px; }
+#warn p { margin:0; color:var(--mid); font-size:14.5px; line-height:1.5; }
+#warn em { font-style:italic; color:#e5484d; font-weight:500; }
+#warn .fine { margin-top:8px; font-size:13px; color:var(--dim); }
+.acts { display:flex; gap:8px; margin-top:16px; }
+.acts button, .acts a { flex:1; font:inherit; font-weight:500; font-size:14px; border-radius:9px; padding:10px 12px; min-height:42px; cursor:pointer; text-decoration:none; display:flex; align-items:center; justify-content:center; text-align:center; }
+.stay { background:var(--ink); color:#fff; border:0; }
+.stay:hover { background:var(--accent); }
+.risk { background:transparent; color:#e5484d; border:1px solid rgba(229,72,77,.35); }
+.risk:hover { background:rgba(229,72,77,.08); border-color:#e5484d; }
+</style>
+<script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+</head><body class="intro">
+<div id="void" aria-hidden="true"></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<button id="hole" type="button" hidden aria-label="A black hole"><span class="tip" id="holetip">Do not click this unless you are okay with the end.</span></button>
+<div id="css" aria-label="Walker Motion Pictures. A 3D grid of sections: drag to look around, scroll or use the arrow keys to travel."></div>
+
+<header>
+<div class="lead">
+  <button class="brand glass" type="button" data-go="overview" aria-label="Walker Motion Pictures. Show the whole grid">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="23" height="23" rx="6.5" fill="#0b1220"/><path d="M6 9h12M6 15h12M9 6v12M15 6v12" stroke="#fff" stroke-opacity=".28" stroke-width="1"/><rect x="9" y="9" width="6" height="6" rx="1" fill="#2f5bff"/></svg>
+    <b>Walker Motion Pictures</b>
+  </button>
+  <a class="jw glass leave" href="https://josiahwalker.com/" data-dest="https://josiahwalker.com/">Josiahwalker.com <span>Narrative filmmaking</span></a>
+</div>
+  <nav class="top glass" aria-label="Sections">
+    <button type="button" data-go="work">Work</button>
+    <button type="button" data-go="do">Selects</button>
+    <button type="button" data-go="onsite">Onsite</button>
+    <button type="button" data-go="process">On your team</button>
+    <button type="button" class="cta" data-go="next">Start a project</button>
+  </nav>
+</header>
+<nav class="rail glass" id="rail" aria-label="Stops"></nav>
+<aside class="radio" id="radio" aria-label="Radio: old music from around the world">
+  <p class="rtop">Spin the globe to play a tune.</p>
+  <div class="rrow">
+    <button type="button" class="globe" id="globe" aria-label="Spin the globe to play a random station"><canvas id="globecv" width="260" height="260"></canvas></button>
+    <button type="button" class="rbtn rmini" id="rplay2" aria-label="Pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-play" d="M6 4.5v11l9-5.5z"/><path class="i-pause" d="M5.5 4.5h3v11h-3zM11.5 4.5h3v11h-3z"/></svg></button>
+    <div class="rinfo">
+      <p class="rst" id="rst">Tuning in…</p>
+      <p class="rpl" id="rpl"></p>
+      <div class="rctl">
+        <button type="button" class="rbtn" id="rplay" aria-label="Pause"><svg viewBox="0 0 20 20" aria-hidden="true"><path class="i-play" d="M6 4.5v11l9-5.5z"/><path class="i-pause" d="M5.5 4.5h3v11h-3zM11.5 4.5h3v11h-3z"/></svg></button>
+        <div class="knob" id="rvol" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70"><i></i></div>
+      </div>
+    </div>
+  </div>
+</aside>
+<p class="hint glass" id="hint"><kbd>Scroll</kbd> to travel · <kbd>Drag</kbd> to look around</p>
+<div class="ctl"><button type="button" class="glass" id="listbtn">List view</button><button type="button" class="glass bird" id="birdbtn" aria-label="Birdseye view"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 14 7 3h6l5 11H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5.2 10.5h9.6M3.6 14 8 3M16.4 14 12 3" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/></svg><span>Birdseye</span></button><span class="count glass" id="count">01 / 05</span><button type="button" class="next" id="nextbtn">Next ↑</button><button type="button" class="glass" id="backbtn">↓ Back</button></div>
+<div id="scrim" hidden></div>
+<svg id="tether" hidden aria-hidden="true"><path class="guide" id="tguide" d=""/><path id="tline" d=""/><rect id="tnode" width="7" height="7" x="0" y="0"/><rect id="tjoint" width="7" height="7" x="0" y="0"/></svg>
+<div id="warn" role="dialog" aria-modal="true" aria-labelledby="warnh" aria-describedby="warnp" hidden>
+  <p class="ttl">Before you go</p>
+  <h2 id="warnh">Are you sure about this decision?</h2>
+  <p id="warnp">This will take you away from corporate video and into a narrative world full of mystery and&hellip; <em>murder</em>.</p>
+  <p class="fine">Click at your own risk&hellip;</p>
+  <div class="acts">
+    <button class="stay" type="button" id="stay">Stay here</button>
+    <a class="risk" id="risk" href="https://josiahwalker.com/">Enter at my own risk</a>
+  </div>
+</div>
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="Video player"><div class="frame" id="lbframe"></div><div class="bar"><span id="lbtitle"></span><button type="button" id="lbclose">Close · Esc</button></div></div>
+<div id="list" hidden><div class="listbar"><button type="button" class="next" id="backto3d">← Cool 3D view</button></div><div class="wrap" id="listwrap"></div></div>
+
+<template id="cards">
+  <article class="card" data-id="hero" data-label="Intro" style="--w:1180px;--wm:360px">
+    <div class="hero">
+      <div>
+        <p class="kick"><b>Walker Motion Pictures</b> · Corporate video</p>
+        <h1 class="heroh">Corporate video with a soft spot for <span class="grad">fintech and SaaS.</span></h1>
+        <p class="sub">Customer stories, company updates and commercials, from a single interview to a full event crew.</p>
+        <div class="row"><span class="btn pri" data-go="work">See the work</span><span class="btn sec" data-go="next">Start a project</span></div>
+      </div>
+      <div>
+        <div class="vid" data-vid="1237688951/c7ec56b33c" data-title="AI Analyst commercial · Planful"><img src="img/planful_hero.jpg" alt="Still from the AI Analyst commercial" draggable="false" data-keep><span class="pl"></span><span class="dur">1:42</span></div>
+        <p class="note"><span>Featured · AI Analyst commercial · Planful</span></p>
+      </div>
+    </div>
+  </article>
+  <article class="card night" data-id="work" data-label="Work" style="--w:1120px">
+    <p class="chip">Selected work</p>
+    <h2 style="color:#fff">A finance product, sold as a story.</h2>
+    <div class="work">
+      <div class="feat">
+        <div class="vid" data-vid="1237688951/c7ec56b33c" data-title="AI Analyst commercial · Planful"><img src="img/analyst_thumb.jpg" alt="Still from the AI Analyst commercial" draggable="false" data-keep><span class="big">Narrative Ad</span><span class="pl"></span><span class="dur">1:42</span></div>
+        <div class="frames">
+          <figure><img src="img/planful_1.jpg" alt="" draggable="false"><figcaption>The ask from home</figcaption></figure>
+          <figure><img src="img/analyst_f2.jpg" alt="" draggable="false"><figcaption>The ask from the board</figcaption></figure>
+          <figure><img src="img/analyst_f3.jpg" alt="" draggable="false"><figcaption>Out the door on time</figcaption></figure>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:#fff">AI Analyst commercial · Planful</h3>
+        <p class="logline">An FP&amp;A manager gets a late request from the board, answers it with AI Analyst, and still makes it to her son’s game.</p>
+        <p class="meta">Narrative spot · 1:42 · Shot by Walker Motion Pictures</p>
+      </div>
+    </div>
+  </article>
+  <article class="card" data-id="do" data-label="Selects" style="--w:1120px">
+    <p class="chip">Portfolio selects</p>
+    <h2 class="selh">Selected work: from testimonials, company updates, to an AI series.</h2>
+    <div class="sel">
+      <p class="tag">Customer testimonials</p>
+      <div class="row5">
+        <div class="vid t2" data-vid="1237674016/74af37617e" data-title="Blake Martin · Incident IQ"><span class="pl"></span><span class="vcap">Blake Martin · Incident IQ</span><span class="dur"></span></div>
+        <div class="vid t3" data-vid="1237674019/c397187974" data-title="Kiper · Incident IQ"><span class="pl"></span><span class="vcap">Kiper · Incident IQ</span><span class="dur"></span></div>
+        <div class="vid t4" data-vid="1237675060/f4302833aa" data-title="Daniel Rahm · McLarens"><span class="pl"></span><span class="vcap">Daniel Rahm · McLarens</span><span class="dur"></span></div>
+        <div class="vid t2" data-vid="1237674396/035baf2a55" data-title="Kimball Midwest"><span class="pl"></span><span class="vcap">Kimball Midwest</span><span class="dur"></span></div>
+        <div class="vid t3" data-vid="1237674017/37eb333668" data-title="TerSera"><span class="pl"></span><span class="vcap">TerSera</span><span class="dur"></span></div>
+      </div>
+      <div class="two">
+        <div class="pair"><div class="vid" data-vid="1237676363/ca1bf1530d" data-title="Product updates, Q4 2025"><span class="pl"></span><span class="vcap">Product updates, Q4 2025</span><span class="dur"></span></div><div><p class="tag">Company updates</p><h3>Planful product updates</h3><p>The quarterly rundown of what shipped, made for Planful’s customers.</p></div></div>
+        <div class="pair"><div class="vid t4" data-vid="1237672952/810e922cc9" data-title="Smarter budgeting with Planful AI"><span class="pl"></span><span class="vcap">Smarter budgeting with Planful AI</span><span class="dur"></span></div><div><p class="tag">AI Labs · a series</p><h3>Planful AI Labs</h3><p>A recurring series with Planful’s AI expert on how finance teams can put AI to work.</p></div></div>
+      </div>
+    </div>
+  </article>
+  <article class="card night" data-id="onsite" data-label="Onsite" style="--w:1120px">
+    <p class="chip">Onsite</p>
+    <h2 style="color:#fff">Whether it’s a small footprint needed, or a big crew for a user event, we have you covered.</h2>
+    <div class="evt">
+      <div class="vid" data-vid="1237676451/ca7da3e647" data-title="Perform25 event recap · Planful"><span class="pl"></span><span class="vcap">Perform25 event recap · Planful</span><span class="dur"></span></div>
+      <div>
+        <p class="tag">Case · Perform25 · Planful</p>
+        <p class="crew"><b>15</b>person crew</p>
+        <p class="evtx">B-roll across the venue, every breakout room, and a multicamera keynote, cut into the event recap.</p>
+        <p class="scale"><span>One operator</span><i></i><span>Full crew</span></p>
+      </div>
+    </div>
+  </article>
+  <article class="card" data-id="process" data-label="On your team" style="--w:1080px">
+    <p class="chip">On your design team</p>
+    <div class="embed">
+      <div>
+        <h2>A motion designer on your team, working in your brand.</h2>
+        <p class="sub">Your head designer leads. We work from your brand guidelines and Figma files, and your team reviews on the boards before anything moves.</p>
+        <p class="ways1">Per-project or on a monthly retainer. <span data-go="next">Ask for a proposal →</span></p>
+      </div>
+      <div class="vid" data-vid="file:media/facilities.mp4" data-title="iiQ Facilities · Incident IQ"><img src="img/facilities_poster.jpg" alt="Still from the iiQ Facilities product video" draggable="false" data-keep><span class="pl"></span><span class="vcap">iiQ Facilities · made in the iiQ brand</span><span class="dur">1:26</span></div>
+    </div>
+  </article>
+  <article class="card night" data-id="next" data-label="Start a project" style="--w:900px">
+    <p class="chip">Start a project</p>
+    <h2 style="color:#fff">What do you got cookin’?</h2>
+    <p class="sub" style="color:#aab5cc">One-off or ongoing, send a line about it, we’d love to chat with you.</p>
+    <div class="reach"><button type="button" class="btn pri" data-mailopen aria-expanded="false">Email the studio</button></div>
+    <div class="mailbox" data-mailbox>
+      <form class="mailform" novalidate>
+        <label><span>Name</span><input name="name" autocomplete="name" required></label>
+        <label><span>Email</span><input name="email" type="email" autocomplete="email" required></label>
+        <label><span>Company <i>(optional)</i></span><input name="company" autocomplete="organization"></label>
+        <label class="wide"><span>What’s the project?</span><textarea name="message" rows="2" required></textarea></label>
+        <input name="_gotcha" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="wide sendrow"><button type="submit" class="btn pri">Send</button><p class="mstat" role="status" aria-live="polite"></p></div>
+      </form>
+    </div>
+  </article>
+</template>
+
+<script type="module">
+import * as THREE from 'three';
+import { CSS3DRenderer, CSS3DObject } from './CSS3DRenderer.js';
+
+const G = 160;                                   // one grid cell (world units ≈ CSS px at the card plane)
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const $ = id => document.getElementById(id);
+
+// Where each stop sits in the grid (cell coordinates) and how it is turned. The tour weaves deeper and higher.
+const ORDER = ['hero', 'work', 'do', 'onsite', 'process', 'next'];
+const SPOTS = {
+  // Josiah 10-21 (audition v3): every card squared to the grid and centred on a main grid line, eight cells apart
+  hero:    { p: [0, 3, 0],     ry: 0 },
+  work:    { p: [-8, 5, -8],   ry: 0 },
+  do:      { p: [8, 6, -16],   ry: 0 },
+  onsite:  { p: [-8, 7, -24],  ry: 0 },
+  process: { p: [8, 9, -32],   ry: 0 },
+  next:    { p: [0, 11, -40],  ry: 0 },
+};
+const OVER = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+const BASE_FOV = 38;
+// the lens for the bird's-eye view: 38° on wide screens; on a tall phone screen, wide enough to take in the same
+// horizontal slice of the grid a 16:10 laptop sees (capped so the edges don't stretch)
+function overFov() { const a = innerWidth / innerHeight, deskH = Math.atan(Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2)) * 1.6); return a >= 1.2 ? BASE_FOV : Math.min(96, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(deskH) / a))); }
+function setOverview() {
+  const phone = innerWidth < 700;
+  // the same bird's-eye camera on every screen (Josiah 10-21); a phone sees it through a wider lens (overFov), so it
+  // frames the same width of the grid as a laptop does, from the same spot, and the grid surrounds the cards as on desktop
+  OVER.look.set(0, 3 * G, -10 * G); OVER.pos.set(0, 16 * G, 21 * G); WARP.uFogK.value = 1;
+}
+
+// ---------- renderers ----------
+let gl;
+try { gl = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, alpha: true }); } catch (e) { gl = null; }
+const listWrap = $('listwrap');
+function buildList() { if (!listWrap.childElementCount) { for (const c of $('cards').content.querySelectorAll('.card')) listWrap.append(c.cloneNode(true)); if (window.hydrate) hydrate(listWrap); wireMail(listWrap); } }
+if (!gl) { document.body.classList.remove('intro', 'intro-c'); buildList(); $('list').hidden = false; $('listbtn').hidden = true; $('nextbtn').hidden = true; throw new Error('no webgl'); }
+// the grid's lines are one device pixel wide, so on a phone's dense screen they all but vanish; phones draw the grid at
+// 1x so its lines read like the desktop's (the cards are HTML and stay sharp either way)
+gl.setPixelRatio(innerWidth < 700 ? 1 : Math.min(devicePixelRatio, 2)); gl.setClearColor(0xf6f7f9, 0);
+const css = new CSS3DRenderer({ element: $('css') });
+const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xf6f7f9, 2600, 9000);
+const cssScene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 10, 20000);
+
+// ---------- the lattice ----------
+// The fabric: every line, node and glyph runs through one warp, so the black hole can bend all of it together.
+const WARP = { uHole: { value: new THREE.Vector3(0, 0, -13 * G) }, uFlow: { value: 0 }, uSink: { value: 0 }, uSwirl: { value: 0 }, uR: { value: 2.5 * G }, uFade: { value: 0 }, uFogK: { value: 1 }, uFogCol: { value: new THREE.Color(0xf6f7f9) }, uStress: { value: 0 }, uStressCol: { value: new THREE.Color(0x4f66a3) } };
+const WARP_GLSL = `
+  uniform vec3 uHole; uniform float uFlow, uSink, uSwirl, uR, uFogK;
+  varying float vEat;
+  // The fabric flows toward the hole like material to a drain: every point travels inward by the same distance (uFlow), so a
+  // line is eaten from its near end while the rest slides in behind it; what reaches the hole sinks and vanishes.
+  vec3 warp(vec3 p) {
+    vec3 d = p - uHole; float r = length(d.xz) + 0.001;
+    vec2 dir = d.xz / r;
+    float nr = max(r - uFlow, 0.0);
+    float q = nr / uR;
+    float well = 1.0 / sqrt(1.0 + q * q);            // gravity well: steep at the centre, a long slope outward
+    float w = 1.0 / (1.0 + q * q);
+    float ang = uSwirl * w;
+    vec2 rot = vec2(cos(ang) * dir.x - sin(ang) * dir.y, sin(ang) * dir.x + cos(ang) * dir.y);
+    nr = max(nr - uSink * 0.35 * well, 0.0);
+    float eat = smoothstep(0.0, 220.0, nr);           // the last stretch into the hole: down and gone
+    float y = p.y - uSink * well;
+    y = mix(uHole.y - 40.0, y, eat);
+    vEat = eat;
+    return vec3(uHole.x + rot.x * nr, y, uHole.z + rot.y * nr);
+  }`;
+const lineMat = (color, opacity) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
+  uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } }, WARP),
+  vertexShader: WARP_GLSL + `varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { float dark = 1.0 - dot(uFogCol, vec3(0.333)); vec3 c = mix(mix(uColor, uStressCol, uStress), vec3(0.7, 0.78, 1.0), dark); gl_FragColor = vec4(mix(c, uFogCol, vFog * (1.0 - dark)), min(1.0, uOpacity * (1.0 + 1.3 * uStress + 1.2 * dark)) * (1.0 - uFade) * (1.0 - vFog * (1.0 - dark)) * vEat); }` });
+const pointMat = (color, opacity, size) => new THREE.ShaderMaterial({ transparent: true, depthWrite: false,
+  uniforms: Object.assign({ uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity }, uPx: { value: size }, uH: { value: innerHeight } }, WARP),
+  vertexShader: WARP_GLSL + `uniform float uPx, uH; varying float vFog; void main() { vec4 mv = modelViewMatrix * vec4(warp(position), 1.0); vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z); gl_PointSize = uPx * (uH * 0.5) / max(1.0, -mv.z) * 1.6; gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform vec3 uColor, uFogCol, uStressCol; uniform float uOpacity, uFade, uStress; varying float vFog, vEat; void main() { if (length(gl_PointCoord - 0.5) > 0.5) discard; vec3 c = mix(uColor, uStressCol, uStress); gl_FragColor = vec4(mix(c, uFogCol, vFog), min(1.0, uOpacity * (1.0 + 1.3 * uStress)) * (1.0 - uFade) * (1.0 - vFog) * vEat); }` });
+const LINES = (function lattice() {
+  const X = 18, Z0 = -48, Z1 = 14, YT = 12;   // reaches past the last card (z = -40)
+  const floor = [], major = [], cage = [], nodes = [];
+  // every line is cut into half-cell pieces so the fabric can curve, not just tilt
+  const STEP = G / 2;
+  const line = (out, x1, y1, z1, x2, y2, z2) => { const n = Math.max(1, Math.round(Math.hypot(x2 - x1, y2 - y1, z2 - z1) / STEP)); for (let i = 0; i < n; i++) { const a = i / n, b = (i + 1) / n; out.push(x1 + (x2 - x1) * a, y1 + (y2 - y1) * a, z1 + (z2 - z1) * a, x1 + (x2 - x1) * b, y1 + (y2 - y1) * b, z1 + (z2 - z1) * b); } };
+  for (let i = -X; i <= X; i++) line(i % 4 ? floor : major, i * G, 0, Z0 * G, i * G, 0, Z1 * G);
+  for (let k = Z0; k <= Z1; k++) line(k % 4 ? floor : major, -X * G, 0, k * G, X * G, 0, k * G);
+  for (let x = -X + 2; x <= X; x += 4) for (let z = Z0; z <= Z1; z += 4) line(cage, x * G, 0, z * G, x * G, YT * G, z * G);
+  for (const y of [4, 8, 12]) {
+    for (let x = -X + 2; x <= X; x += 4) line(cage, x * G, y * G, Z0 * G, x * G, y * G, Z1 * G);
+    for (let z = Z0; z <= Z1; z += 4) line(cage, -X * G, y * G, z * G, X * G, y * G, z * G);
+  }
+  for (let x = -X; x <= X; x += 2) for (let z = Z0; z <= Z1; z += 2) for (let y = 2; y <= YT; y += 2) if ((x + z + y) % 4 === 0) nodes.push(x * G, y * G, z * G);
+  const seg = (arr, color, opacity) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); return new THREE.LineSegments(g, lineMat(color, opacity)); };
+  scene.add(seg(floor, 0xcfd6e2, 0.6), seg(major, 0xaab5c8, 0.8), seg(cage, 0xc3ccda, 0.42));
+  const ng = new THREE.BufferGeometry(); ng.setAttribute('position', new THREE.Float32BufferAttribute(nodes, 3));
+  scene.add(new THREE.Points(ng, pointMat(0x8c99b0, .7, 6)));
+  const whole = { floor: [], major: [], cage: [] };
+  for (let i = -X; i <= X; i++) (i % 4 ? whole.floor : whole.major).push(i * G, 0, Z0 * G, i * G, 0, Z1 * G);
+  for (let k = Z0; k <= Z1; k++) (k % 4 ? whole.floor : whole.major).push(-X * G, 0, k * G, X * G, 0, k * G);
+  for (let x = -X + 2; x <= X; x += 4) for (let z = Z0; z <= Z1; z += 4) whole.cage.push(x * G, 0, z * G, x * G, YT * G, z * G);
+  for (const y of [4, 8, 12]) { for (let x = -X + 2; x <= X; x += 4) whole.cage.push(x * G, y * G, Z0 * G, x * G, y * G, Z1 * G); for (let z = Z0; z <= Z1; z += 4) whole.cage.push(-X * G, y * G, z * G, X * G, y * G, z * G); }
+  return whole;
+})();
+
+// ---------- code streams along the grid lines (audition) ----------
+const CODE = (() => {
+  // glyph atlas: 8 x 8 characters, numbers and the symbols a finance screen uses
+  const chars = '0123456789$%+-=/<>[]{}#&*:;.,|~^ABCDEF0123456789.0123456789%$0123456789+-';
+  const cv = document.createElement('canvas'); cv.width = cv.height = 512; const c2 = cv.getContext('2d');
+  c2.fillStyle = '#fff'; c2.font = '600 46px "IBM Plex Mono", ui-monospace, Menlo, monospace'; c2.textAlign = 'center'; c2.textBaseline = 'middle';
+  for (let i = 0; i < 64; i++) c2.fillText(chars[i % chars.length], (i % 8) * 64 + 32, Math.floor(i / 8) * 64 + 34);
+  // a few film icons hidden in the character set (last column): clapperboard, camera, play, keyframe, scissors, film strip
+  const icon = (i, draw) => { const x = (i % 8) * 64, y = Math.floor(i / 8) * 64; c2.clearRect(x, y, 64, 64); c2.save(); c2.translate(x + 32, y + 32); c2.lineWidth = 5; c2.strokeStyle = '#fff'; c2.lineCap = 'round'; c2.lineJoin = 'round'; draw(); c2.restore(); };
+  icon(7, () => { c2.strokeRect(-20, -6, 40, 26); c2.beginPath(); c2.moveTo(-20, -6); c2.lineTo(-17, -20); c2.lineTo(23, -14); c2.lineTo(20, -6); c2.stroke(); for (const k of [-9, 1, 11]) { c2.beginPath(); c2.moveTo(k, -19); c2.lineTo(k - 4, -7); c2.stroke(); } });
+  icon(15, () => { c2.strokeRect(-20, -4, 34, 24); c2.beginPath(); c2.moveTo(14, 2); c2.lineTo(24, -4); c2.lineTo(24, 20); c2.lineTo(14, 14); c2.stroke(); c2.beginPath(); c2.arc(-11, -15, 8, 0, 7); c2.stroke(); c2.beginPath(); c2.arc(7, -15, 8, 0, 7); c2.stroke(); });
+  icon(23, () => { c2.beginPath(); c2.arc(0, 0, 22, 0, 7); c2.stroke(); c2.fillStyle = '#fff'; c2.beginPath(); c2.moveTo(-7, -12); c2.lineTo(13, 0); c2.lineTo(-7, 12); c2.closePath(); c2.fill(); });
+  icon(31, () => { c2.fillStyle = '#fff'; c2.beginPath(); c2.moveTo(0, -20); c2.lineTo(18, 0); c2.lineTo(0, 20); c2.lineTo(-18, 0); c2.closePath(); c2.fill(); c2.beginPath(); c2.moveTo(-30, 0); c2.lineTo(-22, 0); c2.moveTo(22, 0); c2.lineTo(30, 0); c2.stroke(); });
+  icon(39, () => { c2.beginPath(); c2.arc(-11, 12, 8, 0, 7); c2.stroke(); c2.beginPath(); c2.arc(11, 12, 8, 0, 7); c2.stroke(); c2.beginPath(); c2.moveTo(-6, 6); c2.lineTo(16, -22); c2.moveTo(6, 6); c2.lineTo(-16, -22); c2.stroke(); });
+  icon(47, () => { c2.strokeRect(-24, -18, 48, 36); for (const k of [-16, -5, 6]) { c2.fillStyle = '#fff'; c2.fillRect(k, -14, 7, 5); c2.fillRect(k, 9, 7, 5); } c2.strokeRect(-14, -6, 28, 12); });
+
+  const atlas = new THREE.CanvasTexture(cv); atlas.minFilter = THREE.LinearMipmapLinearFilter; atlas.generateMipmaps = true;
+
+  const segs = { floor: [], major: [], posts: [], rails: [] };
+  const toSegs = (arr, out) => { for (let i = 0; i < arr.length; i += 6) out.push([arr[i], arr[i + 1], arr[i + 2], arr[i + 3], arr[i + 4], arr[i + 5]]); };
+  toSegs(LINES.floor, segs.floor); toSegs(LINES.major, segs.major);
+  const cage = []; toSegs(LINES.cage, cage);
+  for (const g of cage) (g[0] === g[3] && g[2] === g[5] ? segs.posts : segs.rails).push(g);
+
+  const VARIANTS = {
+    a: { name: 'Ticker',   lines: ['major'],                           n: 110, tail: 10, size: 26, speed: [220, 420],  flicker: 8,  col: [0x2f5bff, 0x2f5bff], head: 0x0b1220, alpha: .6,  down: false },
+    b: { name: 'Highways', lines: ['floor', 'major', 'posts'],         n: 420, tail: 14, size: 24, speed: [320, 760],  flicker: 12, col: [0x2f5bff, 0x00b39b], head: 0x0b1220, alpha: .7,  down: false },
+    c: { name: 'Rain',     lines: ['posts'],                           n: 320, tail: 18, size: 22, speed: [360, 900],  flicker: 14, col: [0x00b39b, 0x2f5bff], head: 0x0b1220, alpha: .65, down: true },
+    d: { name: 'Circuit',  lines: ['floor', 'major', 'posts', 'rails'], n: 800, tail: 8,  size: 18, speed: [400, 1100], flicker: 18, col: [0x2f5bff, 0x00b39b], head: 0x0b1220, alpha: .5,  down: false },
+    e: { name: 'Ghost',    lines: ['floor', 'major', 'posts', 'rails'], n: 600, tail: 24, size: 12, speed: [120, 300],  flicker: 4,  col: [0x9aa6bb, 0xaab5cc], head: 0x6b778c, alpha: .38, down: false },
+  };
+  const vert = `
+    attribute vec3 aA; attribute vec3 aB; attribute float aPhase; attribute float aSpeed; attribute float aSeed; attribute float aRank; attribute float aSpacing; attribute float aGap;
+    uniform float uTime, uSize, uScale, uTail, uFlicker; uniform vec3 uRight, uUp;
+    ` + WARP_GLSL + `
+    varying vec2 vUv; varying float vAlpha; varying float vSeed; varying float vHead; varying float vFog;
+    float hash(float n) { return fract(sin(n) * 43758.5453123); }
+    void main() {
+      // one cycle = the line, plus room for the whole tail to leave, plus a gap: the train enters and exits one glyph at a time
+      float spc = aSpacing * uScale;
+      float cyc = 1.0 + uTail * spc + aGap;
+      float h = mod(aPhase * cyc + uTime * aSpeed, cyc);
+      float t = h - aRank * spc;
+      vHead = step(aRank, 0.5);
+      float on = step(0.0, t) * step(t, 1.0);
+      vAlpha = on * pow(1.0 - aRank / uTail, 1.6);
+      vec3 p = warp(mix(aA, aB, clamp(t, 0.0, 1.0)));
+      float g = floor(hash(aSeed * 7.13 + floor(uTime * uFlicker + aRank * 0.37)) * 64.0);
+      vec2 cell = vec2(mod(g, 8.0), 7.0 - floor(g / 8.0));
+      vUv = (uv + cell) / 8.0;
+      vSeed = aSeed;
+      vec3 world = p + (uRight * (uv.x - 0.5) + uUp * (uv.y - 0.5)) * uSize * uScale;
+      vec4 mv = modelViewMatrix * vec4(world, 1.0);
+      vFog = smoothstep(2600.0 * uFogK, 9000.0 * uFogK, -mv.z);
+      gl_Position = projectionMatrix * mv;
+    }`;
+  const frag = `
+    uniform sampler2D uAtlas; uniform vec3 uCol1, uCol2, uHead, uFogCol; uniform float uAlpha, uFade;
+    varying vec2 vUv; varying float vAlpha; varying float vSeed; varying float vHead; varying float vFog; varying float vEat;
+    void main() {
+      float a = texture2D(uAtlas, vUv).a * vEat;
+      vec3 col = mix(uCol1, uCol2, step(0.5, fract(vSeed * 3.7)));
+      col = mix(col, uHead, vHead);
+      col = mix(col, uFogCol, vFog);
+      gl_FragColor = vec4(col, a * vAlpha * uAlpha * (1.0 - vFog) * (1.0 - uFade));
+      if (gl_FragColor.a < 0.01) discard;
+    }`;
+  let mesh = null, mat = null, variant = null;
+  function build(key) {
+    if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); mat.dispose(); mesh = null; }
+    variant = key; if (!key || !VARIANTS[key]) return;
+    const V = VARIANTS[key];
+    const pool = V.lines.flatMap(k => segs[k]);
+    const N = V.n, T = V.tail, count = N * T;
+    const A = new Float32Array(count * 3), B = new Float32Array(count * 3), ph = new Float32Array(count), sp = new Float32Array(count), sd = new Float32Array(count), rk = new Float32Array(count), sg = new Float32Array(count), gp = new Float32Array(count);
+    for (let i = 0; i < N; i++) {
+      let g = pool[Math.floor(Math.random() * pool.length)];
+      let a = [g[0], g[1], g[2]], b = [g[3], g[4], g[5]];
+      const vertical = g[0] === g[3] && g[2] === g[5];
+      if (vertical ? (V.down ? a[1] < b[1] : Math.random() < .5) : Math.random() < .5) [a, b] = [b, a];
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+      const ups = V.speed[0] + Math.random() * (V.speed[1] - V.speed[0]);
+      const phase = Math.random(), seed = Math.random() * 1000, gap = 0.2 + Math.random() * 1.2;
+      for (let r = 0; r < T; r++) {
+        const j = i * T + r;
+        A.set(a, j * 3); B.set(b, j * 3); ph[j] = phase; sp[j] = ups / len; sd[j] = seed + r * 0.618; rk[j] = r; sg[j] = V.size * 0.92 / len; gp[j] = gap;
+      }
+    }
+    const geo = new THREE.InstancedBufferGeometry().copy(new THREE.PlaneGeometry(1, 1));
+    geo.instanceCount = count;
+    geo.setAttribute('aA', new THREE.InstancedBufferAttribute(A, 3)); geo.setAttribute('aB', new THREE.InstancedBufferAttribute(B, 3));
+    geo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(ph, 1)); geo.setAttribute('aSpeed', new THREE.InstancedBufferAttribute(sp, 1));
+    geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(sd, 1)); geo.setAttribute('aRank', new THREE.InstancedBufferAttribute(rk, 1));
+    geo.setAttribute('aSpacing', new THREE.InstancedBufferAttribute(sg, 1)); geo.setAttribute('aGap', new THREE.InstancedBufferAttribute(gp, 1));
+    mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false,
+      uniforms: { uTime: { value: 0 }, uSize: { value: V.size }, uScale: { value: 1 }, uTail: { value: T }, uFlicker: { value: V.flicker }, uRight: { value: new THREE.Vector3(1, 0, 0) }, uUp: { value: new THREE.Vector3(0, 1, 0) },
+        uAtlas: { value: atlas }, uCol1: { value: new THREE.Color(V.col[0]) }, uCol2: { value: new THREE.Color(V.col[1]) }, uHead: { value: new THREE.Color(V.head) }, uAlpha: { value: V.alpha * (innerWidth < 700 ? 1.6 : 1) }, uHole: WARP.uHole, uFogK: WARP.uFogK, uFlow: WARP.uFlow, uSink: WARP.uSink, uSwirl: WARP.uSwirl, uR: WARP.uR, uFade: WARP.uFade, uFogCol: WARP.uFogCol } });
+    mesh = new THREE.Mesh(geo, mat); mesh.frustumCulled = false; mesh.renderOrder = 1; scene.add(mesh);
+  }
+  const r = new THREE.Vector3(), u = new THREE.Vector3();
+  function tick(now) {
+    if (!mat) return;
+    mat.uniforms.uTime.value = now / 1000;
+    // keep the glyphs the same size on screen whatever the lens: the phone overview widens to ~90°, which shrank them to dots (Josiah 10-21)
+    mat.uniforms.uScale.value = (innerWidth < 700 ? 1.6 : 1) * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) / Math.tan(THREE.MathUtils.degToRad(BASE_FOV / 2));
+    camera.matrixWorld.extractBasis(r, u, new THREE.Vector3()); mat.uniforms.uRight.value.copy(r); mat.uniforms.uUp.value.copy(u);
+  }
+  return { build, tick, VARIANTS, get variant() { return variant; } };
+})();
+const hashParts = Object.fromEntries(location.hash.slice(1).split('&').map(x => x.includes('=') ? x.split('=') : [x, '1']));
+const CODE_DEFAULT = 'e';                                        // Josiah 10-20: Ghost, 40% smaller
+CODE.build(hashParts.code && hashParts.code !== 'off' ? hashParts.code : CODE_DEFAULT);
+if (hashParts.audition) {
+  const bar = document.createElement('div'); bar.className = 'aud glass';
+  bar.innerHTML = '<span>Code audition</span>' + Object.entries(CODE.VARIANTS).map(([k, v]) => `<button type="button" data-v="${k}">${k.toUpperCase()} · ${v.name}</button>`).join('') + '<button type="button" data-v="off">Off</button>';
+  document.body.append(bar);
+  const sync = () => bar.querySelectorAll('button').forEach(b => b.classList.toggle('on', (CODE.variant || 'off') === b.dataset.v));
+  bar.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; CODE.build(b.dataset.v === 'off' ? null : b.dataset.v); sync();
+    history.replaceState(null, '', '#audition&code=' + b.dataset.v); });
+  sync();
+}
+
+// ---------- cards in the grid ----------
+const tpl = $('cards').content;
+const cards = {};
+const stemMat = new THREE.LineBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: .32 });
+for (const src of tpl.querySelectorAll('.card')) {
+  const id = src.dataset.id, s = SPOTS[id], el = src.cloneNode(true);
+  const holder = document.createElement('div'); holder.className = 'holder'; holder.append(el);
+  const obj = new CSS3DObject(holder);
+  obj.position.set(s.p[0] * G, s.p[1] * G, s.p[2] * G); obj.rotation.y = THREE.MathUtils.degToRad(s.ry);
+  cssScene.add(obj);
+  const base = new THREE.Vector3(obj.position.x, 0, obj.position.z);
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([base, obj.position.clone().setY(0.01)]), stemMat));
+  scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([base.clone(), new THREE.Vector3(obj.position.x, obj.position.y - 320, obj.position.z)]), stemMat));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(22, 27, 48), new THREE.MeshBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: .5, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.copy(base).setY(1); scene.add(ring);
+  cards[id] = { obj, el, ring };
+  el.addEventListener('click', e => {
+    if (moved > 6) return;
+    const v1 = e.target.closest('[data-vid]'); if (v1 && current === id) { openVideo(v1.dataset.vid, v1.dataset.title); return; }
+    const go1 = e.target.closest('[data-go]'); if (go1 && current === id) { go(go1.dataset.go); return; }
+    if (current !== id) go(id);
+  });
+}
+
+// ---------- videos: thumbnails from Vimeo, a player that opens over the grid ----------
+const VIMEO = {};
+function vimeoInfo(v) {
+  if (!VIMEO[v]) VIMEO[v] = fetch('https://vimeo.com/api/oembed.json?width=1280&url=' + encodeURIComponent('https://vimeo.com/' + v)).then(r => r.ok ? r.json() : null).catch(() => null);
+  return VIMEO[v];
+}
+const fmt = s => { s = Math.round(s || 0); return s ? Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') : ''; };
+function hydrate(root) {
+  root.querySelectorAll('[data-vid]').forEach(box => {
+    if (box.dataset.vid.startsWith('file:')) return;
+    vimeoInfo(box.dataset.vid).then(j => {
+      if (!j) return;
+      const dur = box.querySelector('.dur'); if (dur && !dur.textContent) dur.textContent = fmt(j.duration);
+      if (!box.querySelector('img[data-keep]') && j.thumbnail_url) {
+        const img = new Image(); img.className = 'th'; img.alt = ''; img.draggable = false; img.decoding = 'async';
+        img.src = j.thumbnail_url.replace(/_\d+x\d+/, '_1280x720'); img.onload = () => img.classList.add('on');
+        box.prepend(img);
+      }
+    });
+  });
+}
+function openVideo(v, title) {
+  if (window.__radio) __radio.duck(true);
+  if (v.startsWith('file:')) { $('lbframe').innerHTML = `<video src="${v.slice(5)}" controls autoplay playsinline></video>`; const vid = $('lbframe').querySelector('video'); vid.addEventListener('play', () => window.__radio && __radio.duck(true)); vid.addEventListener('pause', () => window.__radio && __radio.duck(false)); vid.addEventListener('ended', () => window.__radio && __radio.duck(false)); $('lbtitle').innerHTML = title; $('lb').hidden = false; $('lbclose').focus(); return; }
+  const [id, h] = v.split('/');
+  const q = new URLSearchParams({ autoplay: '1', title: '0', byline: '0', portrait: '0', dnt: '1', playsinline: '1' }); if (h) q.set('h', h);
+  $('lbframe').innerHTML = `<iframe src="https://player.vimeo.com/video/${id}?${q}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen title="${title.replace(/"/g, '&quot;')}"></iframe>`;
+  $('lbtitle').innerHTML = title; $('lb').hidden = false; $('lbclose').focus();
+}
+// Vimeo's player says when it plays, pauses or ends (its postMessage API), so the radio can follow along
+addEventListener('message', e => {
+  if (e.origin !== 'https://player.vimeo.com') return;
+  let d = e.data; try { if (typeof d === 'string') d = JSON.parse(d); } catch (err) { return; }
+  const fr = $('lbframe').querySelector('iframe'); if (!d || !fr) return;
+  if (d.event === 'ready') for (const ev of ['play', 'pause', 'ended']) fr.contentWindow.postMessage(JSON.stringify({ method: 'addEventListener', value: ev }), 'https://player.vimeo.com');
+  if (!window.__radio) return;
+  if (d.event === 'play') __radio.duck(true);
+  if (d.event === 'pause' || d.event === 'ended') __radio.duck(false);
+});
+function closeVideo() { $('lb').hidden = true; $('lbframe').innerHTML = ''; if (window.__radio) __radio.duck(false); }
+$('lbclose').addEventListener('click', closeVideo);
+$('lb').addEventListener('click', e => { if (e.target === $('lb')) closeVideo(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('lb').hidden) { e.stopImmediatePropagation(); closeVideo(); } }, true);
+for (const k in cards) hydrate(cards[k].el); window.hydrate = hydrate;
+$('listwrap').addEventListener('click', e => { const b = e.target.closest('[data-vid]'); if (b) openVideo(b.dataset.vid, b.dataset.title); });
+
+// ---------- rail ----------
+const rail = $('rail');
+ORDER.forEach((id, i) => { const b = document.createElement('button'); b.type = 'button'; b.dataset.go = id; b.setAttribute('aria-label', cards[id].el.dataset.label); b.innerHTML = `<span>${String(i + 1).padStart(2, '0')} · ${cards[id].el.dataset.label}</span><i></i>`; rail.append(b); });
+
+// ---------- camera ----------
+const cam = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+let yaw = 0, pitch = 0, tYaw = 0, tPitch = 0, current = 'overview', flight = null;
+const pan = { y: 0, cur: 0, max: 0, k: 1 };
+
+function viewFor(id) {
+  if (id === 'overview') return { pos: OVER.pos.clone(), look: OVER.look.clone() };
+  const c = cards[id], o = c.obj;
+  const n = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.rotation.y);
+  const w = c.el.offsetWidth, h = c.el.offsetHeight;
+  const vf = THREE.MathUtils.degToRad(BASE_FOV), t = Math.tan(vf / 2), aspect = innerWidth / innerHeight;
+  const phone = innerWidth < 700;
+  const usableH = 1 - (phone ? 0.26 : 0.2);                              // leave room for the header and the bottom bar
+  const dW = (w / (phone ? 0.94 : 0.78)) / (2 * t * aspect), dH = (h / usableH) / (2 * t);
+  // Crisp text: at distance ONE the card is drawn at exactly its own pixel size (1 world unit = 1 CSS px), so the browser
+  // never resamples it. Use that whenever the card fits; otherwise fall back to fitting it (slightly soft, rare).
+  const ONE = innerHeight / 2 / t;
+  const availH = phone ? innerHeight * usableH : innerHeight - 150;          // header above, control bar below
+  const fitsW = w <= innerWidth * (phone ? 0.97 : 0.92), fitsH = h <= availH;
+  let d = phone ? (fitsW ? ONE : dW) : (fitsW && fitsH ? ONE : Math.max(dW, h / availH * ONE, w / (innerWidth * .92) * ONE));
+  const visH = 2 * t * d * usableH;
+  const panMax = phone && h > visH ? Math.round(h - visH) : 0;
+  const lift = panMax ? Math.round(h / 2 - visH / 2) : 0;
+  // whole-pixel alignment: the card's edges land on pixel boundaries
+  const ox = ((Math.round(innerWidth) - w) & 1) ? .5 : 0, oy = ((Math.round(innerHeight) - h) & 1) ? .5 : 0;
+  const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), o.rotation.y);
+  const off = right.multiplyScalar(ox).add(new THREE.Vector3(0, lift + (phone ? -10 : -6) + oy, 0));
+  const look = o.position.clone().add(off);
+  return { pos: look.clone().addScaledVector(n, d), look, panMax, worldPerPx: d === ONE ? 1 : visH / (innerHeight * usableH) };
+}
+
+// Along grid lines: snap to a node, then height, then x, then z, corners rounded.
+function route(a, b) {
+  const snap = v => new THREE.Vector3(Math.round(v.x / G) * G, Math.round(v.y / G) * G, Math.round(v.z / G) * G);
+  const s = snap(a), e = snap(b), pts = [a.clone(), s], p = s.clone();
+  for (const ax of ['y', 'x', 'z']) if (Math.abs(p[ax] - e[ax]) > 1) { p[ax] = e[ax]; pts.push(p.clone()); }
+  pts.push(b.clone());
+  const P = pts.filter((q, i) => !i || q.distanceTo(pts[i - 1]) > 1), path = new THREE.CurvePath();
+  let from = P[0];
+  for (let i = 1; i < P.length; i++) {
+    const cur = P[i], nx = P[i + 1];
+    if (!nx) { path.add(new THREE.LineCurve3(from, cur)); break; }
+    const r = Math.min(G * 3.2, cur.distanceTo(from) / 2, cur.distanceTo(nx) / 2);
+    const inP = cur.clone().addScaledVector(from.clone().sub(cur).normalize(), r), outP = cur.clone().addScaledVector(nx.clone().sub(cur).normalize(), r);
+    if (inP.distanceTo(from) > .5) path.add(new THREE.LineCurve3(from, inP));
+    path.add(new THREE.QuadraticBezierCurve3(inP, cur, outP)); from = outP;
+  }
+  return path;
+}
+const trailGeo = new THREE.BufferGeometry();
+const trail = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: 0, depthTest: false }));
+trail.renderOrder = 9; scene.add(trail);
+const headMat = new THREE.PointsMaterial({ color: 0x2f5bff, size: 12, sizeAttenuation: false, transparent: true, opacity: 0, depthTest: false });
+const head = new THREE.Points(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3()]), headMat); head.renderOrder = 10; scene.add(head);
+
+const ease = t => t * t * t * (t * (t * 6 - 15) + 10);                 // smootherstep: velocity and acceleration both start and end at zero
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+function eyeNow() { return camera.position.clone(); }
+function lookNow() { const d = new THREE.Vector3(); camera.getWorldDirection(d); return camera.position.clone().addScaledVector(d, Math.max(400, cam.pos.distanceTo(cam.look))); }
+
+function go(id, opt = {}) {
+  if (HOLE.active) return;
+  if (id !== 'overview' && !cards[id]) return;
+  if (id === current && !flight) return;
+  const to = viewFor(id), fromPos = eyeNow(), fromLook = lookNow();
+  tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; mark(null);
+  for (const k in cards) cards[k].obj.element.style.willChange = 'transform';
+  const lens = () => { const f = id === 'overview' ? overFov() : BASE_FOV; if (camera.fov !== f) { camera.fov = f; camera.updateProjectionMatrix(); } };
+  if (still) { cam.pos.copy(to.pos); cam.look.copy(to.look); lens(); arrive(id); return; }
+  // a straight pull-back (end of the tour) flies a straight line instead of following the grid
+  const path = opt.straight ? new THREE.CurvePath() : route(fromPos, to.pos); if (opt.straight) path.add(new THREE.LineCurve3(fromPos, to.pos));
+  const len = path.curves.length ? path.getLength() : 0;
+  if (len < 1) { cam.pos.copy(to.pos); cam.look.copy(to.look); lens(); arrive(id); return; }   // already there: nothing to fly
+  const pts = path.getSpacedPoints(Math.max(60, Math.round(len / 20)));
+  trailGeo.setFromPoints(pts); trailGeo.setDrawRange(0, 0); trail.material.opacity = opt.straight ? 0 : .95; headMat.opacity = opt.straight ? 0 : 1;
+  flight = { path, pts, t0: performance.now(), dur: Math.min(4200, Math.max(1900, 900 + len / 1.45)), fromLook, toLook: to.look, id, fov0: camera.fov, fov1: id === 'overview' ? overFov() : BASE_FOV };
+  current = 'flying'; navState(id);
+}
+function arrive(id) {
+  current = id; flight = null; mark(id); navState(id); headMat.opacity = 0;
+  requestAnimationFrame(() => requestAnimationFrame(() => { for (const k in cards) cards[k].obj.element.style.willChange = 'auto'; }));
+  { const v = viewFor(id); pan.max = v.panMax || 0; pan.k = v.worldPerPx || 1; pan.y = pan.cur = 0; }
+  const t0 = performance.now(), o = trail.material.opacity;
+  const f = () => { const k = Math.min(1, (performance.now() - t0) / 1000); trail.material.opacity = o * (1 - k); if (k < 1) requestAnimationFrame(f); }; f();
+  
+  const i = ORDER.indexOf(id); $('nextbtn').textContent = i === ORDER.length - 1 ? 'Start over ↺' : 'Next ↑';
+  $('backbtn').hidden = id === 'overview';
+}
+function mark(id) { for (const k in cards) cards[k].el.classList.toggle('here', k === id); }
+function navState(id) {
+  const i = ORDER.indexOf(id);
+  document.querySelectorAll('nav.top [data-go]').forEach(b => b.classList.toggle('on', b.dataset.go === id));
+  rail.querySelectorAll('button').forEach((b, j) => { b.classList.toggle('on', j === i); b.classList.toggle('done', i > -1 && j < i); });
+  $('count').textContent = (i < 0 ? '—' : String(i + 1).padStart(2, '0')) + ' / ' + String(ORDER.length).padStart(2, '0');
+}
+function countUp(el) {
+  el.querySelectorAll('[data-count]').forEach(b => { const n = +b.dataset.count, t0 = performance.now(); if (still) return;
+    const f = () => { const k = Math.min(1, (performance.now() - t0) / 900); b.textContent = Math.round(n * ease(k)); if (k < 1) requestAnimationFrame(f); }; b.textContent = 0; f(); });
+}
+const step = (d, opt = {}) => { if (flight || HOLE.active) return; const i = ORDER.indexOf(current); const j = i < 0 ? 0 : i + d; if (j >= ORDER.length) return go('overview', { straight: true }); if (j < 0) return go('overview', { straight: true }); go(ORDER[j], opt); };
+
+// ---------- input: drag looks, scroll / swipe / keys travel ----------
+const el = $('css');
+let down = null, moved = 0, wheelAcc = 0, wheelT = 0;
+el.addEventListener('pointerdown', e => { if (flight || HOLE.active || !$('lb').hidden) return; down = { x: e.clientX, y: e.clientY, yaw: tYaw, pitch: tPitch, pan: pan.y, touch: e.pointerType === 'touch' }; moved = 0; el.classList.add('dragging'); });
+addEventListener('pointermove', e => {
+  if (!down) return;
+  const dx = e.clientX - down.x, dy = e.clientY - down.y; moved = Math.max(moved, Math.hypot(dx, dy));
+  const k = 0.16, lim = current === 'overview' ? 40 : 24;
+  if (!down.touch) tYaw = THREE.MathUtils.clamp(down.yaw + dx * k, -lim, lim);   // touch swipes never turn the camera (phone keeps the desktop's centred framing)                 // inverted (Josiah 10-20): drag right looks right
+  if (!down.touch) tPitch = THREE.MathUtils.clamp(down.pitch - dy * k * .7, -16, 14);
+  else if (pan.max && Math.abs(dy) > Math.abs(dx)) { pan.y = Math.round(THREE.MathUtils.clamp(down.pan - dy * pan.k, 0, pan.max)); tYaw = down.yaw; }
+  if (moved > 6) hideHint();
+});
+addEventListener('pointerup', e => {
+  if (down && down.touch) {
+    const dx = e.clientX - down.x, dy = e.clientY - down.y;
+    if (Math.abs(dy) > 60 && Math.abs(dy) > Math.abs(dx) * 1.3) {
+      const atEnd = !pan.max || (dy < 0 ? down.pan >= pan.max - 1 : down.pan <= 1);   // only travel once the card has been read to its end
+      if (atEnd) step(dy < 0 ? 1 : -1);
+    }
+  }
+  down = null; el.classList.remove('dragging');
+});
+addEventListener('pointercancel', () => { down = null; el.classList.remove('dragging'); });
+addEventListener('wheel', e => {
+  if (!$('list').hidden || HOLE.active || !$('lb').hidden) return; e.preventDefault();
+  const now = performance.now(); if (now - wheelT > 500) wheelAcc = 0; wheelT = now; wheelAcc += e.deltaY;
+  if (pan.max && !flight) { const ny = Math.round(THREE.MathUtils.clamp(pan.y + e.deltaY * pan.k, 0, pan.max)); const used = ny !== pan.y; pan.y = ny; if (used) { wheelAcc = 0; return; } }
+  if (Math.abs(wheelAcc) > 60 && !flight) { step(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; hideHint(); }
+}, { passive: false });
+addEventListener('keydown', e => {
+  if (!$('list').hidden || HOLE.active || !$('lb').hidden) return;
+  if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); step(1); }
+  if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); }
+  if (e.key === 'Escape') go('overview');
+});
+function hideHint() { $('hint').style.opacity = 0; }
+document.querySelectorAll('header [data-go], #rail [data-go]').forEach(b => b.addEventListener('click', () => { closeList(); go(b.dataset.go); }));
+// Back: the previous stop, the camera pulling straight back along a line (no grid route); from the intro it pulls back to the bird's-eye view
+$('backbtn').addEventListener('click', () => step(-1, { straight: true }));
+$('nextbtn').addEventListener('click', () => { if (innerWidth > 700 && pan.max && pan.y < pan.max - 1) {   // phones (Josiah 10-21): Next always goes straight to the next stop
+  pan.y = Math.round(Math.min(pan.max, pan.y + innerHeight * 0.6 * pan.k)); return; } step(1); });
+$('listbtn').addEventListener('click', () => $('list').hidden ? openList() : closeList());
+$('backto3d').addEventListener('click', closeList);
+$('birdbtn').addEventListener('click', () => { closeList(); go('overview'); });
+function openList() { buildList(); $('list').hidden = false; $('listbtn').textContent = '3D view'; $('nextbtn').hidden = true; }
+function closeList() { $('list').hidden = true; $('listbtn').textContent = 'List view'; $('nextbtn').hidden = false; }
+
+// The control bar sits just under whichever card we are at; between cards it rests at the bottom of the screen.
+const radioEl = document.getElementById('radio'), ctlEl = document.querySelector('.ctl'), ctlPos = { x: innerWidth / 2, y: innerHeight - 60, set: false };
+const ndc = new THREE.Vector3();
+function placeCtl(dt) {
+  const w = ctlEl.offsetWidth, h = ctlEl.offsetHeight, m = 14, bottom = innerHeight - h - m - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab')) || 0);
+  let x = innerWidth / 2, y = bottom;
+  const c = cards[current];
+  if (c && !flight) {
+    const eh = c.el.offsetHeight;
+    ndc.set(0, -eh / 2, 0); c.obj.localToWorld(ndc); ndc.project(camera);
+    if (ndc.z < 1) { x = (ndc.x + 1) / 2 * innerWidth; y = (1 - ndc.y) / 2 * innerHeight + 18 + pan.cur * 0; }
+    // keep it on screen
+    y = Math.min(y, bottom); y = Math.max(y, 70);
+    x = Math.min(Math.max(x, w / 2 + m), innerWidth - w / 2 - m);
+  }
+  const k = ctlPos.set ? 1 - Math.exp(-dt * 10) : 1; ctlPos.set = true;
+  ctlPos.x += (x - ctlPos.x) * k; ctlPos.y += (y - ctlPos.y) * k;
+  if (innerWidth <= 620) {
+    // phones: globe + bar travel as one centred group, the globe on the left
+    const rw = radioEl.offsetWidth, rh = radioEl.offsetHeight, gap = innerWidth <= 380 ? 10 : 12, left = Math.min(Math.max(ctlPos.x - (rw + gap + w) / 2, 10), innerWidth - rw - gap - w - 10);
+    radioEl.style.transform = `translate(${left.toFixed(1)}px, ${(ctlPos.y + (h - rh) / 2).toFixed(1)}px)`;
+    ctlEl.style.transform = `translate(${(left + rw + gap).toFixed(1)}px, ${ctlPos.y.toFixed(1)}px)`;
+  } else {
+    if (radioEl.style.transform) radioEl.style.transform = '';
+    ctlEl.style.transform = `translate(${(ctlPos.x - w / 2).toFixed(1)}px, ${ctlPos.y.toFixed(1)}px)`;
+  }
+}
+
+// ---------- the black hole: a 20 s end of the fabric, and its recreation ----------
+const QA_NOSTRETCH = /nostretch/.test(location.hash), QA_NOFLOW = /noflow/.test(location.hash);
+const BLACKHOLE_ON = /blackhole/.test(location.hash);                // shelved 10-20: only with #blackhole in the address
+const HOLE = (() => {
+  const el = $('hole'), tip = $('holetip'), voidEl = $('void');
+  const DUR = 20000, BACK = 6500;
+  const st = { t: 0, dir: 0, active: false, ended: false, homes: null, radius: 1.1 * G };
+  const base = new THREE.Vector3(0, 0, -13 * G);
+  const E = x => Math.min(1, Math.max(0, x)), S3 = (a, b, x) => { const t = E((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+  const vis = () => BLACKHOLE_ON && ((current === 'overview' && !flight) || st.active || st.ended);
+  function start() { if (st.active || st.ended) return; st.active = true; st.dir = 1; st.t0 = performance.now() - st.t * DUR; el.classList.add('busy'); document.body.classList.add('ending'); st.homes = {}; for (const k in cards) st.homes[k] = { p: cards[k].obj.position.clone(), r: cards[k].obj.rotation.y }; }
+  function recreate() { if (!st.ended) return; st.ended = false; st.active = true; st.dir = -1; st.t0 = performance.now() - (1 - st.t) * BACK; el.classList.add('busy'); el.classList.remove('orb'); tip.textContent = 'Do not click this unless you are okay with the end.'; }
+  el.addEventListener('click', () => st.ended ? recreate() : start());
+  function apply(t) {
+    const sink = 5 * G * S3(0, .3, t) + 2.5 * G * S3(.3, .7, t);
+    const flow = QA_NOFLOW ? 0 : 33.5 * G * Math.pow(S3(.3, .97, t), 1.9);                       // how far the fabric has been drawn into the hole
+    WARP.uSink.value = sink; WARP.uFlow.value = flow; WARP.uSwirl.value = 5 * S3(.3, .95, t);
+    WARP.uR.value = THREE.MathUtils.lerp(2.5 * G, 7 * G, S3(0, .3, t)) + 13 * G * S3(.3, .9, t);
+    WARP.uHole.value.set(base.x, -sink * .55, base.z);
+    WARP.uStress.value = S3(0, .35, t);
+    WARP.uFade.value = S3(.95, 1, t);
+    // the white drains into the hole; black takes its place from the edges in
+    const black = S3(.45, .82, t), col = new THREE.Color(0xf6f7f9).lerp(new THREE.Color(0x000000), S3(.5, .85, t));
+    WARP.uFogCol.value.copy(col);
+    const pr = project(WARP.uHole.value), R = (1 - black) * 170;
+    voidEl.style.background = black > 0 ? `radial-gradient(circle at ${pr.x.toFixed(1)}px ${pr.y.toFixed(1)}px, #f6f7f9 0, #f6f7f9 ${(R * .55).toFixed(1)}vmax, #000 ${R.toFixed(1)}vmax)` : '';
+    document.body.style.setProperty('--glow', 1 - S3(.35, .7, t));
+    // the story panels: pulled in and down, nearest first, then gone
+    const ids = Object.keys(cards).sort((a, b) => st.homes[a].p.distanceTo(base) - st.homes[b].p.distanceTo(base));
+    ids.forEach((k, i) => {
+      const c = cards[k], h = st.homes[k], s0 = .2 + i * .09, e = S3(s0, s0 + .3, t);
+      // the panel rides its own line: the same warp the fabric gets, plus its own extra slide in once its turn comes
+      const wp = warpJS(h.p), pos = wp.p.clone().lerp(WARP.uHole.value.clone().add(new THREE.Vector3(0, 60, 0)), e * e * .9);
+      c.obj.position.copy(pos); c.obj.rotation.set(0, h.r, 0); c.obj.scale.setScalar(1);
+      // stretched toward the hole, text and all: scale along the hole's direction in the panel's own plane, no rotation
+      const lh = c.obj.worldToLocal(WARP.uHole.value.clone()); const a = Math.atan2(-lh.y, lh.x);
+      // pulled like a noodle: the edge away from the hole stays put, the panel lengthens toward the hole and thins
+      const k1 = 1 + 1.6 * S3(0, .8, e), k2 = 1 - .55 * S3(0, 1, e);
+      const ox = 50 - 50 * Math.cos(a), oy = 50 - 50 * Math.sin(a);
+      c.el.style.transformOrigin = `${ox.toFixed(1)}% ${oy.toFixed(1)}%`;
+      c.el.style.transform = e > 0 && !QA_NOSTRETCH ? `rotate(${a}rad) scale(${k1.toFixed(3)}, ${k2.toFixed(3)}) rotate(${-a}rad)` : '';
+      const gone = Math.min(1, Math.hypot(pos.x - WARP.uHole.value.x, pos.z - WARP.uHole.value.z) / (2.2 * G));
+      c.el.style.opacity = Math.min(gone, 1 - S3(.8, 1, e), wp.eat).toFixed(3); c.el.style.pointerEvents = e > 0 ? 'none' : '';
+      c.ring.material.opacity = .5 * (1 - e);
+    });
+    stemMat.opacity = .32 * (1 - S3(.2, .6, t));
+    // the camera leans in a little
+    // the camera is locked on the bird's-eye view
+    const v = viewFor('overview'); cam.pos.copy(v.pos); cam.look.copy(v.look);
+    st.radius = (1.1 + 1.3 * S3(0, .6, t)) * G;
+  }
+  function warpJS(p) {
+    const H = WARP.uHole.value, dx = p.x - H.x, dz = p.z - H.z, r = Math.hypot(dx, dz) + .001, ux = dx / r, uz = dz / r;
+    let nr = Math.max(r - WARP.uFlow.value, 0); const q = nr / WARP.uR.value, well = 1 / Math.sqrt(1 + q * q), w = 1 / (1 + q * q);
+    const ang = WARP.uSwirl.value * w, rx = Math.cos(ang) * ux - Math.sin(ang) * uz, rz = Math.sin(ang) * ux + Math.cos(ang) * uz;
+    nr = Math.max(nr - WARP.uSink.value * .35 * well, 0);
+    const eat = S3(0, 220, nr); let y = p.y - WARP.uSink.value * well; y = THREE.MathUtils.lerp(H.y - 40, y, eat);
+    return { p: new THREE.Vector3(H.x + rx * nr, y, H.z + rz * nr), eat };
+  }
+  const _v = new THREE.Vector3();
+  function project(p) { _v.copy(p).project(camera); return { x: (_v.x + 1) / 2 * innerWidth, y: (1 - _v.y) / 2 * innerHeight, z: _v.z }; }
+  function place() {
+    const show = vis(); el.hidden = !show; if (!show) return;
+    const c = project(WARP.uHole.value), edge = project(WARP.uHole.value.clone().add(new THREE.Vector3(st.radius, 0, 0)));
+    const px = Math.max(26, Math.min(220, Math.hypot(edge.x - c.x, edge.y - c.y) * 2));
+    el.style.width = el.style.height = px + 'px'; el.style.margin = `-${px / 2}px 0 0 -${px / 2}px`;
+    el.style.transform = `translate(${c.x.toFixed(1)}px, ${c.y.toFixed(1)}px)`;
+  }
+  function tick(now, dt) {
+    if (st.active) {
+      st.t = st.dir > 0 ? E((now - st.t0) / DUR) : E(1 - (now - st.t0) / BACK);
+      apply(st.t);
+      if (st.dir > 0 && st.t >= 1) { st.active = false; st.ended = true; el.classList.remove('busy'); el.classList.add('orb'); tip.textContent = 'Click to recreate the fabric of space time'; current = 'overview'; }
+      if (st.dir < 0 && st.t <= 0) { st.active = false; el.classList.remove('busy'); document.body.classList.remove('ending'); voidEl.style.background = ''; for (const k in cards) { const c = cards[k], h = st.homes[k]; c.obj.position.copy(h.p); c.obj.rotation.set(0, h.r, 0); c.obj.scale.setScalar(1); c.el.style.opacity = ''; c.el.style.pointerEvents = ''; c.el.style.transform = ''; c.ring.material.opacity = .5; } stemMat.opacity = .32; WARP.uFogCol.value.set(0xf6f7f9); const v = viewFor('overview'); cam.pos.copy(v.pos); cam.look.copy(v.look); navState('overview'); }
+    }
+    place();
+  }
+  // QA: freeze the sequence at a given moment (0–1)
+  function scrub(t) { if (!st.homes) { st.homes = {}; for (const k in cards) st.homes[k] = { p: cards[k].obj.position.clone(), r: cards[k].obj.rotation.y }; } st.active = false; document.body.classList.add('ending'); st.t = t; apply(t); }
+  return { tick, get active() { return st.active; }, get ended() { return st.ended; }, start, recreate, scrub, get t() { return st.t; } };
+})();
+
+// ---------- frame loop ----------
+const up = new THREE.Vector3(0, 1, 0), tmp = new THREE.Vector3();
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (flight) {
+    // rAF timestamps can predate the click that started the flight, so k is clamped at 0 (a negative t falls off the path)
+    const k = Math.min(1, Math.max(0, (now - flight.t0) / flight.dur)), t = ease(k);
+    const tt = Math.min(t, .9995), p = flight.path.getPointAt(tt) || flight.path.getPointAt(0), tan = flight.path.getTangentAt(Math.min(.999, tt + .01));
+    // the look direction turns once, on the same curve as the motion, so nothing jolts at corners
+    const look = flight.fromLook.clone().lerp(flight.toLook, ease(Math.min(1, k / .9)));
+    cam.pos.copy(p); cam.look.copy(look);
+    if (flight.fov0 != null && flight.fov0 !== flight.fov1) { camera.fov = flight.fov0 + (flight.fov1 - flight.fov0) * ease(k); camera.updateProjectionMatrix(); }
+    trailGeo.setDrawRange(0, Math.max(2, Math.round(flight.pts.length * t)));
+    if (trail.material.opacity > 0) headMat.opacity = smooth(0, .08, k) * (1 - smooth(.8, .95, k)); { const hp = flight.path.getPointAt(Math.min(.9995, tt + .06)); if (hp) head.position.copy(hp); }
+    if (k >= 1) { const v = viewFor(flight.id); cam.pos.copy(v.pos); cam.look.copy(v.look); if (flight.fov1 != null && camera.fov !== flight.fov1) { camera.fov = flight.fov1; camera.updateProjectionMatrix(); } arrive(flight.id); }
+  }
+  { const k = 1 - Math.exp(-dt * 8); yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k; }
+  if (Math.abs(tYaw - yaw) < .004) yaw = tYaw; if (Math.abs(tPitch - pitch) < .004) pitch = tPitch;
+  const dir = cam.look.clone().sub(cam.pos), dist = dir.length(); dir.normalize();
+  const right = new THREE.Vector3().crossVectors(dir, up).normalize();
+  dir.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(right, THREE.MathUtils.degToRad(-pitch))).applyQuaternion(new THREE.Quaternion().setFromAxisAngle(up, THREE.MathUtils.degToRad(yaw)));
+  pan.cur += (pan.y - pan.cur) * (1 - Math.exp(-dt * 14));
+  if (Math.abs(pan.y - pan.cur) < .05) pan.cur = pan.y;
+  camera.position.copy(cam.pos).addScaledVector(right, -yaw * 8).addScaledVector(up, pitch * 6 - pan.cur);
+  camera.lookAt(tmp.copy(camera.position).addScaledVector(dir, dist));
+  // ground rings breathe gently
+  const s = 1 + Math.sin(now / 700) * .06; for (const k in cards) cards[k].ring.scale.setScalar(k === current ? s * 1.25 : 1);
+  placeCtl(dt); CODE.tick(now); HOLE.tick(now, dt);
+  gl.render(scene, camera); css.render(cssScene, camera);
+  requestAnimationFrame(frame);
+}
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  camera.aspect = w / h; camera.fov = (current === 'overview' || current === 'flying') ? overFov() : BASE_FOV; camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
+  gl.setSize(w, h, false); css.setSize(w, h); setOverview();
+  if (!flight) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
+}
+addEventListener('resize', resize); resize();
+cam.pos.copy(OVER.pos); cam.look.copy(OVER.look);
+requestAnimationFrame(frame);
+// Opening move: a beat on the whole grid, then the camera travels in to the intro.
+const startAt = hashParts.at || (cards[location.hash.slice(1)] ? location.hash.slice(1) : '');
+// Opening: the grid fades in, then the stops (one after another, in tour order), then the camera travels in.
+{
+  const first = cards[startAt] ? startAt : 'hero', body = document.body;
+  if (still) { body.classList.remove('intro', 'intro-c'); go(first); }
+  else {
+    requestAnimationFrame(() => requestAnimationFrame(() => { body.classList.add('intro-c'); body.classList.remove('intro'); }));
+    setTimeout(() => {
+      ORDER.forEach((k, i) => { cards[k].el.style.transitionDelay = i * 120 + 'ms'; });
+      body.classList.remove('intro-c');
+      setTimeout(() => { for (const k in cards) cards[k].el.style.transitionDelay = ''; }, 2200);
+    }, 1400);
+    setTimeout(() => go(first), 2500);
+  }
+}
+// headline auditions: #h=1..4 (Portfolio selects), #k=1..4 (intro); combine with &
+const AUD = {
+  k: ['.heroh', ['Corporate video with a soft spot for <span class="grad">fintech and SaaS.</span>', 'Corporate video, fluent in <span class="grad">fintech and SaaS.</span>', 'Corporate video, at home in <span class="grad">fintech and SaaS.</span>', 'Corporate video with a weakness for <span class="grad">fintech and SaaS.</span>']],
+};
+function selHead() { for (const key in AUD) { const m = location.hash.match(new RegExp('(?:^#|&)' + key + '=(\\d)')), [sel, list] = AUD[key]; if (m && list[m[1] - 1]) document.querySelectorAll(sel).forEach(el => { el.innerHTML = list[m[1] - 1]; }); } }
+selHead(); addEventListener('hashchange', selHead);
+// ---------- Start a project: email form ----------
+// The card grows downward (its top stays put while the form unfolds), then the camera settles on the taller card.
+function refit(id) {
+  if (flight || current !== id) return;
+  const to = viewFor(id), from = eyeNow(), path = new THREE.CurvePath(); path.add(new THREE.LineCurve3(from, to.pos));
+  if (path.getLength() < 1 && lookNow().distanceTo(to.look) < 1) { arrive(id); return; }
+  const pts = [from.clone(), to.pos.clone()]; trailGeo.setFromPoints(pts); trail.material.opacity = 0; headMat.opacity = 0;
+  flight = { path, pts, t0: performance.now(), dur: 700, fromLook: cam.look.clone(), toLook: to.look, id }; current = 'flying';
+}
+function wireMail(root, c, k) {
+  const MAILTO = 'walkermotionpictures@gmail.com', ENDPOINT = 'https://formspree.io/f/xeaebrzk';   // Josiah's Walker Motion Pictures Formspree form (10-20); local because List view (no WebGL) wires this before the module finishes
+  const box = root.querySelector('[data-mailbox]'); if (!box) return;
+  const btn = root.querySelector('[data-mailopen]'), form = box.querySelector('form'), stat = form.querySelector('.mstat');
+  // h0 = the card's height with the form closed, measured when it opens; until then the card stays exactly on its spot
+  let h0 = null; const y0 = c ? c.obj.position.y : 0;
+  if (c) {
+    new ResizeObserver(() => { if (h0 != null) c.obj.position.y = y0 - Math.max(0, c.el.offsetHeight - h0) / 2; }).observe(c.el);
+    addEventListener('resize', () => { if (!box.classList.contains('open')) { h0 = null; c.obj.position.y = y0; } });
+    box.addEventListener('transitionend', e => { if (e.target === box) refit(k); });
+  }
+  btn.addEventListener('click', e => {
+    e.stopPropagation(); if (c && current !== k) { go(k); return; }
+    const open = !box.classList.contains('open'); if (c && open && h0 == null) h0 = c.el.offsetHeight - (box.offsetHeight || 0);
+    box.classList.toggle('open', open); btn.setAttribute('aria-expanded', open);
+    btn.textContent = open ? 'Close' : 'Email the studio';
+    if (open) setTimeout(() => form.elements.name.focus({ preventScroll: !!c }), 450);
+  });
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); const f = form.elements; let ok = true;
+    for (const n of ['name', 'email', 'message']) { const bad = !f[n].value.trim() || (n === 'email' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f[n].value.trim())); f[n].classList.toggle('bad', bad); if (bad && ok) { ok = false; f[n].focus({ preventScroll: !!c }); } }
+    if (!ok) { stat.textContent = 'Name, email and a line about the project, please.'; return; }
+    if (f._gotcha.value) return;
+    const send = form.querySelector('[type=submit]'); send.disabled = true; stat.textContent = 'Sending…';
+    const body = { name: f.name.value.trim(), email: f.email.value.trim(), company: f.company.value.trim(), message: f.message.value.trim(), _subject: 'Project inquiry · ' + (f.company.value.trim() || f.name.value.trim()) };
+    const mail = `mailto:${MAILTO}?subject=${encodeURIComponent(body._subject)}&body=${encodeURIComponent(body.message + '\n\n' + body.name + (body.company ? ', ' + body.company : '') + '\n' + body.email)}`;
+    try {
+      // Formspree: the field named email becomes the reply-to; _subject sets the subject line
+      const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body) });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { form.reset(); stat.textContent = 'Sent. A reply goes to ' + body.email + '.'; }
+      else if (j.errors && j.errors.length) { stat.textContent = j.errors.map(x => x.message).join(' '); for (const x of j.errors) if (x.field && f[x.field]) f[x.field].classList.add('bad'); }
+      else throw new Error(r.status);
+    } catch (err) { stat.innerHTML = `Didn’t go through. <a href="${mail}">Send it from your email app</a> instead.`; }
+    send.disabled = false;
+  });
+  if (c) {   // in 3D: typing must not drive the camera, and focusing a field must not scroll the 3D layer
+    form.addEventListener('keydown', e => e.stopPropagation());
+    form.addEventListener('pointerdown', e => e.stopPropagation());
+    form.addEventListener('focusin', () => requestAnimationFrame(() => { for (let n = form; n; n = n.parentElement) { n.scrollTop = 0; n.scrollLeft = 0; } scrollTo(0, 0); }));
+  }
+}
+for (const k in cards) wireMail(cards[k].el, cards[k], k);
+// ---------- radio globe: Radio Garden stations (with Radio Garden's OK, Josiah 10-20) ----------
+// On load the globe spins itself, lands on a station and plays it; each click spins to a different one (2 s to a dead stop).
+// Old music only (Josiah 10-20): each visit pulls popular stations tagged oldies / 30s–70s / swing / big band / doo-wop /
+// Motown / rock 'n' roll from Radio Browser's open directory (radio-browser.info), keeps 10 from far-apart places, and deals
+// them from a shuffled deck so none repeats until all ten have played. Stations that fail are set aside for the visit.
+(() => {
+  let deck = [];
+  const RB = ['https://de1.api.radio-browser.info', 'https://fi1.api.radio-browser.info', 'https://de2.api.radio-browser.info', 'https://nl1.api.radio-browser.info'];
+  const TAGS = ['oldies', '60s', '50s', '70s', '40s', '30s', 'swing', 'big band', 'doo wop', 'motown', "rock'n'roll", 'golden oldies'];
+  const FALLBACK = [   // vintage streams used only if the directory can't be reached
+    { title: 'SomaFM Seven Inch Soul', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/7soul-128-mp3' },
+    { title: 'SomaFM Secret Agent', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/secretagent-128-mp3' },
+    { title: 'SomaFM Left Coast 70s', place: 'San Francisco', country: 'United States', geo: [-122.42, 37.77], src: 'https://ice2.somafm.com/seventies-128-mp3' },
+    { title: 'Radio Swiss Jazz', place: 'Basel', country: 'Switzerland', geo: [7.59, 47.56], src: 'https://stream.srg-ssr.ch/srgssr/rsj/mp3/128' },
+    { title: 'WWOZ 90.7', place: 'New Orleans', country: 'United States', geo: [-90.07, 29.95], src: 'https://wwoz-sc.streamguys1.com/wwoz-hi.mp3' },
+  ];
+  let STATIONS = FALLBACK.slice();
+  const km = (a, b) => { const r = Math.PI / 180, dLa = (b[1] - a[1]) * r, dLo = (b[0] - a[0]) * r; const h = Math.sin(dLa / 2) ** 2 + Math.cos(a[1] * r) * Math.cos(b[1] * r) * Math.sin(dLo / 2) ** 2; return 12742 * Math.asin(Math.sqrt(h)); };
+  async function rb(path) { for (const host of RB) { try { const r = await fetch(host + path); if (r.ok) return { host, data: await r.json() }; } catch (e) {} } throw new Error('Radio Browser unreachable'); }
+  let RBHOST = null;
+  // the first spin of every visit lands on Chili Radio, Chiang Mai (Josiah 10-21); looked up by name so its stream address stays current
+  const toStation = x => ({ title: (x.name || 'Radio').trim().replace(/\s+/g, ' ').slice(0, 48), place: (x.state || '').trim(), country: (x.country || '').trim(), geo: [+x.geo_long, +x.geo_lat], src: x.url_resolved || x.url || '', uuid: x.stationuuid, clicks: x.clickcount || 0 });
+  const playable = x => { const url = x.url_resolved || x.url || '', codec = (x.codec || '').toUpperCase(); return /^https:/.test(url) && !/\.m3u8|\.pls|\.m3u(\?|$)/i.test(url) && /^(MP3|AAC|AAC\+|OGG)$/.test(codec); };
+  const FIRST = rb('/json/stations/byname/' + encodeURIComponent('Chili Radio') + '?hidebroken=true').then(x => {
+    RBHOST = RBHOST || x.host;
+    const hit = (x.data || []).filter(y => /thai/i.test(y.country || '') && playable(y)).sort((a, b) => (b.clickcount || 0) - (a.clickcount || 0))[0];
+    if (!hit) return null;
+    const st = toStation(hit); if (!st.place) st.place = 'Chiang Mai';
+    if (!(st.geo[0] || st.geo[1]) || isNaN(st.geo[0])) st.geo = [98.98, 18.79];   // Chiang Mai, if the directory has no map spot for it
+    return st;
+  }).catch(() => null);
+  const directory = (async () => {
+    const lists = await Promise.all(TAGS.map(t => rb('/json/stations/search?' + new URLSearchParams({ tag: t, has_geo_info: 'true', is_https: 'true', hidebroken: 'true', order: 'clickcount', reverse: 'true', limit: '80' })).then(x => { RBHOST = RBHOST || x.host; return x.data; }).catch(() => [])));
+    const seen = new Set(), all = [];
+    for (const list of lists) for (const x of list) {
+      const url = x.url_resolved || x.url || '', codec = (x.codec || '').toUpperCase();
+      if (seen.has(x.stationuuid) || !/^https:/.test(url) || /\.m3u8|\.pls|\.m3u(\?|$)/i.test(url) || !/^(MP3|AAC|AAC\+|OGG)$/.test(codec) || x.geo_lat == null || x.geo_long == null) continue;
+      seen.add(x.stationuuid);
+      all.push({ title: (x.name || 'Radio').trim().replace(/\s+/g, ' ').slice(0, 48), place: (x.state || '').trim(), country: (x.country || '').trim(), geo: [+x.geo_long, +x.geo_lat], src: url, uuid: x.stationuuid, clicks: x.clickcount || 0 });
+    }
+    if (all.length < 4) return;
+    // ten from far-apart places: popular first, with a little shuffle so each visit differs
+    for (const x of all) x.score = x.clicks * (0.6 + Math.random() * 0.8);
+    all.sort((a, b) => b.score - a.score);
+    const out = [];
+    for (const minKm of [1500, 700, 250, 0]) { for (const x of all) { if (out.length >= 10) break; if (out.includes(x)) continue; if (out.every(o => km(o.geo, x.geo) >= minKm && (minKm < 700 || o.country !== x.country || out.length > 6))) out.push(x); } if (out.length >= 10) break; }
+    STATIONS = out; deck = [];
+  })().catch(() => {});
+  const box = $('radio'), cv = $('globecv'), st = $('rst'), pl = $('rpl'), playBtn = $('rplay'), knob = $('rvol');
+  let peekT = 0; const peek = ms => { box.classList.add('peek'); clearTimeout(peekT); if (ms) peekT = setTimeout(() => box.classList.remove('peek'), ms); };
+  // Two players. aW runs through Web Audio, where a gain node does the fades, and that works on iPhones too, which ignore an
+  // audio element's own volume. Web Audio only hears a stream whose server allows it (CORS), so a station that doesn't
+  // plays on aP, the plain player, where the fades go through its volume (computers and Android).
+  const aW = new Audio(), aP = new Audio(); aW.preload = aP.preload = 'none'; aW.crossOrigin = 'anonymous';
+  let audio = aP, actx = null, gainN = null, plainFor = null;
+  // iPhones lock an audio element's volume (set it to 0.5 and it reads back 1). There, a station only fades if it can run
+  // through Web Audio, so on a locked device the globe passes over stations that refuse Web Audio and keeps spinning
+  // until it lands on one that fades (Josiah 10-21). Unlocked devices fade either player and keep every station.
+  const VOL_LOCKED = /[#&]ioslock/.test(location.hash) || (() => { try { const t = new Audio(); t.volume = .5; return t.volume === 1; } catch (e) { return false; } })();   // #ioslock: QA stand-in for an iPhone
+  let waLive = false;   // true once Web Audio was started inside a real click or tap (anywhere else it would start muted)
+  const graph = () => { waLive = true; if (actx) { if (actx.state === 'suspended') actx.resume().catch(() => {}); return; }
+    try { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); gainN = actx.createGain(); gainN.gain.value = 0; actx.createMediaElementSource(aW).connect(gainN).connect(actx.destination); } catch (e) { actx = null; gainN = null; } };
+  const level = () => audio === aW && gainN ? gainN.gain.value : audio.volume;
+  const setLevel = v => { if (audio === aW && gainN) { gainN.gain.value = v; aW.volume = 1; } else audio.volume = v; };
+  const load = src => { const useW = !!gainN && waLive && plainFor !== src; const next = useW ? aW : aP, other = useW ? aP : aW; if (!other.paused) other.pause(); other.removeAttribute('src'); audio = next; audio.src = src; };
+  let vol = .7, userPaused = false, ducked = false, current = null, spinning = false, wantPlay = false, tries = 0;
+  try { const v = parseFloat(localStorage.getItem('wmp-radio-vol')); if (v >= 0 && v <= 1) vol = v; } catch (e) {}
+  aP.volume = vol;
+
+  // --- the globe (style A, Josiah 10-20): shaded white sphere, blue coastlines (Natural Earth, public domain), faint lat/long lattice
+  const R = new THREE.WebGLRenderer({ canvas: cv, alpha: true, antialias: true });
+  R.setPixelRatio(1); R.setSize(260, 260, false);
+  const S = new THREE.Scene(), C = new THREE.PerspectiveCamera(30, 1, .1, 10); C.position.set(0, 0, 4.15);
+  S.add(new THREE.AmbientLight(0xffffff, 2.1)); { const d = new THREE.DirectionalLight(0xffffff, 1.5); d.position.set(-2, 2.5, 3); S.add(d); }   // r160 light units
+  const G0 = new THREE.Group(); S.add(G0);
+  G0.add(new THREE.Mesh(new THREE.SphereGeometry(.99, 64, 48), new THREE.MeshLambertMaterial({ color: 0xffffff })));
+  const ll = (lat, lng, r = 1) => { const ph = (90 - lat) * Math.PI / 180, th = (lng + 180) * Math.PI / 180; return new THREE.Vector3(-r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)); };
+  const gridMat = new THREE.LineBasicMaterial({ color: 0x9fb2e6, transparent: true, opacity: .45 });
+  for (let lat = -60; lat <= 60; lat += 30) { const pts = []; for (let lng = -180; lng <= 180; lng += 4) pts.push(ll(lat, lng, 1.002)); G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat)); }
+  for (let lng = -180; lng < 180; lng += 30) { const pts = []; for (let lat = -90; lat <= 90; lat += 4) pts.push(ll(lat, lng, 1.002)); G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), gridMat)); }
+  const landMat = new THREE.LineBasicMaterial({ color: 0x2f5bff, transparent: true, opacity: .95 });
+  fetch('land.json').then(r => r.json()).then(j => { for (const ring of j.rings) G0.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(ring.map(([x, y]) => ll(y, x, 1.003))), landMat)); }).catch(() => {});
+  const pin = new THREE.Mesh(new THREE.SphereGeometry(.035, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff4d6d }));
+  pin.visible = false; G0.add(pin);
+  G0.rotation.set(.35, 0, 0);
+
+  // --- spin: an ease-out over 2 s so it whips round and settles to a full stop with the place facing you
+  let spin = null;
+  const easeOut = t => 1 - Math.pow(1 - t, 4);
+  function spinTo(place) {
+    const v = ll(place.geo[1], place.geo[0]);
+    const yaw = Math.atan2(-v.x, v.z), lat = place.geo[1] * Math.PI / 180 * .85;    // a little less than the full latitude keeps the poles in view
+    const y0 = G0.rotation.y; let y1 = yaw; while (y1 < y0 + Math.PI * 4) y1 += Math.PI * 2;
+    spin = { t0: performance.now(), dur: 2000, y0, y1, x0: G0.rotation.x, x1: lat, place };
+    pin.visible = false; spinning = true;
+  }
+  let lastT = performance.now();
+  function loop(now) {
+    const dt = Math.min(.05, (now - lastT) / 1000); lastT = now;
+    if (spin) {
+      const k = Math.min(1, (now - spin.t0) / spin.dur), e = easeOut(k);
+      G0.rotation.y = spin.y0 + (spin.y1 - spin.y0) * e; G0.rotation.x = spin.x0 + (spin.x1 - spin.x0) * (k * k * (3 - 2 * k));
+      if (k >= 1) { const p = spin.place; spin = null; spinning = false; landed(p); }
+    } else if (!current) G0.rotation.y += dt * .25;                                // idle drift until the first station lands
+    if (pin.visible) pin.scale.setScalar(1 + Math.sin(now / 220) * .25);
+    R.render(S, C); requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // --- the deck: a shuffled pass through all ten, never the same station twice in a row
+  // a station that fails to play is set aside for the rest of the visit, so the deck only deals ones that work
+  let last = null; const dead = new Set();
+  const draw = () => {
+    const live = STATIONS.filter(x => !dead.has(x)), pool = live.length ? live : STATIONS;
+    deck = deck.filter(x => STATIONS.includes(x));
+    deck = deck.filter(x => !dead.has(x));
+    if (!deck.length) { deck = pool.slice().sort(() => Math.random() - .5); if (deck.length > 1 && deck[deck.length - 1] === last) deck.unshift(deck.pop()); }
+    return (last = deck.pop());
+  };
+  let watchdog = 0;
+  function show(title, where) { st.textContent = title; pl.textContent = where || ''; }
+  let firstSpin = true;
+  async function tune() {
+    if (spinning) return;
+    box.classList.add('tuning'); show('Tuning in…', ''); peek(0);
+    if (firstSpin) {
+      firstSpin = false;
+      const first = await Promise.race([FIRST, new Promise(r => setTimeout(() => r(null), 2500))]);
+      if (first) { last = first; return spinTo(first); }
+    }
+    spinTo(draw());
+  }
+  function landed(s1) {
+    pin.position.copy(ll(s1.geo[1], s1.geo[0], 1.01)); pin.visible = true;
+    current = { ...s1 };
+    box.classList.remove('tuning');
+    show(current.title, [current.place, current.country].filter(Boolean).join(', ')); peek(5000);
+    plainFor = null; load(s1.src);
+    if (s1.uuid && RBHOST) fetch(RBHOST + '/json/url/' + s1.uuid).catch(() => {});   // Radio Browser's play counter, as its docs ask
+    if (!userPaused && !ducked) start();
+  }
+  // no sound within 10 s of asking for it (and not held back by the browser): skip to the next station
+  const arm = () => { clearTimeout(watchdog); watchdog = setTimeout(() => { if (wantPlay && audio.paused === false && audio.readyState < 3 && current) fail(); }, 10000); };
+  function fail() { if (!current) return; dead.add(STATIONS.find(x => x.src === current.src) || current); if (++tries < 6) { show('Retuning…', ''); setTimeout(tune, 400); } }
+  // every start fades in and every stop fades out (Josiah 10-21). iPhones ignore an audio element's volume, so there
+  // the sound starts and stops plainly; the fades play on desktop and Android.
+  let fadeRAF = 0;
+  // Fades are the volume knob turning itself (Josiah 10-21): the knob sweeps down to silence and back up to your setting,
+  // and the sound follows it step by step.
+  const showKnob = v => { knob.style.setProperty('--v', v); };
+  const fadeTo = (to, ms, done) => { cancelAnimationFrame(fadeRAF); const from = level(), t0 = performance.now();
+    const f = now => { const k = Math.min(1, Math.max(0, (now - t0) / ms)), e = k * k * (3 - 2 * k), x = Math.max(0, Math.min(1, from + (to - from) * e)); setLevel(x); showKnob(x); if (k < 1) fadeRAF = requestAnimationFrame(f); else if (done) done(); };
+    fadeRAF = requestAnimationFrame(f); };
+  function start() {
+    wantPlay = true;
+    arm();
+    if (gainN && waLive && audio === aP && audio.paused && current && plainFor !== current.src) load(current.src);   // Web Audio is awake now: move the station onto the fadeable player
+    if (audio.paused) { cancelAnimationFrame(fadeRAF); setLevel(0); showKnob(0); }
+    audio.play().then(() => { fadeTo(vol, 2200); box.classList.remove('paused', 'blocked'); playBtn.setAttribute('aria-label', 'Pause'); })
+      .catch(err => { if (err && err.name === 'NotAllowedError') { box.classList.add('blocked', 'paused'); playBtn.setAttribute('aria-label', 'Play'); pl.textContent = 'Tap anywhere to listen'; peek(0); } });
+  }
+  function stop() { wantPlay = false; box.classList.add('paused'); playBtn.setAttribute('aria-label', 'Play'); fadeTo(0, 500, () => { if (!wantPlay) audio.pause(); }); }
+  // a station that is off air: try another place
+  const on = (ev, fn) => [aW, aP].forEach(a => a.addEventListener(ev, e => { if (e.target === audio) fn(e); }));
+  on('error', () => { if (!current || !wantPlay) return;
+    if (audio === aW && plainFor !== current.src) {
+      if (VOL_LOCKED && tries < 5) { fail(); return; }            // iPhone: this one can't fade, so spin on to one that can
+      plainFor = current.src; load(current.src); start(); return;  // elsewhere (or after five misses): play it on the plain player
+    }
+    fail(); });   // aW refused (no CORS): try plain; plain failed too: off air
+  on('pause', () => { if (!ducked) box.classList.add('paused'); });
+  on('playing', () => { tries = 0; clearTimeout(watchdog); const was = box.classList.contains('blocked'); box.classList.remove('paused', 'blocked'); if (current) pl.textContent = [current.place, current.country].filter(Boolean).join(', '); if (was) peek(4000); });
+
+  $('globe').addEventListener('click', e => { e.stopPropagation(); graph(); userPaused = false; tries = 0; tune(); });
+  const toggle = e => { e.stopPropagation(); graph(); if (audio.paused) { userPaused = false; if (current) start(); else tune(); } else { userPaused = true; stop(); } };
+  playBtn.addEventListener('click', toggle); $('rplay2').addEventListener('click', toggle);
+  // volume knob: drag up or down, scroll, or arrow keys
+  const setVol = v => { vol = Math.min(1, Math.max(0, v)); if (typeof fadeRAF !== 'undefined') cancelAnimationFrame(fadeRAF); if (!audio.paused) setLevel(vol); else aP.volume = vol; knob.style.setProperty('--v', vol); knob.setAttribute('aria-valuenow', Math.round(vol * 100)); try { localStorage.setItem('wmp-radio-vol', String(vol)); } catch (e) {} };
+  setVol(vol);
+  let kd = null;
+  knob.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); kd = { y: e.clientY, x: e.clientX, v: vol }; knob.setPointerCapture(e.pointerId); });
+  knob.addEventListener('pointermove', e => { if (kd) setVol(kd.v + ((kd.y - e.clientY) + (e.clientX - kd.x)) / 120); });
+  knob.addEventListener('pointerup', () => { kd = null; });
+  knob.addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); setVol(vol - e.deltaY / 800); }, { passive: false });
+  knob.addEventListener('keydown', e => { const d = { ArrowUp: .05, ArrowRight: .05, ArrowDown: -.05, ArrowLeft: -.05 }[e.key]; if (d) { e.preventDefault(); e.stopPropagation(); setVol(vol + d); } });
+  box.addEventListener('pointerdown', e => { if (e.target.closest('button, .knob, a')) e.stopPropagation(); });
+  box.addEventListener('wheel', e => e.stopPropagation());
+
+  // Browsers hold sound until the visitor interacts: the first click, tap or key anywhere starts the station.
+  const evs = ['pointerup', 'touchend', 'keydown', 'click'];   // pointerdown/touchstart don't count as a tap for Safari's sound rules
+  // A brand-new site gets no sound until the visitor's first click, tap or key (every browser's rule). That first touch also
+  // unlocks the player for Safari by playing a tiny silent clip, so the station can start the moment it lands.
+  const BLIP = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACAAAA/oAR0dHR0dHR0dHR0dHYmJiYmJiYmJiYmJifHx8fHx8fHx8fHx8fJaWlpaWlpaWlpaWlrGxsbGxsbGxsbGxsbHLy8vLy8vLy8vLy8vl5eXl5eXl5eXl5eXl////////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQC1AAAAAAAAAP6yysejgAAAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NCxKMAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//NAxKQAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80LEowAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/80DEpAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsSjAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+  let unlocked = false;
+  const unlock = () => { graph(); if (unlocked) return; unlocked = true; if (current) return; [aW, aP].forEach(a => { a.src = BLIP; a.play().then(() => a.pause()).catch(() => {}); }); setTimeout(() => { if (current && audio.paused && !userPaused && !ducked) { load(current.src); start(); } }, 300); };
+  // Safari lets an audio element play later only if it was started inside a tap, so every tap also wakes whichever player
+  // is idle; when a spin later moves the station onto it, it is allowed to sound (Josiah 10-21: "Tap anywhere" was a lie)
+  const primed = new WeakSet();
+  const prime = () => [aW, aP].forEach(a => { if (a === audio || primed.has(a)) return; a.src = BLIP; a.play().then(() => { primed.add(a); if (a !== audio) a.pause(); }).catch(() => {}); });   // only counts once it actually played
+  // the listeners stay on for the whole visit: whenever the radio is waiting on a tap, the next tap anywhere starts it
+  const kick = () => { graph(); if (!current) { unlock(); prime(); return; }
+    const first = !unlocked; unlocked = true;
+    if (!spinning && !userPaused && !ducked && audio.paused && (first || box.classList.contains('blocked'))) { userPaused = false; start(); }
+    prime(); };
+  evs.forEach(e => addEventListener(e, kick, { capture: true, passive: true }));
+
+  // a video in the player takes the sound; the radio comes back when it closes
+  // a video playing takes the sound: the radio fades out, and fades back in when the video stops or closes
+  window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, get level() { return level(); }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
+  // first spin once the stops have faded in
+  setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
+})();
+window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
+</script>
+<script>
+// safety net: if anything stops the opening sequence, show the page anyway
+setTimeout(() => document.body.classList.remove('intro', 'intro-c'), 6000);
+</script>
+<script>
+(() => {
+  const warn = document.getElementById('warn'), risk = document.getElementById('risk'), stay = document.getElementById('stay');
+  const svg = document.getElementById('tether'), line = document.getElementById('tline'), guide = document.getElementById('tguide');
+  const node = document.getElementById('tnode'), joint = document.getElementById('tjoint'), scrim = document.getElementById('scrim');
+  const INCH = 96, EASE = 'cubic-bezier(.22,.9,.24,1)';
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let open = false, anims = [], opener = null;
+
+  function place(x, y) {
+    const vw = innerWidth, vh = innerHeight, w = warn.offsetWidth, h = warn.offsetHeight, m = 16;
+    // The card sits about an inch below the click (above it if there is no room), its edge near the click's column.
+    let below = y + INCH + h + m <= vh || y < vh / 2;
+    let top = below ? y + INCH : y - INCH - h;
+    top = Math.max(m, Math.min(vh - h - m, top));
+    let left = x - 28; if (x > vw / 2) left = x - w + 28;
+    left = Math.max(m, Math.min(vw - w - m, left));
+    // The line leaves the click straight down (or up) like a grid rule, turns once if the card is offset, and meets the card's edge.
+    const ey = below ? top : top + h;
+    const ex = Math.max(left + 18, Math.min(left + w - 18, x));
+    const midY = y + (ey - y) * 0.55;
+    const d = ex === x ? `M${x},${y} L${x},${ey}` : `M${x},${y} L${x},${midY} L${ex},${midY} L${ex},${ey}`;
+    return { top, left, d, ex, ey, below };
+  }
+
+  function show(x, y, href) {
+    if (open) return; open = true; risk.href = href;
+    warn.hidden = false; warn.style.visibility = 'hidden';
+    const g = place(x, y);
+    warn.style.top = g.top + 'px'; warn.style.left = g.left + 'px';
+    warn.style.transformOrigin = `${g.ex - g.left}px ${g.below ? 0 : warn.offsetHeight}px`;
+    line.setAttribute('d', g.d);
+    guide.setAttribute('d', `M${x},0 L${x},${innerHeight} M0,${y} L${innerWidth},${y}`);
+    node.setAttribute('x', x - 3.5); node.setAttribute('y', y - 3.5);
+    joint.setAttribute('x', g.ex - 3.5); joint.setAttribute('y', g.ey - 3.5);
+    svg.removeAttribute('hidden'); scrim.hidden = false; warn.style.visibility = '';
+    const len = line.getTotalLength();
+    line.style.strokeDasharray = len; line.style.strokeDashoffset = still ? 0 : len;
+    anims.forEach(a => a.cancel()); anims = [];
+    if (still) { stay.focus(); return; }
+    const T = 380;
+    anims.push(guide.animate([{ opacity: 0 }, { opacity: 1, offset: .3 }, { opacity: 0 }], { duration: 900, easing: 'ease-out', fill: 'forwards' }));
+    anims.push(node.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'ease-out', fill: 'both' }));
+    anims.push(line.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: T, delay: 80, easing: EASE, fill: 'both' }));
+    anims.push(joint.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: 80 + T - 60, fill: 'both' }));
+    const r = 14;
+    const from = g.below ? `inset(0 ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 100% ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`
+                         : `inset(100% ${100 - ((g.ex - g.left) / warn.offsetWidth * 100)}% 0 ${((g.ex - g.left) / warn.offsetWidth * 100)}% round ${r}px)`;
+    anims.push(warn.animate([{ clipPath: from, opacity: .4, transform: 'scale(.96)' }, { clipPath: `inset(0 0 0 0 round ${r}px)`, opacity: 1, transform: 'scale(1)' }],
+      { duration: 460, delay: 80 + T - 40, easing: EASE, fill: 'both' }));
+    [...warn.children].forEach((c, i) => anims.push(c.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 300, delay: 80 + T + 160 + i * 45, easing: 'ease-out', fill: 'both' })));
+    setTimeout(() => open && stay.focus({ preventScroll: true }), 80 + T + 200);
+  }
+
+  function hide() {
+    if (!open) return; open = false;
+    const done = () => { warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; anims.forEach(a => a.cancel()); anims = []; if (opener) opener.focus({ preventScroll: true }); };
+    if (still) return done();
+    const len = line.getTotalLength();
+    warn.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.97)' }], { duration: 160, easing: 'ease-in', fill: 'forwards' });
+    joint.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: 'forwards' });
+    node.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, delay: 200, fill: 'forwards' });
+    const a = line.animate([{ strokeDashoffset: 0 }, { strokeDashoffset: len }], { duration: 240, delay: 100, easing: 'ease-in', fill: 'forwards' });
+    a.onfinish = done;
+  }
+
+  document.querySelectorAll('.leave').forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); opener = a;
+    let x = e.clientX, y = e.clientY;
+    if (!x && !y) { const r = a.getBoundingClientRect(); x = r.left + r.width / 2; y = r.bottom; }   // keyboard: from the link itself
+    show(x, y, a.dataset.dest || a.getAttribute('href'));
+  }));
+  stay.addEventListener('click', hide);
+  scrim.addEventListener('click', hide);
+  addEventListener('keydown', e => {
+    if (!open) return; e.stopImmediatePropagation();
+    if (e.key === 'Escape') { e.preventDefault(); hide(); }
+    if (e.key === 'Tab') { const f = [stay, risk], i = f.indexOf(document.activeElement); e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus(); }
+  }, true);
+  addEventListener('resize', () => { if (open) { anims.forEach(a => a.finish && a.finish()); warn.hidden = true; svg.setAttribute('hidden', ''); scrim.hidden = true; open = false; } });
+})();
+</script>
+</body></html>
