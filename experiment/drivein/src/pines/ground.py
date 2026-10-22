@@ -1,7 +1,8 @@
 """Tiling ground textures for the drive-in (4 m × 4 m, 2048 px, seamless):
 
-lot_*    : compacted decomposed-granite dirt and fine gravel; tyre-packed smoother darker patches with faint tread
-           prints running along v; scattered fallen ponderosa needles (singles and 3-needle fascicles) and a few cones.
+lot_*    : compacted decomposed-granite dirt and fine gravel, fine-scale tyre-packed crust, small stones, scattered
+           fallen ponderosa needles (singles and 3-needle fascicles), a few cones. Deliberately no ruts or landmarks:
+           the integrator multiplies a 90 m track overlay on top. Strong relief in the normal map (grazing views).
 forest_* : forest floor under the pines: deep needle duff, fresh rust-orange needles over older grey-brown ones,
            dark humus in the gaps, bark flakes, twigs and a few cones.
 
@@ -162,8 +163,11 @@ def draw_stones(L, rng, n, rmin, rmax, h0, palette):
         x, y = rng.uniform(0, S, 2)
         r = rmin * (rmax / rmin) ** (rng.random() ** 1.8)
         c = palette[rng.integers(len(palette))] * rng.uniform(0.75, 1.2)
-        L.ellipse(x, y, r, r * rng.uniform(0.55, 0.95), rng.uniform(0, np.pi), c, h0 + r * 0.25, rng.uniform(0.62, 0.82),
-                  n=max(6, int(r * 2)))
+        e = rng.uniform(0.55, 0.95); a = rng.uniform(0, np.pi); ro = rng.uniform(0.62, 0.82)
+        nn = max(6, int(r * 2))
+        L.ellipse(x, y, r, r * e, a, c * 0.6, h0 + r * 0.35, ro, n=nn)                 # rim (shadowed sides)
+        if r > 2.0:
+            L.ellipse(x - r * 0.12, y - r * 0.12, r * 0.7, r * e * 0.7, a, c, h0 + r * 0.6, ro - 0.05, n=nn)   # dome
 
 
 def finish(name, base_col, base_h, base_rough, layers, normal_strength):
@@ -188,28 +192,26 @@ def finish(name, base_col, base_h, base_rough, layers, normal_strength):
 
 def lot(seed=21):
     rng = np.random.default_rng(seed)
-    big = tile_noise(S, S, beta=3.4, seed=seed)
+    big = tile_noise(S, S, beta=3.0, seed=seed, fmin=4.0)
     mid = tile_noise(S, S, beta=2.4, seed=seed + 1)
     fine = tile_noise(S, S, beta=1.2, seed=seed + 2)
-    # tyre-packed patches: smoother, darker, fewer loose stones, faint tread prints along v
-    packed = smoothstep(0.1, 0.9, tile_noise(S, S, beta=3.6, ax=2.2, ay=0.6, seed=seed + 3))
-    yy, xx = np.meshgrid(np.arange(S), np.arange(S), indexing='ij')
-    tread = 0.5 + 0.5 * np.sin(yy / (0.028 * PX) * 2 * np.pi + 2.0 * tile_noise(S, S, beta=3, seed=seed + 4))
-    tread = smoothstep(0.55, 0.95, tread) * packed * smoothstep(-0.2, 0.6, tile_noise(S, S, beta=3, seed=seed + 5))
-    dirt = np.array([0.215, 0.158, 0.108])            # decomposed granite dirt, warm grey-brown
-    dark = np.array([0.150, 0.110, 0.076])
-    col = dirt[None, None] * (1 + 0.10 * big[..., None] + 0.06 * mid[..., None] + 0.05 * fine[..., None])
-    col = col * (1 - packed[..., None] * 0.35) + dark * packed[..., None] * 0.35
-    col *= (1 - 0.05 * tread)[..., None]
-    # grit: sand-sized mineral grains (quartz bright, biotite dark) as per-pixel speckle
+    # tyre-packed texture: only fine-scale (≤ 0.5 m) smoother, slightly darker crusts; no ruts or landmarks —
+    # the integrator's 90 m overlay draws the tracks and lanes
+    packed = smoothstep(0.3, 1.3, tile_noise(S, S, beta=2.2, seed=seed + 3, fmin=6.0)) * 0.6
+    dirt = np.array([0.205, 0.152, 0.106])            # decomposed granite dirt, warm grey-brown
+    dark = np.array([0.150, 0.110, 0.078])
+    col = dirt[None, None] * (1 + 0.06 * big[..., None] + 0.06 * mid[..., None] + 0.05 * fine[..., None])
+    col = col * (1 - packed[..., None] * 0.3) + dark * packed[..., None] * 0.3
     g = rng.random((S, S))
     col *= np.where(g > 0.985, 1.35, np.where(g < 0.02, 0.6, 1.0))[..., None]
-    h = 0.8 * big + 0.5 * mid + 0.35 * fine - 0.6 * packed - 0.35 * tread
-    h = h * (1 - 0.5 * packed)
+    # relief: crusty clods and pits, fine grit (strong; the lot is seen at grazing angles)
+    clod = tile_noise(S, S, beta=1.8, seed=seed + 6, fmin=20.0)
+    h = 0.5 * big + 0.6 * mid + 0.9 * clod + 0.5 * fine - 0.5 * packed
+    h = h * (1 - 0.35 * packed)
     rough = 0.93 - 0.08 * packed + 0.02 * fine
     # stones (loose gravel sits mostly off the packed patches)
-    pal = [np.array(c) for c in ([0.30, 0.28, 0.26], [0.36, 0.30, 0.25], [0.20, 0.18, 0.17], [0.42, 0.39, 0.35],
-                                 [0.26, 0.17, 0.11], [0.12, 0.11, 0.10])]
+    pal = [np.array(c) for c in ([0.24, 0.22, 0.20], [0.28, 0.23, 0.19], [0.17, 0.155, 0.145], [0.32, 0.30, 0.27],
+                                 [0.22, 0.15, 0.10], [0.11, 0.10, 0.095])]
     st = Layer()
     draw_stones(st, rng, 26000, 1.2, 4.5, 2.0, pal)        # 2–9 mm grit
     draw_stones(st, rng, 1800, 4.5, 10.0, 3.0, pal)        # 9–20 mm gravel
@@ -232,7 +234,7 @@ def lot(seed=21):
     class Pre:  # wrap precomputed arrays
         def __init__(s, a): s.a = a
         def arrays(s): return s.a
-    finish('lot', col, h, rough, [(Pre(st2), 0.35), (nd, 0.35), (cones, 0.6)], normal_strength=3.0)
+    finish('lot', col, h, rough, [(Pre(st2), 0.45), (nd, 0.35), (cones, 0.6)], normal_strength=5.5)
 
 
 def forest(seed=31):
@@ -246,7 +248,7 @@ def forest(seed=31):
     rough = 0.9 + 0.03 * fine
     layers = []
     # deep old duff (grey-brown, broken), then progressively fresher layers on top
-    L1 = Layer(); draw_needles(L1, rng, 5200, 1.0, (0.65, 1.0), fascicle_p=0.15, len_cm=(5, 18))
+    L1 = Layer(); draw_needles(L1, rng, 13000, 1.0, (0.6, 1.0), fascicle_p=0.15, len_cm=(5, 18), width_px=1.3)
     layers.append((L1, 0.25))
     # bark flakes (ponderosa jigsaw scales) and small twigs
     L2 = Layer()
@@ -261,13 +263,13 @@ def forest(seed=31):
         x, y = rng.uniform(0, S, 2)
         L2.line(needle_path(rng, x, y, rng.uniform(0.08, 0.3) * PX, rng.uniform(0, 6.3), rng.normal(0, 0.5)),
                 rng.uniform(3, 6), np.array([0.11, 0.08, 0.06]) * rng.uniform(0.8, 1.3), 3.5, 0.85)
-    draw_needles(L2, rng, 2600, 2.0, (0.35, 0.85), fascicle_p=0.3, len_cm=(10, 21))
+    draw_needles(L2, rng, 6500, 2.0, (0.35, 0.85), fascicle_p=0.3, len_cm=(10, 21), width_px=1.4)
     layers.append((L2, 0.3))
-    L3 = Layer(); draw_needles(L3, rng, 1300, 3.5, (0.0, 0.45), fascicle_p=0.45, len_cm=(13, 23))
+    L3 = Layer(); draw_needles(L3, rng, 2600, 3.5, (0.0, 0.45), fascicle_p=0.45, len_cm=(13, 23), width_px=1.5)
     for k in range(4):
         draw_cone(L3, rng, *rng.uniform(0, S, 2), 4.5, old=k >= 2)
     layers.append((L3, 0.35))
-    finish('forest', col, h, rough, layers, normal_strength=2.6)
+    finish('forest', col, h, rough, layers, normal_strength=4.0)
 
 
 if __name__ == '__main__':

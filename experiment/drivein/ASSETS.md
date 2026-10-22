@@ -21,14 +21,15 @@ and good textures. Match the quality of the desert world (`../desert/ASSETS.md`,
 - Screen: the slide itself, 22.00 × 12.67 m, corner radius 0.43 m, bottom edge 6.0 m above lot zero, centre (0, 12.34, 0),
   facing +Z. NOTHING may sit in front of the screen face (the slide is HTML layered over the canvas). Structure lives
   behind it (z < -0.15) and below its bottom edge.
-- Lot: ground rises from y = 0 at z = 40 (where the camera stands, low at the back) to y = 2.7 at z = 10, flat beyond;
-  two dirt mounds lift two cars (see below). Gravel/dirt, tyre ruts, pine needles, speaker posts.
+- Lot: ground rises gently from y = 0 at z = 40 (the camera, low at the back) to y = 2.7 at z = 10, flat beyond; the red
+  car sits on a 1.1 m lift and the wood-brown sedan on 0.6 m, hidden under them. From the camera it reads as a flat lot.
+  Tyre tracks are drawn by the integrator as a 90 m overlay.
 - Camera (fixed): (-12.54, 2.16, 40.45) looking at (1.16, 10.74, 3.86), vertical FOV 26.5°.
 - Cars, facing the screen (nose toward -Z), x, z, yaw (rad, + turns the nose toward -X):
-  - hero red car (-4.08, 28.45, 0.40) on a 1.1 m mound. The camera sees its whole left (driver's) side: driver's window
+  - hero red car (-4.08, 28.45, 0.40) on its 1.1 m lift. The camera sees its whole left (driver's) side: driver's window
     rolled down, popcorn bucket on the window ledge, both wheels, door seam and handle.
   - forest-green wagon/SUV (-11.93, 18.80, 0.10); mustard sedan (-8.27, 10.07, -0.05);
-    cream SUV/wagon (-2.57, 9.31, 0.05); wood-brown sedan (-1.43, 17.28, 0.12) on a 0.6 m mound.
+    cream SUV/wagon (-2.57, 9.31, 0.05); wood-brown sedan (-1.43, 17.28, 0.12) on its 0.6 m lift.
 - Projection booth: lens at (10.18, 9.95, 26.72), a small timber booth on tall legs, aimed at the screen centre.
   Only its beam is in frame; the booth itself is just off the right edge.
 - Pole lamp: the warm lamp on the left at roughly (-13, 4, 24). Concession stand behind the camera at (-24, 0, 52).

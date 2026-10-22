@@ -64,6 +64,10 @@ def rbox3(V, lo, hi, k=0.02):
 def build(C, out):
     P = C['P']
     B = Body(P)
+    if 'field_mod' in C:
+        fo, ff, fm_ = B.outer, B.field, C['field_mod']
+        B.outer = lambda x, s, z: fm_(fo(x, s, z), x, s, z)
+        B.field = lambda x, s, z: fm_(ff(x, s, z), x, s, z)
     f = B.field
     BELT = P['belt']
     S_FA, S_RA, RT = C['S_FA'], C['S_RA'], C['R_TYRE']
@@ -122,11 +126,11 @@ def build(C, out):
         x, s, z = V[:, 0], V[:, 1], V[:, 2]; ax = np.abs(x)
         d = smax(smax(ax - (gw(s, z) - C.get('ws_side', 0.09)), z - (roof_z(s) - C.get('ws_top', 0.06)), 0.05),
                  (BELT + 0.03) - z, 0.04)
-        d = smax(d, -B.ws_dist(ax, s, z) - 0.0, 0.0) if False else d
         return np.where((s > C['ws_dom']) & (N[:, 2] > -0.2), d, 1.0)
     def fn_bl(V, N):
         x, s, z = V[:, 0], V[:, 1], V[:, 2]; ax = np.abs(x)
-        d = smax(smax(ax - (gw(s, z) - C.get('bl_side', 0.10)), z - (roof_z(s) - C.get('bl_top', 0.06)), 0.05),
+        ztop = C['bl_ztop'] if 'bl_ztop' in C else roof_z(s) - C.get('bl_top', 0.06)
+        d = smax(smax(ax - (gw(s, z) - C.get('bl_side', 0.10)), z - ztop, 0.05),
                  C['bl_zlo'] - z, 0.04)
         return np.where((s < C['bl_dom']) & (z > BELT - 0.05), d, 1.0)
 
@@ -138,6 +142,8 @@ def build(C, out):
     def fdoor_in(S, Z):
         front = np.where(Z < BELT - 0.03, fd0, np.minimum(fd0, a_s(Z) - a_off + 0.035))
         rear = s_b(Z) if C.get('doors', 4) == 4 else C['fd1'](Z)
+        if C.get('doors', 4) != 4:
+            rear = np.where(Z > BELT - 0.03, np.maximum(rear, dlo_rear(Z, c_s) - 0.035), rear)
         return (Z > sill) & (Z < dtop(S)) & (S < front) & (S > rear)
     side2 = lambda V, N: (np.abs(V[:, 0]) > 0.5) & (np.abs(N[:, 0]) > 0.25) & (V[:, 2] < 1.9)
     fn_fdoor = side_fn(MaskSDF(fdoor_in, SIDE_LO, SIDE_HI, rnd=0.03), dom=side2)
@@ -214,7 +220,7 @@ def build(C, out):
         return np.where(np.abs(x) > 0.55, d, 1.0)
     open_win = C.get('open_window')     # hero: driver's front window rolled down
     def fn_open(V, N):
-        return np.where((V[:, 0] < -0.4) & (V[:, 1] > s_b(V[:, 2]) + 0.01), 0.0, 1.0) - 0.5
+        return np.where((V[:, 0] < -0.4) & (V[:, 1] > s_b(V[:, 2]) + 0.01), 1.0, 0.0) - 0.5
 
     cuts = [
         ('dlo', fn_dlo, [0.0, 0.018]), ('bp', fn_bp, [0.0]), ('ws', fn_ws, [0.0, -0.04]), ('bl', fn_bl, [0.0, -0.035]),
@@ -255,7 +261,8 @@ def build(C, out):
         'well': dict(mat='trim_black', depth=0.0, col=0.25),
         'under': dict(mat='trim_black', depth=0.0, col=0.3),
     }
-    rules = [
+    labels.update(C.get('extra_labels', {}))
+    rules = list(C.get('extra_rules', [])) + [
         ('well', lambda fm: fm['well'] < 0.004),
         ('under', lambda fm: (fm['n'][:, 2] < -0.55) & (fm['c'][:, 2] < 0.40)),
     ]
@@ -383,6 +390,27 @@ def build(C, out):
         se = (hh[1] + 0.02) if hh is not None else ex[1]
         Vt, Ft = tube(np.array([(ex[0], se + 0.25, ex[2]), (ex[0], se - 0.025, ex[2] - 0.008)]), 0.028, n_seg=12)
         parts.add('body', Vt, Ft, 'steel_exhaust' if False else 'trim_black', COL=np.c_[np.full((len(Vt), 3), 0.6), np.ones(len(Vt))])
+    if C.get('roof_rails'):
+        rx, r0, r1, rh = C['roof_rails']
+        for sgn in (1, -1):
+            rail = []
+            for s_ in np.linspace(r0, r1, 22):
+                hh = D.ray_hit(f, (sgn * rx, s_, 2.6), (0, 0, -1), tmax=1.5)
+                if hh is not None: rail.append(hh + np.array([0, 0, rh]))
+            rail = np.array(rail)
+            if len(rail) > 1:
+                Vr_, Fr_ = tube(rail, 0.013, n_seg=8)
+                parts.add('body', Vr_, Fr_, 'trim_black', COL=np.c_[np.full((len(Vr_), 3), 0.9), np.ones(len(Vr_))])
+                for k in (0, len(rail) // 2, len(rail) - 1):
+                    bv, bf = box(rail[k] - np.array([0, 0, rh / 2]), (0.016, 0.045, rh / 2 + 0.004))
+                    parts.add('body', bv, bf, 'trim_black', flat=True)
+            if C.get('cross_bars') and sgn == 1:
+                for s_ in C['cross_bars']:
+                    hh = D.ray_hit(f, (0.0, s_, 2.6), (0, 0, -1), tmax=1.5)
+                    if hh is None: continue
+                    zc = hh[2] + rh + 0.012
+                    Vr_, Fr_ = tube(np.array([(-rx, s_, zc), (rx, s_, zc)]), 0.011, n_seg=8)
+                    parts.add('body', Vr_, Fr_, 'trim_black')
     for extra in C.get('extras', []):
         extra(parts, B, f, locals())
     # cabin
@@ -410,8 +438,23 @@ def build(C, out):
     emp = {}
     if open_win:
         emp = hero_anchors(B, f, C, zb, s_b, a_s, a_off)
-    CB.export(parts, mats, out, cent, empties=emp, root=C['name'])
+    raw = out[:-4] + '_raw.glb' if C.get('pack', True) else out
+    CB.export(parts, mats, raw, cent, empties=emp, root=C['name'])
+    if C.get('pack', True):
+        pack(raw, out)
     return parts
+
+GLTFPACK = os.environ.get('GLTFPACK', '/tmp/claude-0/-home-claude/8b2a0eb3-2d3d-5e5c-92b3-95ba17d9a3e1/scratchpad/npm/node_modules/.bin/gltfpack')
+
+def pack(raw, out):
+    """meshopt-compress like the desert assets (gltfpack -cc), keeping node + material names; raw file removed."""
+    import subprocess, shutil
+    exe = GLTFPACK if os.path.exists(GLTFPACK) else shutil.which('gltfpack')
+    if not exe:
+        os.replace(raw, out); CB.log('gltfpack not found, wrote uncompressed', out); return
+    subprocess.run([exe, '-i', raw, '-o', out, '-cc', '-kn', '-km', '-noq'], check=True, capture_output=True)
+    os.remove(raw)
+    CB.log('packed', out, os.path.getsize(out))
 
 def hero_anchors(B, f, C, zb, s_b, a_s, a_off):
     """bucket_anchor: on top of the driver's door inner ledge, mid-window. ledge_drop: ground just outside the door."""

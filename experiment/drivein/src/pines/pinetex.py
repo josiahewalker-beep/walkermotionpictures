@@ -54,9 +54,9 @@ def bark(kind, size=1024, seed=5):
         scale_e = smoothstep(0.0, 0.12, g2 - g1)
         srand = np.random.default_rng(seed + 12).random(gid.max() + 1)[gid]
         hgt = plate * (0.75 + 0.25 * prand) + plate * (0.08 * scale_e + 0.06 * srand) + 0.02 * fine
-        top = np.array([0.36, 0.17, 0.075])                 # cinnamon/orange plate faces
-        top2 = np.array([0.28, 0.16, 0.10])                 # greyer, older faces
-        side = np.array([0.15, 0.075, 0.04])
+        top = np.array([0.27, 0.13, 0.065])                 # cinnamon/orange plate faces
+        top2 = np.array([0.22, 0.14, 0.095])                 # greyer, older faces
+        side = np.array([0.12, 0.065, 0.038])
         furrow = np.array([0.028, 0.018, 0.013])
         t = plate[..., None]
         c = furrow + (side - furrow) * smoothstep(0.0, 0.35, t) + (top - side) * smoothstep(0.4, 0.9, t)
@@ -110,14 +110,14 @@ def _c8(lin, a=255):
 def needle_col(rng, kind, tip=0.0):
     """Linear albedo for one needle. Colours carry the full value; vertex colours only add AO and jitter."""
     if kind == 'ponderosa':     # yellow-green, warm
-        base = np.array([0.075, 0.105, 0.035])
-        hi = np.array([0.13, 0.15, 0.05])
+        base = np.array([0.048, 0.100, 0.040])
+        hi = np.array([0.085, 0.145, 0.052])
     elif kind == 'lodgepole':   # yellow-green, a touch darker
-        base = np.array([0.062, 0.090, 0.032])
-        hi = np.array([0.11, 0.13, 0.045])
+        base = np.array([0.044, 0.092, 0.040])
+        hi = np.array([0.078, 0.130, 0.050])
     else:                       # Douglas fir: deep green, slightly blue
-        base = np.array([0.040, 0.068, 0.034])
-        hi = np.array([0.075, 0.105, 0.05])
+        base = np.array([0.030, 0.072, 0.045])
+        hi = np.array([0.055, 0.105, 0.062])
     c = base + (hi - base) * rng.uniform(0, 1) * 0.7
     if rng.random() < 0.05:     # a few dead/browning needles
         c = np.array([0.20, 0.10, 0.04]) * rng.uniform(0.6, 1.1)

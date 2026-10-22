@@ -25,3 +25,6 @@
   (1120 × 645 px) in desert mode, guarded.
 - Technical: assets in `drivein/` to `drivein/ASSETS.md`; three asset threads (cars; pines and ground; screen, booth,
   props and creatures). The integrator is `drivein.js`, sharing the page hookup with the desert.
+- 10-22 Josiah: the dirt lot should feel lived in, with tyre marks and tracks. A truly flat lot was tried and hid the cars
+  under the camera's upward tilt; Josiah chose to keep round 3's ground (gentle rise, hidden lifts) and add the tracks: a
+  90 m overlay drawn in code (worn lanes, the ruts of every car into its spot, old faint arcs) over the fine dirt tile.

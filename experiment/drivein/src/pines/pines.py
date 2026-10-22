@@ -21,18 +21,18 @@ UP = np.array([0, 0, 1.0])
 TREES = {
     # ponderosa: tall clear orange trunk, open irregular rounded crown, clumped long-needle tufts at branch ends
     'pine_a': dict(kind='ponderosa', seed=7, H=28.0, dbh=0.82, crown_base=0.46, Rmax=5.2, n_br=64,
-                   shape='dome', elev=(-12, 48), droop=0.35, upturn=0.55, sub=(3, 7), sub_len=(0.5, 1.5),
-                   tuft=0.55, tufts_per_tip=(4, 9), along=0.25, gap=0.22, budget=58000, bark_tile=(1.2, 1.6),
+                   shape='dome', elev=(-12, 48), droop=0.35, upturn=0.55, sub=(5, 10), sub_len=(0.6, 1.7),
+                   tuft=0.62, tufts_per_tip=(9, 16), along=0.45, gap=0.22, budget=58000, bark_tile=(1.2, 1.6),
                    tint=(1.0, 1.0, 1.0)),
     # lodgepole: very straight slender pole, short narrow crown in the top ~40 %, dense short tufts, dead stubs below
-    'pine_b': dict(kind='lodgepole', seed=11, H=23.0, dbh=0.36, crown_base=0.56, Rmax=1.9, n_br=120,
+    'pine_b': dict(kind='lodgepole', seed=11, H=23.0, dbh=0.36, crown_base=0.60, Rmax=1.65, n_br=120,
                    shape='narrow', elev=(-8, 40), droop=0.25, upturn=0.35, sub=(1, 3), sub_len=(0.3, 0.7),
-                   tuft=0.36, tufts_per_tip=(2, 4), along=0.7, gap=0.12, budget=58000, bark_tile=(0.6, 0.9),
+                   tuft=0.36, tufts_per_tip=(6, 11), along=0.75, gap=0.28, budget=58000, bark_tile=(0.6, 0.9),
                    stubs=55, tint=(1.0, 1.0, 1.0)),
     # Douglas fir: dense cone almost to the ground, drooping branches with upturned tips, pointed leader
-    'pine_c': dict(kind='fir', seed=5, H=31.0, dbh=0.72, crown_base=0.10, Rmax=4.6, n_br=150,
+    'pine_c': dict(kind='fir', seed=5, H=31.0, dbh=0.72, crown_base=0.07, Rmax=5.6, n_br=150,
                    shape='cone', elev=(-30, 25), droop=0.5, upturn=0.5, sub=(4, 8), sub_len=(0.5, 1.4),
-                   tuft=0.62, tufts_per_tip=(1, 2), along=0.85, gap=0.08, budget=58000, bark_tile=(1.0, 1.4),
+                   tuft=0.70, tufts_per_tip=(4, 7), along=0.85, gap=0.08, budget=58000, bark_tile=(1.0, 1.4),
                    tint=(1.0, 1.0, 1.0)),
 }
 
@@ -45,7 +45,7 @@ def envelope(T, t):
     elif T['shape'] == 'narrow':
         r = np.minimum(1.0, (1 - t) * 1.7) ** 0.85 * (0.8 + 0.2 * smoothstep(0, 0.2, t))
     else:
-        r = (1 - t) ** 1.0 * (0.92 + 0.08 * np.sin(t * 9))
+        r = (1 - t) ** 1.12 * (0.92 + 0.08 * np.sin(t * 9))
     return r
 
 
@@ -167,13 +167,15 @@ class Tree:
                 bd = nrm(pts[i0 + 1] - pts[i0])
                 side = nrm(np.cross(bd, UP) * rng.choice([-1, 1]) + rng.normal(0, 0.3, 3))
                 sd = nrm(bd * 0.6 + side * 0.8 + UP * (T['upturn'] * 0.4 - T['droop'] * 0.3) * rng.uniform(0.3, 1.2))
-                sl = rng.uniform(*T['sub_len']) * (0.6 + 0.5 * (L / max(T['Rmax'], 1)))
+                env = float(envelope(T, t))
+                sl = rng.uniform(*T['sub_len']) * (0.6 + 0.5 * (L / max(T['Rmax'], 1))) * (0.25 + 0.75 * env)
                 sp = [q]; dd = sd.copy()
                 for s in range(3):
                     dd = nrm(dd + UP * (T['upturn'] * 0.25 - T['droop'] * 0.15) + rng.normal(0, 0.1, 3))
                     sp.append(sp[-1] + dd * sl / 3)
                 sp = np.array(sp)
-                self.branches.append((sp, radii[i0] * 0.45 * np.linspace(1, 0.3, len(sp)), 1))
+                if T['kind'] != 'fir' or rng.random() < 0.35:
+                    self.branches.append((sp, radii[i0] * 0.45 * np.linspace(1, 0.3, len(sp)), 1))
                 self.tips.append((sp[-1], dd, 1.0, t))
                 if T['kind'] != 'ponderosa':
                     self.tips.append((sp[1], nrm(sp[2] - sp[1]), 0.6, t))
@@ -212,8 +214,8 @@ def place_tufts(tree, budget_cards):
             else:
                 dd = nrm(d * 1.0 + UP * rng.uniform(-0.35, 0.1) + rng.normal(0, 0.25, 3))
                 off = rng.normal(0, 0.18, 3)
-            P.append(pos + off); D.append(dd)
-            Sz.append(T['tuft'] * rng.uniform(0.75, 1.25) * (1.25 if w > 1.2 else 1.0)); Tt.append(t)
+            P.append(pos + off * (0.4 + 0.6 * float(envelope(T, t)))); D.append(dd)
+            Sz.append(T['tuft'] * rng.uniform(0.75, 1.25) * (1.25 if w > 1.2 else 1.0) * (0.6 + 0.4 * float(envelope(T, t)) ** 0.5)); Tt.append(t)
     P, D, Sz, Tt = map(np.array, (P, D, Sz, Tt))
     if len(P) > budget_cards:
         keep = np.sort(rng.choice(len(P), budget_cards, replace=False))
@@ -273,7 +275,7 @@ def foliage_colour(tree, P, Tt, vis, rng):
     jitter = rng.uniform(0.85, 1.12, n)
     warm = rng.uniform(-0.05, 0.08, n)
     col = np.stack([jitter * (1 + warm), jitter, jitter * (1 - warm * 0.5)], -1)
-    shade = (0.30 + 0.70 * vis) * (1 - 0.30 * depth)
+    shade = (0.45 + 0.55 * vis) * (1 - 0.25 * depth)
     return np.clip(col * shade[:, None], 0, 1)
 
 
@@ -293,7 +295,7 @@ def build(name, write=True):
     tube(bark, ap, tree.trunk_radius(zt), 20 if kind != 'lodgepole' else 14, np.ones(3), tile)
     # branches
     for pts, radii, lvl in tree.branches:
-        sides = 6 if lvl == 0 else 4
+        sides = (6 if kind == 'ponderosa' else 5) if lvl == 0 else (4 if kind == 'ponderosa' else 3)
         if radii[0] < 0.025:
             sides = 3
         tube(bark, pts, radii, sides, np.ones(3), (tile[0] * 0.5, tile[1] * 0.5))

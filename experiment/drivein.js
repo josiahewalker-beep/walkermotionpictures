@@ -22,12 +22,13 @@ const CARS = [   // x, z, yaw, mound, file, fallback colour
   { x: -2.57, z: 9.31, ry: 0.05, mound: 0, file: 'car_suv', col: 0xd8cbaa },
   { x: -1.43, z: 17.28, ry: 0.12, mound: 0.63, file: 'car_sedan_b', col: 0x6b4a2b },
 ];
-const MOUNDS = [[-4.08, 28.45, 1.12, 4.5], [-1.43, 17.28, 0.63, 3.5]];
 const LENS = [10.18, 9.95, 26.72], LAMP = [-13, 4.6, 24], STAND = [-24, 0, 52];
 const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const ease = t => t * t * t * (t * (t * 6 - 15) + 10);
-// the lot climbs from the camera toward the screen; two mounds lift two cars into the frame (round 3)
+// the lot climbs gently toward the screen and two cars sit on lifts hidden under them, so the cars stay in frame under the
+// camera's upward tilt; from the camera it reads as a flat lot (Josiah 10-22: keep round 3's ground, add the tyre tracks)
+const MOUNDS = [[-4.08, 28.45, 1.12, 4.5], [-1.43, 17.28, 0.63, 3.5]];
 export function lot(x, z) {
   let y = 2.7 * Math.min(1, Math.max(0, (40 - z) / 30));
   for (const [mx, mz, mh, mr] of MOUNDS) { const d = Math.hypot(x - mx, z - mz) / mr; y += mh * (d < 0.6 ? 1 : d < 1.4 ? 0.5 + 0.5 * Math.cos((d - 0.6) / 0.8 * Math.PI) : 0); }
@@ -103,6 +104,38 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       }` });
   { const d = new THREE.Mesh(new THREE.SphereGeometry(60000, 64, 32), skyMat); d.position.set(C.x, Y0, C.z); d.renderOrder = -10; d.frustumCulled = false; world.add(d); }
 
+  // ---------- tyre tracks: a lived-in lot (Josiah 10-22). Drawn once in layout metres: worn lanes between the rows, the paired
+  // ruts of every car that pulled into a spot, and years of old faint arcs. R = albedo (x2), G = packed (smoother) mask ----------
+  const TRK = { x0: -45, z0: -5, size: 90, px: 2048 };
+  const trackTex = (() => { const c = document.createElement('canvas'); c.width = c.height = TRK.px; const x = c.getContext('2d'), r = rng(41), s = TRK.px / TRK.size;
+    const X = m => (m - TRK.x0) * s, Z = m => (m - TRK.z0) * s;
+    x.fillStyle = 'rgb(128,0,0)'; x.fillRect(0, 0, TRK.px, TRK.px);
+    const rut = (pts, w, dark, packed, alpha) => { x.globalAlpha = alpha; x.lineCap = 'round'; x.lineJoin = 'round';
+      for (const side of [-0.78, 0.78]) { x.beginPath(); pts.forEach(([px, pz, dx, dz], i) => { const nx = -dz, nz = dx, l = Math.hypot(nx, nz) || 1; const qx = X(px + nx / l * side), qz = Z(pz + nz / l * side); i ? x.lineTo(qx, qz) : x.moveTo(qx, qz); });
+        x.strokeStyle = `rgb(${dark},${packed},0)`; x.lineWidth = w * s; x.stroke();
+        x.strokeStyle = `rgb(${Math.min(255, dark + 52)},0,0)`; x.lineWidth = w * s * 0.3; x.stroke(); }   // a lighter crust thrown up along the rut's edge
+      x.globalAlpha = 1; };
+    const path = (a, b, c2, n = 40) => { const out = []; for (let i = 0; i <= n; i++) { const t = i / n, u = 1 - t; const px = u * u * a[0] + 2 * u * t * b[0] + t * t * c2[0], pz = u * u * a[1] + 2 * u * t * b[1] + t * t * c2[1];
+      const dx = 2 * u * (b[0] - a[0]) + 2 * t * (c2[0] - b[0]), dz = 2 * u * (b[1] - a[1]) + 2 * t * (c2[1] - b[1]); out.push([px, pz, dx, dz]); } return out; };
+    // old faint arcs everywhere
+    for (let i = 0; i < 160; i++) { const a = [-40 + r() * 80, -2 + r() * 80], b = [a[0] + (r() - 0.5) * 30, a[1] + (r() - 0.5) * 30], e = [b[0] + (r() - 0.5) * 30, b[1] + (r() - 0.5) * 30];
+      rut(path(a, b, e), 0.26, 96 + r() * 20, 60, 0.12 + r() * 0.12); }
+    // the lanes between the rows, worn into dark compacted bands
+    for (const lz of [4.5, 13.8, 23.2, 32.5]) { x.globalAlpha = 0.35; x.fillStyle = 'rgb(104,90,0)'; x.fillRect(X(-42), Z(lz - 1.9), 84 * s, 3.8 * s); x.globalAlpha = 1;
+      for (let k = 0; k < 7; k++) { const off = (r() - 0.5) * 1.6; const pts = []; for (let i = 0; i <= 60; i++) { const px = -42 + i * 1.4, pz = lz + off + Math.sin(px * 0.11 + k) * 0.35; pts.push([px, pz, 1, Math.cos(px * 0.11 + k) * 0.04]); }
+        rut(pts, 0.28, 84 + r() * 16, 120, 0.4 + r() * 0.25); } }
+    // every parked car pulled in from its lane: two fresh paired ruts curving into the spot
+    for (const cdef of CARS) { const fz = cdef.z + 2.5, lane = [4.5, 13.8, 23.2, 32.5].reduce((b, v) => Math.abs(v - fz - 2) < Math.abs(b - fz - 2) ? v : b), side = r() < 0.5 ? -1 : 1;
+      rut(path([cdef.x + side * 9, lane], [cdef.x + side * 2, lane - 0.5], [cdef.x, cdef.z - 1]), 0.3, 70, 170, 0.75); }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.NoColorSpace; t.anisotropy = 8; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; })();
+  function tracksOn(m) { const prev = m.onBeforeCompile;
+    m.onBeforeCompile = (sh, rr) => { prev && prev.call(m, sh, rr); sh.uniforms.tTrk = { value: trackTex }; sh.uniforms.uTrk = { value: new THREE.Vector4(C.x + TRK.x0 * K, C.z + TRK.z0 * K, TRK.size * K, 0) };
+      sh.vertexShader = 'varying vec2 vTrk;\n' + sh.vertexShader.replace('#include <fog_vertex>', '#include <fog_vertex>\n vTrk = ( modelMatrix * vec4( transformed, 1.0 ) ).xz;');
+      sh.fragmentShader = 'uniform sampler2D tTrk; uniform vec4 uTrk; varying vec2 vTrk;\n' + sh.fragmentShader
+        .replace('#include <map_fragment>', '#include <map_fragment>\n vec2 trkUv = ( vTrk - uTrk.xy ) / uTrk.z; vec4 trk = ( trkUv.x > 0.0 && trkUv.x < 1.0 && trkUv.y > 0.0 && trkUv.y < 1.0 ) ? texture2D( tTrk, trkUv ) : vec4( 0.5, 0.0, 0.0, 1.0 ); diffuseColor.rgb *= 2.0 * trk.r;')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.78, trk.g );'); };
+    const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|tracks'; m.needsUpdate = true; }
+
   // ---------- ground: the lot, the forest floor, the hills that close the valley ----------
   let groundMesh;
   { const N = 260, g = new THREE.PlaneGeometry(600 * K, 600 * K, N, N); g.rotateX(-Math.PI / 2); const pos = g.attributes.position, col = new Float32Array(pos.count * 3);
@@ -111,7 +144,8 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       const inLot = Math.abs(x) < 70 && z > -5 && z < 75 ? 1 : 0; cc.copy(duffC).lerp(lotC, inLot * 0.9 + 0.1 * Math.sin(x * 0.7) * Math.cos(z * 0.5));
       col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b; }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
-    groundMesh = new THREE.Mesh(g, groundHook(mat(0xffffff, { vertexColors: true }))); groundMesh.position.set(C.x, Y0, C.z); groundMesh.receiveShadow = true; groundMesh.userData.kind = 'ground'; world.add(groundMesh); }
+    groundMesh = new THREE.Mesh(g, groundHook(mat(0xffffff, { vertexColors: true }))); groundMesh.position.set(C.x, Y0, C.z); groundMesh.receiveShadow = true; groundMesh.userData.kind = 'ground'; world.add(groundMesh);
+    tracksOn(groundMesh.material); }
   // ridges: pine-dark green-brown, their crests catching the moon from behind
   for (const [rad, hgt, col, seed] of [[300, 150, 0x1c2418, 3], [215, 85, 0x161d13, 9]]) {
     const r = rng(seed), pts = 180, pos = [], cols = [], cA = new THREE.Color(col), cCrest = new THREE.Color(0x5a6a80);
