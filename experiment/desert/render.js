@@ -60,7 +60,7 @@ export function makeComposer(renderer, scene, camera) {
   composer.setPixelRatio(Math.min(renderer.getPixelRatio(), 1.5));
   composer.addPass(new RenderPass(scene, camera));
   const ao = new N8AOPass(scene, camera, size.x, size.y);
-  Object.assign(ao.configuration, { aoRadius: 2.2 * 108, distanceFalloff: 0.6 * 108, intensity: 2.2, color: new THREE.Color(0x1a0f08), halfRes: true, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 12, denoiseSamples: 6, denoiseRadius: 10 });
+  Object.assign(ao.configuration, { aoRadius: 2.2 * 108, distanceFalloff: 0.6 * 108, intensity: 2.2, color: new THREE.Color(0x1a0f08), halfRes: false, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 12, denoiseSamples: 6, denoiseRadius: 10 });
   if (!window.__noAO) composer.addPass(ao);
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.22, 0.55, 0.92);
   if (!window.__noBloom) composer.addPass(bloom);

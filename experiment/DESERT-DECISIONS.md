@@ -37,3 +37,8 @@
 - Technical: the near lane is only ~10 m on screen from the landing frame, so the red car crosses in under a second; slowed to 26 m/s
   (~58 mph) so the eye gets a beat on it. Paint is a clearcoat physical material, base darkened so grazing sky reflections stay red.
 - Technical: asphalt carries a road-scale wear map (cracks, tar sealant that reads glossier, patches, wheel paths) over a quiet 4 m tile.
+- Technical (overnight): leaving the desert mirrors the arrival. Next pulls the camera back up the approach curve over ~4 s while
+  the world un-builds cell by cell from the horizon in to the billboard's foot, then the page flies on to the chosen slide.
+- Technical: all GLBs meshopt-compressed (gltfpack -cc), road textures re-encoded: download ~51 MB -> ~26 MB models + ~15 MB textures.
+  Still heavy for phones; a lighter mobile path is open.
+- Technical: ambient occlusion at full resolution (half-res left blocky marks on the near car's paint).
