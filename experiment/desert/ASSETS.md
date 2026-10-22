@@ -164,8 +164,8 @@ Everything is procedural (no third-party meshes or textures); plate text is fict
 - Triangles (`body` includes interior, lamps, grille mesh, mirrors, wipers, plates, exhausts, roof rails):
 | asset | total tris | body node | each wheel node | file size |
 |---|---|---|---|---|
-| `car_sports.glb` | ~148.5k | ~91.7k | ~14.2k (tyre 5.9k, rim 6.5k, disc, cap) | ~5.3 MB |
-| `car_minivan.glb` | ~148.2k | ~91.5k | ~14.2k | ~5.3 MB |
+| `car_sports.glb` | 148,464 | 91,680 | 14,196 (tyre 5.9k, rim 6.5k, disc, cap) | 5.1 MB |
+| `car_minivan.glb` | 148,236 | 91,452 | 14,196 | 5.3 MB |
 - Minivan paint base colour = linear (0.021, 0.070, 0.262) ≈ sRGB (40, 75, 140) per review; sports paint = linear (0.45, 0.02, 0.02).
   `paint` metallic 0.55 / roughness 0.28 (integrator adds clearcoat).
 - Body normals are analytic gradients of the body field averaged over a 1.8 cm (minivan 3 cm) sphere so reflections run
