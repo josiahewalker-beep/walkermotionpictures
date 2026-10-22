@@ -114,6 +114,8 @@ class Body:
         d = smax(d, self.ws_dist(ax, s, z), P['k_ws'])
         d = smax(d, self.bl_dist(ax, s, z), P['k_bl'])
         d = smax(d, (P['belt'] - 0.12) - z, 0.0)
+        d = smax(d, self.tail(ax, s, z), P['k_tail'])
+        d = smax(d, self.nose(ax, s, z), P['k_nose'])
         return d
 
     def wells(self, ax, s, z):

@@ -521,7 +521,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
   }
   const carOf = (key, fallback) => () => TPL[key] ? vehicleFrom(TPL[key]) : fallback();
   const EVENTS = [
-    { at: 2, fn: () => laneRun(carOf('sports', () => sportsCar(0xc8102e)), -1, -1, 30) },
+    { at: 2, fn: () => laneRun(carOf('sports', () => sportsCar(0xc8102e)), -1, -1, 26) },
     { at: 10, fn: () => laneRun(carOf('minivan', () => minivan(0x1f4f96)), 1, 1, 24) },
     { at: 13, fn: () => tumbleRun(8) },
   ];

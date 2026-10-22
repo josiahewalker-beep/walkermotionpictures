@@ -94,3 +94,31 @@ Reference composite: `src/set/road_preview.py` builds the whole road cross-secti
 strips, both shoulders, sand × macro) exactly as intended, and writes `src/set/preview/road.glb` for the harness
 (`glb=src/set/preview/road.glb&ground=0`). Lines in it: yellow centres at ±0.11 m (v offsets 0 and 3.1 m), white fog lines at
 ±3.8 m; shoulder strips start at |x| = 4.67 m (u mirrored on the left side, flip the normal's X there).
+
+## CARS
+Generators: `src/cars/` — `sports.py` / `minivan.py` (+ `*_params.py` design numbers), shared `body.py` (implicit body
+field), `carlib.py` (meshing, cuts, decimation), `surfops.py` (exact level-set cuts → panel gaps, glass, lamp recesses),
+`wheels.py`, `interior.py`, `details.py`, `blendout.py` (Blender → GLB). Rebuild (under the lock, ~1.5 min each):
+`cd src/cars && python3 sports.py && python3 minivan.py`. Preview: `python3 src/cars/shots.py assets/car_sports.glb <prefix>`.
+Everything is procedural (no third-party meshes or textures); plate text is fictional.
+
+### `assets/car_sports.glb` — red GT coupe, 4.55 × 1.94 (body; 2.0 with mirrors) × 1.25 m, wheelbase 2.70 m
+### `assets/car_minivan.glb` — blue minivan, 5.15 × 1.99 (body; 2.20 with mirrors) × 1.78 m (1.81 with roof rails), wheelbase 3.01 m
+- Frame: nose toward **+Z**, +Y up, origin at the footprint centre on the ground, tyres touch y = 0. The car's left (driver)
+  side is **+X**.
+- Nodes: `car` (root) → `body`, `wheel_FL`, `wheel_FR`, `wheel_RL`, `wheel_RR`. FL/RL are on +X (car's left).
+  Each wheel node's origin is the hub centre (sports: y = 0.343 m, minivan: y = 0.368 m); it holds tyre + rim + brake disc
+  + centre cap. Spin about local **X**: `wheel.rotation.x += speed / radius * dt` for forward travel along +Z.
+  Brake calipers are in `body` (they do not spin).
+- Triangles: see the table below (`body` includes interior, lamps, grille mesh, mirrors, wipers, plates, exhausts, roof rails).
+- Materials (all named by role): `paint` (base colour = the paint colour; COLOR_0 carries baked occlusion, darker low on the
+  body and inside the arches — keep vertex colours on), `glass` (BLEND α 0.82, dark tint), `trim_black` (window surrounds,
+  gaps, grille, cladding, wheel wells, underbody; COLOR_0 darkens recesses), `chrome`, `rubber` (tyres: normal map +
+  roughness map for tread sipes and sidewall ribs), `rim` (sports: dark graphite; minivan: silver), `brake` (disc,
+  textured with drilled holes), `caliper` (sports: red; minivan: dark grey), `light_front` (DRL strips/projectors, emissive
+  0.6), `light_rear` (tail lamp lenses, faint emissive), `light_rear_led` (thin LED bars inside the tail lamps, emissive 2),
+  `light_marker` (amber side markers), `light_cover` (clear headlamp cover, BLEND α 0.18), `interior` (cabin shell,
+  seats, dash, wheel), `plate` (textured US-size plate, fictional "7ABC123" / "8MVN417"; rear only on the coupe).
+- The integrator's clearcoat / physical glass swap: `paint` and `glass` are single materials per car, safe to replace.
+- Headlamp recesses are open cavities behind `light_cover`; tail lamps are inset 6 mm. All glass is inset 7–8 mm from
+  the body with a black frit/surround, so the silhouette stays crisp at speed.

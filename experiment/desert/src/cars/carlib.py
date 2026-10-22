@@ -164,6 +164,9 @@ def fix_winding(V, F, N):
     return F
 
 def decimate(V, F, target, preserve_border=True, aggr=7):
+    return decimate_bl(V, F, target)
+
+def decimate_fqmr(V, F, target, preserve_border=True, aggr=7):
     s = pyfqmr.Simplify()
     s.setMesh(V.astype(np.float64), F.astype(np.int32))
     s.simplify_mesh(target_count=int(target), aggressiveness=aggr, preserve_border=preserve_border, verbose=0)
@@ -442,3 +445,24 @@ def blurred_normals(field, V, radius=0.015, h=0.0015):
     for d in dirs:
         acc += field_normals(field, V + d * radius, h=h)
     return normalize(acc)
+
+def decimate_bl(V, F, target):
+    """Decimate with Blender's collapse decimator (robust on thin features)."""
+    import bpy
+    me = bpy.data.meshes.new('_dec')
+    me.vertices.add(len(V)); me.vertices.foreach_set('co', V.astype(np.float32).ravel())
+    me.loops.add(len(F) * 3); me.loops.foreach_set('vertex_index', F.astype(np.int32).ravel())
+    me.polygons.add(len(F))
+    me.polygons.foreach_set('loop_start', (np.arange(len(F)) * 3).astype(np.int32))
+    me.polygons.foreach_set('loop_total', np.full(len(F), 3, np.int32))
+    me.update(calc_edges=True); me.validate()
+    ob = bpy.data.objects.new('_dec', me)
+    bpy.context.scene.collection.objects.link(ob)
+    md = ob.modifiers.new('d', 'DECIMATE'); md.ratio = min(1.0, target / max(len(me.polygons), 1)); md.use_collapse_triangulate = True
+    dg = bpy.context.evaluated_depsgraph_get()
+    ev = ob.evaluated_get(dg); m2 = ev.to_mesh()
+    m2.calc_loop_triangles()
+    nv = len(m2.vertices); Vo = np.empty(nv * 3, np.float32); m2.vertices.foreach_get('co', Vo)
+    nt = len(m2.loop_triangles); Fo = np.empty(nt * 3, np.int32); m2.loop_triangles.foreach_get('vertices', Fo)
+    ev.to_mesh_clear(); bpy.data.objects.remove(ob); bpy.data.meshes.remove(me)
+    return Vo.reshape(-1, 3).astype(np.float64), Fo.reshape(-1, 3).astype(np.int64)

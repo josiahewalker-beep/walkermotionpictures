@@ -23,8 +23,9 @@ export function loadTex(name, { srgb = false, repeat = [1, 1], aniso = 8 } = {})
 export function upgradeMaterial(m) {
   const n = (m.name || '').toLowerCase();
   if (n.startsWith('paint')) {
-    const p = new THREE.MeshPhysicalMaterial({ name: m.name, color: m.color, map: m.map, normalMap: m.normalMap, roughness: 0.32, metalness: 0.45,
-      clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.25 });
+    const p = new THREE.MeshPhysicalMaterial({ name: m.name, color: m.color, map: m.map, normalMap: m.normalMap, roughness: 0.38, metalness: 0.2,
+      clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 0.85 });
+    p.color.multiplyScalar(0.8);          // deeper base so grazing sky reflections don't wash red to pink
     return p;
   }
   if (n.startsWith('glass')) {
