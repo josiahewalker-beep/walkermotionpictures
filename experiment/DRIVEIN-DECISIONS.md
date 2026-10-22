@@ -30,4 +30,4 @@
   90 m overlay drawn in code (worn lanes, the ruts of every car into its spot, old faint arcs) over the fine dirt tile.
 - 10-22 Josiah: no telephone pole / streetlamp in frame. The pole is removed; its warm light stays, moved just off frame left.
 - 10-22 Josiah: the hero car (window down, popcorn bucket) is a silver 1994–98 Saab 9000 Aero 5-door hatchback with the Aero body kit and the Super Aero 3-spoke 16" wheels. Built procedurally from reference; no badges or wordmarks.
-- 10-22 Josiah: the SUV in the middle of the row becomes a red Saab like the one in Drive My Car (asked for as a "9000 SPG"; the film car is a classic Saab 900 Turbo and SPG is that car's trim, so it is built as the classic 900 matching the film car). File: assets/car_saab900.glb.
+- 10-22 Josiah: the SUV in the middle of the row becomes the red Saab from Drive My Car: a classic Saab 900 SPG (the top trim of the classic 900), 1987 Cherry Red three-door hatchback with the SPG kit and three-spoke wheels. File: assets/car_saab900.glb.
