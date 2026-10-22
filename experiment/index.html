@@ -23,6 +23,7 @@ if (!/nodesert/.test(location.hash) && innerWidth >= 700 && innerWidth > innerHe
 [hidden] { display:none !important; }
 html, body { margin:0; height:100%; overflow:hidden; background:var(--bg); color:var(--ink); font-family:var(--body); -webkit-text-size-adjust:100%; }
 a { color:inherit; } :focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+#gl { width:100%; height:100%; display:block; }   /* from the main site (d29f364): on Retina screens the canvas showed at its 2x pixel size, so the grid sat off-centre and crooked */
 #void, #gl, #css { position:fixed; inset:0; }
 #void { background:var(--bg); }
 body.ending::after { opacity:var(--glow, 1); }
