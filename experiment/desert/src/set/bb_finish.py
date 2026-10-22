@@ -42,9 +42,9 @@ def edge_map(used, texel_mm, radius_mm=9.0):
 
 def make_atlas_textures():
     d = np.load(f'{SCR}/bb_bake.npz')
-    meta = np.load(f'{SCR}/bb_meta.npz')
-    src = meta['sources'].copy(); src[:, :3] = g2b(src[:, :3])
-    per = meta['perch'].copy(); per[:, :3] = g2b(per[:, :3])
+    bb_geo.build()                      # geometry is deterministic: regenerate streak sources / perches
+    src = np.array([np.r_[p, s, w, l] for p, s, w, l in bb_geo.SOURCES]); src[:, :3] = g2b(src[:, :3])
+    per = np.array([np.r_[p, r, d] for p, r, d in bb_geo.PERCH]); per[:, :3] = g2b(per[:, :3])
     for name in ('paint_peeling', 'steel_weathered_rear', 'steel_weathered', 'concrete'):
         P, N, AO, used = d[f'{name}_pos'], d[f'{name}_nrm'], d[f'{name}_ao'], d[f'{name}_used']
         _, (iy, ix) = ndi.distance_transform_edt(~used, return_indices=True)
@@ -54,9 +54,9 @@ def make_atlas_textures():
         E = edge_map(used, tm)
         log(name, 'texel mm', round(tm, 2))
         if name == 'paint_peeling':
-            out = W.weather_painted(P, N, AO, E, used, src, per, [0.20, 0.235, 0.20], [0.36, 0.385, 0.335], seed=1)
+            out = W.weather_painted(P, N, AO, E, used, src, per, [0.15, 0.148, 0.138], [0.235, 0.228, 0.212], seed=1)
         elif name == 'steel_weathered_rear':
-            out = W.weather_painted(P, N, AO, E, used, src, per, [0.20, 0.235, 0.20], [0.34, 0.365, 0.32], seed=2, peel_amt=0.1)
+            out = W.weather_painted(P, N, AO, E, used, src, per, [0.15, 0.148, 0.138], [0.225, 0.22, 0.205], seed=2, peel_amt=0.05)
         elif name == 'steel_weathered':
             out = W.weather_steel(P, N, AO, E, used, src, per, seed=21)
         else:

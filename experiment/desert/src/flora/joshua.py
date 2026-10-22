@@ -204,7 +204,7 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     furness = smoothstep(edge + 0.02, edge - 0.40, s[:, None])        # 0 bark → 1 full thatch (per vertex)
     if b.depth <= 1:
         furness = np.maximum(furness, smoothstep(zfur - 0.05, zfur + 0.4, p[:, 2:3]))
-    core_extra = (0.10 if lod else 0.05) * furness
+    core_extra = (0.075 if lod else 0.05) * furness
     rad = r[:, None] + core_extra
     if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
         rad = rad * (0.25 + 0.75 * smoothstep(0.0, 0.16, s))[:, None]
