@@ -209,7 +209,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     g.position.copy(P(p.x, lot(p.x, p.z), p.z)); g.userData.kind = 'post'; world.add(shadowy(g)); return g; });
 
   // ---------- light ----------
-  const hemi = new THREE.HemisphereLight(0x2c3650, 0x2a1d12, 0.35); world.add(hemi);
+  const hemi = new THREE.HemisphereLight(0x2c3650, 0x2a1d12, 0.25); world.add(hemi);
   const moon = new THREE.DirectionalLight(0x9fb2e8, 0.3); moon.position.copy(P(0, SCY, 0)).addScaledVector(moonDir, 400 * K); moon.target.position.copy(P(0, 3, 10)); world.add(moon, moon.target);
   // the warm light from behind the camera: the concession stand's open windows
   // a spot, not a sun: it reaches the cars and the lot and falls off before the treeline (Josiah 10-22: the trees are backlit)
@@ -282,7 +282,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     if ('envMapIntensity' in m) m.envMapIntensity = /^(paint|glass|chrome|rim)/.test(n) ? 1.0 : 0.35;
     if (n.startsWith('needles') || n.startsWith('leaf')) { m.side = THREE.DoubleSide; if (m.map) { m.alphaTest = Math.max(m.alphaTest || 0, 0.45); m.transparent = false; } }
     if (/^light_(front|rear|marker)/.test(n)) { m.emissiveIntensity = 0; if (m.emissive) m.emissive.setRGB(0, 0, 0); }   // parked for the film: lights off
-    if (n.startsWith('needles')) { m.envMapIntensity = 0.15; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
+    if (n.startsWith('needles')) { m.envMapIntensity = 0.15; m.roughness = 1; if ('specularIntensity' in m) m.specularIntensity = 0.1; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
     if (n.startsWith('light_bulb')) { m.emissive = new THREE.Color(0xffc890); m.emissiveIntensity = 2.0; m.toneMapped = false; }
     return m; }
   const RIM = { uMoonW: { value: moonDir }, uRimC: { value: new THREE.Color(0x9fb2e8) } };
@@ -294,7 +294,36 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
            float back = smoothstep( 0.05, 0.75, dot( -Vv, Mv ) ), edge = pow( 1.0 - abs( dot( normalize( normal ), Vv ) ), 2.2 );
            totalEmissiveRadiance += uRimC * uRimK * back * edge; }`); };
     const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|rim' + k; return m; }
-  const rimFor = n => /^(needles|leaf)/.test(n) ? 0.22 : /^(bark|wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
+  // pines: needle cards have random normals, so a normal-based rim lights the whole crown. Rim them by crown shape instead:
+  // bright only at the outer silhouette fringe (and the tip), interior dark, so they read backlit against the moon sky.
+  function crownOn(tpl, k) { tpl.updateMatrixWorld(true);
+    tpl.traverse(o => { if (!o.isMesh || !/^(needles|leaf)/.test((o.material.name || '').toLowerCase())) return;
+      o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox;
+      const cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2, R = Math.max(b.max.x - cx, b.max.z - cz), cr = new THREE.Vector3(R, b.min.y, b.max.y), cc = new THREE.Vector2(cx, cz);
+      const m = o.material.clone(); m.name = o.material.name; const prev = m.onBeforeCompile;
+      m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); Object.assign(sh.uniforms, { uMoonW: RIM.uMoonW, uRimC: RIM.uRimC, uRimK: { value: k }, uCrown: { value: cr }, uCrC: { value: cc } });
+        sh.vertexShader = 'uniform vec3 uCrown; uniform vec2 uCrC; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+          `#include <begin_vertex>
+           { vec4 cw = vec4( transformed, 1.0 ), rr = vec4( transformed.x - uCrC.x, 0.0, transformed.z - uCrC.y, 0.0 );
+           #ifdef USE_INSTANCING
+             cw = instanceMatrix * cw; rr = instanceMatrix * rr;
+           #endif
+             vCrW = ( modelMatrix * cw ).xyz; vCrR = ( modelMatrix * rr ).xyz;
+             float h = clamp( ( transformed.y - uCrown.y ) / max( uCrown.z - uCrown.y, 1e-3 ), 0.0, 1.0 );
+             vCrO = length( transformed.xz - uCrC ) / ( uCrown.x * clamp( ( 1.0 - h ) * 1.15, 0.12, 1.0 ) ); vCrH = h; }`);
+        sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.fragmentShader
+          .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+           float crOuter = smoothstep( 0.45, 1.0, vCrO );
+           { vec3 V = normalize( cameraPosition - vCrW ), Rd = normalize( vCrR + vec3( 1e-5 ) );
+             float sil = 1.0 - abs( dot( Rd, normalize( vec3( V.x, 0.0, V.z ) ) ) );
+             float side = 0.5 + 0.5 * dot( Rd, normalize( vec3( uMoonW.x, 0.0, uMoonW.z ) ) );
+             float top = smoothstep( 0.72, 1.0, vCrH );
+             totalEmissiveRadiance += uRimC * uRimK * crOuter * ( pow( sil, 2.0 ) * ( 0.35 + 0.65 * side ) + 0.5 * top ); }`)
+          .replace('#include <aomap_fragment>', `reflectedLight.directDiffuse *= mix( 0.15, 0.7, crOuter ); reflectedLight.indirectDiffuse *= mix( 0.3, 0.8, crOuter ); reflectedLight.directSpecular *= 0.05 * crOuter; reflectedLight.indirectSpecular *= 0.1;
+           #include <aomap_fragment>`); };
+      const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
+      o.material = m; }); return tpl; }
+  const rimFor = n => /^(needles|leaf)/.test(n) ? 0 :/^(bark|wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
   let applied = false;
   async function applyAssets() {
@@ -303,6 +332,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       'rock_a', 'rock_b', 'pinecone', 'needle_clump', 'screen', 'booth', 'lamp_pole', 'popcorn_bucket', 'popcorn_kernel', 'moth', 'mouse', 'owl'];
     const got = Object.fromEntries((await Promise.all(names.map(loadGLB))).map((g, i) => [names[i], g]));
     for (const [k, g] of Object.entries(got)) if (g) TPL[k] = prep(g);
+    for (const k of Object.keys(TPL)) if (/^pine_/.test(k)) crownOn(TPL[k], 0.55);
     // cars: nose +Z in the files, facing the screen (-Z) here
     carSpots.forEach((c, i) => { const t = TPL[c.file]; if (!t) return; const o = place(t, P(c.x, c.y, c.z), Math.PI + c.ry); o.userData.kind = 'carAsset'; world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
     if (TPL.speaker_post) postSpots.forEach((p, i) => { const o = place(TPL.speaker_post, P(p.x, lot(p.x, p.z), p.z), Math.PI + carSpots[i].ry); world.add(o); postBlocks[i].visible = false; });
