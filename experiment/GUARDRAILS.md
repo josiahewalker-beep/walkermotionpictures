@@ -4,10 +4,11 @@ Josiah confirmed both pages working on 2026-10-22 (his laptop: 1728 × 1117, Ret
 them that way, and how to get back to this state if something breaks. Read this before touching the grid, the canvas,
 the camera, the card CSS or the desert hookup on either page.
 
-## Known-good versions (git tags)
-- `good-grid-2026-10-22` — the main site and /experiment, both confirmed by Josiah.
-- Revert a single file to it: `git checkout good-grid-2026-10-22 -- index.html` (or `experiment/index.html`,
-  `experiment/desert.js`), then commit and push. Don't reset the branch; other sessions push to main.
+## Known-good version
+- Branch `good-grid-2026-10-22` (commit 76d3b06) on GitHub: the main site and /experiment, both confirmed by Josiah.
+  It is a frozen snapshot; never push to it.
+- Revert a single file to it: `git fetch origin good-grid-2026-10-22 && git checkout FETCH_HEAD -- index.html` (or
+  `experiment/index.html`, `experiment/desert.js`), then commit and push to main. Don't reset main; other sessions push to it.
 
 ## The rules
 
