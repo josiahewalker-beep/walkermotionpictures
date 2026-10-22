@@ -9,7 +9,7 @@ from carlib import smax, sd_round_box, box
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_sedan_b.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.010
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 26000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
 
 S_FA, S_RA, RT = 1.42, -1.33, 0.34
 BELT = 1.05
@@ -87,7 +87,7 @@ C = dict(
                   glass_band=(BELT + 0.02, 1.53), shell_target=1400),
     wheel=dict(type='steel', hole_type='round', r_cover=0.19, a_face=0.06, dome=0.008, roll=0.035, ring_r=0.155, ring_h=0.006,
                cap_h=0.0, cap_r=0.05, holes=6, hole_r=0.125, hole_w=0.04),
-    wheel_target=1800, tyre_seg=36, rim_color=(0.55, 0.56, 0.58), rim_rough=0.45,
+    wheel_target=1300, tyre_seg=30, rim_color=(0.55, 0.56, 0.58), rim_rough=0.45,
 )
 
 if __name__ == '__main__':

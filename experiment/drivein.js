@@ -209,8 +209,8 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     g.position.copy(P(p.x, lot(p.x, p.z), p.z)); g.userData.kind = 'post'; world.add(shadowy(g)); return g; });
 
   // ---------- light ----------
-  const hemi = new THREE.HemisphereLight(0x2c3650, 0x2a1d12, 0.55); world.add(hemi);
-  const moon = new THREE.DirectionalLight(0x9fb2e8, 0.9); moon.position.copy(P(0, SCY, 0)).addScaledVector(moonDir, 400 * K); moon.target.position.copy(P(0, 3, 10)); world.add(moon, moon.target);
+  const hemi = new THREE.HemisphereLight(0x2c3650, 0x2a1d12, 0.35); world.add(hemi);
+  const moon = new THREE.DirectionalLight(0x9fb2e8, 0.5); moon.position.copy(P(0, SCY, 0)).addScaledVector(moonDir, 400 * K); moon.target.position.copy(P(0, 3, 10)); world.add(moon, moon.target);
   // the warm light from behind the camera: the concession stand's open windows
   const stand = new THREE.DirectionalLight(0xffb070, 1.35); stand.position.copy(P(STAND[0], 9, STAND[2] + 6)); stand.target.position.copy(P(-4, 2, 18)); stand.castShadow = true;
   stand.shadow.mapSize.set(2048, 2048); Object.assign(stand.shadow.camera, { left: -40 * K, right: 40 * K, top: 30 * K, bottom: -30 * K, near: 1 * K, far: 120 * K }); stand.shadow.bias = -0.0004; stand.shadow.normalBias = 0.06 * K;
@@ -229,7 +229,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const FL = { k: 1 };
   const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => P(a * SW / 2 * 0.985, SCY + b * SH / 2 * 0.985, -0.05));
   const beamMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false, fog: false,
-    uniforms: { uK: { value: 0.016 }, uFl: { value: 1 }, uRev: REV.uRev },
+    uniforms: { uK: { value: 0.028 }, uFl: { value: 1 }, uRev: REV.uRev },
     vertexShader: 'attribute float aT; attribute vec2 aE; varying float vT; varying vec2 vE; void main(){ vT = aT; vE = aE; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
     fragmentShader: `uniform float uK, uFl, uRev; varying float vT; varying vec2 vE;
       void main(){ float edge = smoothstep(0.0, 0.18, vE.x) * smoothstep(0.0, 0.18, 1.0 - vE.x);       // soft sides
@@ -279,6 +279,8 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   function nightMaterial(m) { m = upgradeMaterial(m); const n = (m.name || '').toLowerCase();
     if ('envMapIntensity' in m) m.envMapIntensity = /^(paint|glass|chrome|rim)/.test(n) ? 1.0 : 0.35;
     if (n.startsWith('needles') || n.startsWith('leaf')) { m.side = THREE.DoubleSide; if (m.map) { m.alphaTest = Math.max(m.alphaTest || 0, 0.45); m.transparent = false; } }
+    if (/^light_(front|rear|marker)/.test(n)) { m.emissiveIntensity = 0; if (m.emissive) m.emissive.setRGB(0, 0, 0); }   // parked for the film: lights off
+    if (n.startsWith('needles')) { m.envMapIntensity = 0.15; if (m.color) m.color.multiplyScalar(0.7); }   // matte, deep needles; the moon only rims them
     if (n.startsWith('light_bulb')) { m.emissive = new THREE.Color(0xffc890); m.emissiveIntensity = 2.0; m.toneMapped = false; }
     return m; }
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };

@@ -68,7 +68,7 @@ def heap_mesh(rs):
     """Dome of popcorn above the rim plus loose kernels on top."""
     m, n = 16, 4
     V, UV, F = [], [], []
-    top = H + 0.05
+    top = H + 0.035
     for i in range(n + 1):
         t = i / n
         r = (R1 - 0.003) * np.cos(t * np.pi / 2) ** 0.8
@@ -86,15 +86,15 @@ def heap_mesh(rs):
             F.append(q if i < n - 1 else [q[0], q[1], q[2]])
     V = np.array(V)
     F = [f[::-1] for f in F]
-    heap = Mesh().add(V, clib.orient(V - (0, H, 0), F), np.array(UV) * 0.9)
+    heap = Mesh().add(V, clib.orient(V - (0, H, 0), F), np.array(UV) * np.array([3.0, 0.6]))
     # loose kernels sitting on the dome
     for k in range(18):
         a = rs.uniform(0, 2 * np.pi) if k else 0.0
         rr = (R1 - 0.014) * (np.sqrt((k + 0.5) / 18)) if k else 0.0
         a = k * 2.39996
         t = np.arccos(np.clip(rr / R1, 0, 1)) / (np.pi / 2)
-        y = H - 0.012 + (top - H + 0.012) * np.sin(t * np.pi / 2) ** 1.3 + 0.004
-        kn = kernel(rs, size=rs.uniform(0.019, 0.025), lumps=3, m=6, n=4, nub=False)
+        y = H - 0.012 + (top - H + 0.012) * np.sin(t * np.pi / 2) ** 1.3 + 0.002
+        kn = kernel(rs, size=rs.uniform(0.028, 0.034), lumps=3, m=6, n=4, nub=False)
         Rm = rot_rand(rs)
         kn.transform(lambda v, Rm=Rm, a=a, rr=rr, y=y: v @ Rm.T + np.array([rr * np.cos(a), y, rr * np.sin(a)]))
         heap.merge(kn)
@@ -133,7 +133,7 @@ def tex_paper():
     y_mid = int((1 - 0.78) * Hd)
     for x0 in (Wd * 0.25, Wd * 0.75):
         dr.text((x0, y_mid), 'POPCORN', font=f, fill=255, anchor='mm')
-    t = ndi.gaussian_filter(np.asarray(img, float) / 255, 0.7)
+    t = ndi.gaussian_filter(np.asarray(img, float) / 255, 0.7)[:, ::-1]
     c = c * (1 - t[..., None]) + red * t[..., None]
     # thin red lines framing the band
     for vb in (0.70, 0.86):

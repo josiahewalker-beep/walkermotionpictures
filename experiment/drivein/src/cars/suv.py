@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_suv.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.011
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 24000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 10000
 
 S_FA, S_RA, RT = 1.40, -1.44, 0.366
 BELT = 1.13
@@ -59,7 +59,7 @@ C = dict(
     wheel=dict(type='alloy', r_cover=0.19, a_face=0.07,
                alloy=dict(r_lip=0.205, r_barrel=0.182, width=0.20, spokes=5, split=0.0, a_face=0.075, dish=0.022,
                           spoke_depth=0.026, spoke_w0=0.034, spoke_w1=0.026)),
-    wheel_target=2200, tyre_seg=36, rim_color=(0.62, 0.63, 0.65), rim_rough=0.3,
+    wheel_target=1500, tyre_seg=30, rim_color=(0.62, 0.63, 0.65), rim_rough=0.3,
 )
 
 if __name__ == '__main__':
