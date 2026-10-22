@@ -1460,6 +1460,9 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
   setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
 })();
 window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
+// desert billboard audition (experiment only): #desert loads the blockout; __wmp.shot parks the camera on an exact framing
+window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
+if (/desert/.test(location.hash)) import('./desert.js').then(m => { window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl }); });
 </script>
 <script>
 // safety net: if anything stops the opening sequence, show the page anyway
