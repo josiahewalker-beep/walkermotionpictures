@@ -53,7 +53,7 @@ def build(seed=4):
     for a in np.linspace(np.pi / 2, 0, 8)[1:]:
         arm.append(c + np.array([0.18 * np.cos(a), 0.18 * np.sin(a), 0]))
     arm[-1] = np.array([BULB[0], arm[-1][1], 0])
-    arm.append(np.array([BULB[0], BULB[1] + 0.21, 0]))
+    arm.append(np.array([BULB[0], BULB[1] + 0.12, 0]))
     arm = np.array(arm)
     sweep(ST, p_circle(0.021, 8), arm, up=(0, 0, 1))
     # support strap under the arm

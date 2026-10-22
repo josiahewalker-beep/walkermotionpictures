@@ -160,8 +160,8 @@ def tex_popcorn():
     b = TL.spectral((n, n), r, 1.4, lo=30, hi=140)
     F1, F2, _, _ = TL.worley((n, n), 22, r)
     cell = np.sqrt(np.clip((F2 - F1) / 9, 0, 1))
-    fluff = np.array([0.80, 0.74, 0.58]); butter = np.array([0.72, 0.52, 0.20])
-    t = TL.smoothstep(-0.6, 1.2, a)
+    fluff = np.array([0.80, 0.76, 0.63]); butter = np.array([0.74, 0.58, 0.28])
+    t = TL.smoothstep(0.0, 1.8, a) * 0.8
     c = fluff * (1 - t[..., None]) + butter * t[..., None]
     c = c * (0.85 + 0.15 * cell)[..., None] * (1 + 0.05 * b)[..., None]
     # hull brown in the bottom-right corner (used by the nub)
@@ -194,7 +194,7 @@ def export_all():
     pipe.export(f'{ROOT}/assets/popcorn_bucket.glb')
     # ---- single kernel
     pipe.reset()
-    k = kernel(np.random.default_rng(3), size=0.02, lumps=4, m=8, n=5)
+    k = kernel(np.random.default_rng(3), size=0.02, lumps=5, m=6, n=5)
     V, F, _ = k.arrays()
     V = V - np.array([0, V[:, 1].min(), 0])          # origin at the bottom
     ob = pipe.make_mesh('popcorn_kernel', V, F, uvs=k.loop_uvs(), smooth_angle=80, recalc=False)

@@ -69,7 +69,9 @@ left flank (x −11.3, outside the face, seen from the camera) up to y 13.4, a s
 plywood back skin (board-and-batten, one replaced sheet) at z −2.4. **Build-time guard:** `screen_geo.check_front_clear`
 (nothing at z > −0.15 inside the rounded face, vertices + polygon samples) and `check_sightline` (nothing in front of
 z = 0 projects into the face from the hero camera); `screen_build.py` refuses to export on any violation.
-Materials: `screen_panel`, `wood_old`, `wood_painted`, `steel_weathered`, `concrete`.
+Materials: `screen_panel`, `wood_old` + `steel_weathered` (the parts the camera sees: everything below y 6.5, the left
+flank, the top rim; dense 2048/1024 atlases, ~15 mm texels), `wood_old_rear` + `steel_weathered_rear` (same look, hidden
+parts, cheap atlases), `wood_painted` (back skin), `concrete`.
 
 **`booth.glb`** — origin on the ground under the cabin centre; port faces +Z; node **`lens`** (empty) at the port centre
 (0, 8.50, 1.10), 8.5 m above the origin. Aim the whole booth (yaw/pitch) so +Z points from the lens at the screen centre.
@@ -81,10 +83,11 @@ projector with lens barrel and reels (`steel_weathered`), and an inward-facing `
 room. `glass` (BLEND 0.6, double-sided) panes in the port and the side window — hide the port pane if it fights the beam.
 
 **`lamp_pole.glb`** — origin at the pole foot; ~5.3 m creosoted pole (`wood_old`) with a slight lean, conduit, old
-disconnect box, step pegs, pole tag; a galvanized gooseneck arm reaching +X ends in a dark-green enamel RLM shade
+disconnect box, step pegs, pole tag, an old crossarm on the −X face with two green glass insulators (`glass_insulator`, BLEND); a
+galvanized gooseneck arm reaching +X ends in a dark-green enamel RLM shade
 (`steel_weathered` outside, chipped/rusty; `reflector` white enamel inside) with a photocell on the bracket. Bulb mesh uses
 **`light_bulb`** (emissive warm 1.0/0.62/0.30, strength 4 in Blender; drive it in code); node **`bulb`** (empty) at the
-bulb centre (0.95, 4.38, 0). Rotate about Y so the arm points over the lot.
+bulb centre (0.90, 4.38, 0). Rotate about Y so the arm points over the lot.
 
 **`popcorn_bucket.glb`** — origin at the bottom centre; root `popcorn_bucket` → `bucket` (material `paper`: 16 red/white
 stripes, a white band with POPCORN lettering, rolled rim, grease spots; double-sided so the inner wall shows) and

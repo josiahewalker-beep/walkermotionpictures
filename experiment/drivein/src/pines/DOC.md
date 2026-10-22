@@ -3,6 +3,7 @@ Rebuild (under the shared lock, ~3 min total): `cd src/pines && python3 pinetex.
 && python3 rocks.py && python3 ground.py && python3 write_docs.py` (`run.sh "<cmd>" "<harness query>|<png>"` builds and
 screenshots in one lock acquisition). Everything is procedural (numpy/PIL + Blender as a Python module); no third-party
 meshes or textures. Pipeline and helpers adapted from `desert/src/flora` (vertex-colour AO, KHR_mesh_quantization).
+`groundpreview.py lot|forest` writes a preview-only textured plane to `src/pines/preview/` (harness: `&ground=0`).
 
 {{TABLE}}
 
@@ -49,6 +50,6 @@ branches with upturned tips.
 phyllotactic scales; scale 0.8-1.2). `needle_clump` (48 flat fallen-needle cards over a ~0.9 m patch, a few mm off the
 ground, `needles` MASK double-sided; scatter a handful near the camera and under the flank trees).
 
-**Rocks.** `rock_a` (2.4 m rounded block), `rock_b` (1.2 m faceted): grey Rocky Mountain granite with biotite speckle,
+**Rocks.** `rock_a` (2.4 m rounded block), `rock_b` (1.1 m faceted, upright): grey Rocky Mountain granite with biotite speckle,
 grey-green and pale-green lichen on the tops, black crusts, rare orange spots, moss and needle duff at the base, sunk
 5-12 cm. Material `rock`: 1024 albedo (AO baked in) + normal, roughness 0.88. Scale ±30 % and rotate about Y.

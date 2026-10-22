@@ -29,8 +29,8 @@ def save(arr, name, to_srgb=True, q=90):
     if to_srgb:
         a = srgb(a)
     a8 = (a * 255 + 0.5).astype(np.uint8)
-    if a8.ndim == 2:
-        a8 = np.repeat(a8[..., None], 3, -1)
+    if a8.ndim == 3 and a8.shape[-1] == 1:
+        a8 = a8[..., 0]
     Image.fromarray(a8).save(os.path.join(TEX, name), quality=q, subsampling=0, optimize=True)
     print('wrote', name, 'mean', np.round(arr.reshape(-1, arr.shape[-1] if arr.ndim == 3 else 1).mean(0), 3))
 
@@ -186,8 +186,8 @@ def finish(name, base_col, base_h, base_rough, layers, normal_strength):
     col *= (1 + 0.10 * np.tanh(cav))[..., None]
     nmap = height_to_normal(ndimage.gaussian_filter(h, 0.7, mode='wrap'), normal_strength)
     save(np.clip(col, 0.02, 0.9), f'{name}_albedo.jpg')
-    save(nmap, f'{name}_normal.jpg', to_srgb=False)
-    save(np.clip(rough, 0.3, 1.0), f'{name}_rough.jpg', to_srgb=False)
+    save(nmap, f'{name}_normal.jpg', to_srgb=False, q=84)
+    save(np.clip(rough, 0.3, 1.0), f'{name}_rough.jpg', to_srgb=False, q=80)
 
 
 def lot(seed=21):

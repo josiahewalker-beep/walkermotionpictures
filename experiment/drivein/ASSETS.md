@@ -76,6 +76,7 @@ Rebuild (under the shared lock, ~3 min total): `cd src/pines && python3 pinetex.
 && python3 rocks.py && python3 ground.py && python3 write_docs.py` (`run.sh "<cmd>" "<harness query>|<png>"` builds and
 screenshots in one lock acquisition). Everything is procedural (numpy/PIL + Blender as a Python module); no third-party
 meshes or textures. Pipeline and helpers adapted from `desert/src/flora` (vertex-colour AO, KHR_mesh_quantization).
+`groundpreview.py lot|forest` writes a preview-only textured plane to `src/pines/preview/` (harness: `&ground=0`).
 
 | file | size x × y(up) × z, m | tris | GLB | materials |
 |---|---|---|---|---|
@@ -85,8 +86,8 @@ meshes or textures. Pipeline and helpers adapted from `desert/src/flora` (vertex
 | `pine_b_lod1.glb` | 4.34 × 23.37 × 4.56 | 5,800 | 0.9 MB | bark, needles |
 | `pine_c.glb` | 10.84 × 32.57 × 10.43 | 56,900 | 5.3 MB | bark, needles |
 | `pine_c_lod1.glb` | 11.21 × 33.45 × 10.91 | 5,800 | 0.8 MB | bark, needles |
-| `rock_a.glb` | 2.40 × 1.29 × 1.83 | 2,998 | 0.6 MB | rock |
-| `rock_b.glb` | 1.24 × 1.08 × 1.08 | 1,164 | 0.6 MB | rock |
+| `rock_a.glb` | 2.40 × 1.29 × 1.83 | 3,000 | 0.6 MB | rock |
+| `rock_b.glb` | 1.24 × 1.05 × 1.09 | 2,899 | 0.6 MB | rock |
 | `pinecone.glb` | 0.10 × 0.07 × 0.07 | 480 | 0.2 MB | bark |
 | `needle_clump.glb` | 0.95 × 0.03 × 0.92 | 96 | 0.2 MB | needles |
 
@@ -133,7 +134,7 @@ branches with upturned tips.
 phyllotactic scales; scale 0.8-1.2). `needle_clump` (48 flat fallen-needle cards over a ~0.9 m patch, a few mm off the
 ground, `needles` MASK double-sided; scatter a handful near the camera and under the flank trees).
 
-**Rocks.** `rock_a` (2.4 m rounded block), `rock_b` (1.2 m faceted): grey Rocky Mountain granite with biotite speckle,
+**Rocks.** `rock_a` (2.4 m rounded block), `rock_b` (1.1 m faceted, upright): grey Rocky Mountain granite with biotite speckle,
 grey-green and pale-green lichen on the tops, black crusts, rare orange spots, moss and needle duff at the base, sunk
 5-12 cm. Material `rock`: 1024 albedo (AO baked in) + normal, roughness 0.88. Scale ±30 % and rotate about Y.
 <!-- PINES:END -->
