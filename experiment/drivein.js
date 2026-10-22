@@ -203,7 +203,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     const cab = new THREE.Mesh(new THREE.BoxGeometry(Wd * 0.9 * K, 0.6 * K, 2.3 * K), mat(0x0c0f14, { roughness: 0.15 })); cab.position.set(0, 1.3 * K, 0.1 * K); g.add(cab);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.34 * K, 0.34 * K, 0.24 * K, 14), mat(0x0a0a0a)); w.rotation.z = Math.PI / 2; w.position.set(sx * Wd / 2 * K, 0.34 * K, sz * L * 0.32 * K); g.add(w); }
     g.position.copy(P(c.x, c.y, c.z)); g.rotation.y = c.ry; g.userData.kind = 'car'; world.add(shadowy(g)); return g; });
-  const postSpots = carSpots.map(c => { const s = Math.sin(c.ry), co = Math.cos(c.ry); return { x: c.x - co * 1.75, z: c.z + s * 1.75 }; });   // on the driver's side, beside the front door
+  const postSpots = carSpots.map(c => { const s = Math.sin(c.ry), co = Math.cos(c.ry); const back = c === carSpots[0] ? 1.7 : 0; return { x: c.x - co * 1.75 + s * back, z: c.z + s * 1.75 + co * back }; });   // on the driver's side, beside the front door (the hero's sits back by the rear door, clear of the bucket's fall)
   const postBlocks = postSpots.map(p => { const g = new THREE.Group(); const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.04 * K, 0.04 * K, 1.1 * K, 8), mat(0x6a6a66, { metalness: 0.6, roughness: 0.5 })); pipe.position.y = 0.55 * K; g.add(pipe);
     const spk = new THREE.Mesh(new THREE.BoxGeometry(0.22 * K, 0.18 * K, 0.1 * K), mat(0x8a8c88, { metalness: 0.7, roughness: 0.4 })); spk.position.set(0, 1.0 * K, 0.08 * K); g.add(spk);
     g.position.copy(P(p.x, lot(p.x, p.z), p.z)); g.userData.kind = 'post'; world.add(shadowy(g)); return g; });
@@ -353,7 +353,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       world.add(g); pineBlock.visible = false; assetsDone.push('pines'); }
     if (TPL.popcorn_bucket) { bucketGroup.remove(bucketBlock); bucketGroup.add(place(TPL.popcorn_bucket, new THREE.Vector3())); assetsDone.push('popcorn_bucket'); }
     if (TPL.popcorn_kernel) { let km = null; TPL.popcorn_kernel.traverse(o => { if (o.isMesh && !km) km = o; });
-      if (km) { kernels.geometry = km.geometry.clone().scale(K, K, K); kernels.material = km.material; } }
+      if (km) { TPL.popcorn_kernel.updateMatrixWorld(true); kernels.geometry = km.geometry.clone().applyMatrix4(km.matrixWorld).scale(K, K, K); kernels.material = km.material; } }
     if (TPL.moth) { mothSprite.visible = false; const o = place(TPL.moth, new THREE.Vector3(), 0, 1.6); moth.add(o); moth.userData.wings = ['wing_L', 'wing_R'].map(n => o.getObjectByName(n)).filter(Boolean); assetsDone.push('moth'); }
     if (TPL.mouse) { mouse.clear(); const o = place(TPL.mouse, new THREE.Vector3()); mouse.add(o); mouse.userData.parts = Object.fromEntries(['head', 'tail', 'leg_FL', 'leg_FR', 'leg_RL', 'leg_RR', 'body'].map(n => [n, o.getObjectByName(n)])); assetsDone.push('mouse'); }
     if (TPL.owl) { owl.clear(); const o = place(TPL.owl, new THREE.Vector3()); o.traverse(m => { if (m.isMesh) m.material = new THREE.MeshBasicMaterial({ color: 0x07080b, fog: false }); }); owl.add(o); owl.userData.wings = ['wing_L', 'wing_R'].map(n => o.getObjectByName(n)).filter(Boolean); assetsDone.push('owl'); }
@@ -368,6 +368,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const bucketLedge = () => { const car = heroCar(); car.updateMatrixWorld(true); const a = car.getObjectByName && car.getObjectByName('bucket_anchor');
     if (a) return a.getWorldPosition(new THREE.Vector3());
     const local = new THREE.Vector3(-0.92, 1.02, -0.35).multiplyScalar(K).applyAxisAngle(new THREE.Vector3(0, 1, 0), CARS[0].ry); return car.position.clone().add(local); };   // driver's window ledge (car faces -Z, driver side toward the camera)
+  const camLeft = () => { const f = new THREE.Vector3().subVectors(shot.look, shot.pos).setY(0).normalize(); return new THREE.Vector3(f.z, 0, -f.x); };   // screen-left on the ground
   const outward = () => new THREE.Vector3(-1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), CARS[0].ry);    // out of the driver's window
   let bucket = { phase: 0 }, spill = [], mouseRun = null, owlRun = null;
   function resetSeq() { seqT = 0; bucket = { phase: 0 }; bucketGroup.visible = true; bucketGroup.position.copy(bucketLedge()); bucketGroup.rotation.set(0, CARS[0].ry, 0); kernels.visible = false; spill = []; mouse.visible = false; mouseRun = null; owl.visible = false; owlRun = null; }
@@ -389,7 +390,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       moth.position.copy(p); const lit = inBeam(p, 0.05) * fl; mothSprite.material.opacity = 0.15 + 0.85 * lit; moth.traverse(o => { if (o.isMesh && o.material && 'emissiveIntensity' in o.material) { o.material.emissive = o.material.emissive || new THREE.Color(); o.material.emissive.setRGB(1, 0.92, 0.78); o.material.emissiveIntensity = 0.9 * lit; } });
       const flap = Math.sin(t * 38) * 0.9; (moth.userData.wings || []).forEach((w, i) => w.rotation.z = (i ? -1 : 1) * flap); moth.lookAt(camera.position); }
     // 3 s: the bucket tips off the ledge, falls, lands on its side; popcorn sprays out and settles
-    if (bucket.phase === 0 && t >= 3) { bucket = { phase: 1, t0: t, p: bucketGroup.position.clone(), v: outward().multiplyScalar(0.6 * K).add(new THREE.Vector3(0, 0.4 * K, 0)), spin: 0 }; }
+    if (bucket.phase === 0 && t >= 3) { bucket = { phase: 1, t0: t, p: bucketGroup.position.clone(), v: outward().multiplyScalar(0.6 * K).addScaledVector(camLeft(), 1.1 * K).add(new THREE.Vector3(0, 0.4 * K, 0)), spin: 0 };   // lands left of the door, clear of the page's buttons }
     if (bucket.phase === 1) { const g = -9.8 * K; bucket.v.y += g * dt; bucket.p.addScaledVector(bucket.v, dt); bucket.spin += dt * 6.5;
       const gy = groundAt(bucket.p) + 0.09 * K; if (bucket.p.y <= gy) { bucket.p.y = gy; bucket.phase = 2; bucket.t1 = t; burst(bucket.p); }
       bucketGroup.position.copy(bucket.p); bucketGroup.rotation.set(0, CARS[0].ry, 0); bucketGroup.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.min(Math.PI / 2, bucket.spin)); }
@@ -421,7 +422,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       owl.children.forEach(w => { if (w.userData.side) w.rotation.z = w.userData.side * flap; }); } }
   }
   function burst(at) { kernels.visible = true; const r = rng(17), out = outward(); spill = [];
-    for (let i = 0; i < KERNELS; i++) { const sp = (0.4 + r() * 1.1) * K, a = (r() - 0.5) * 1.6; const dir = out.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), a).multiplyScalar(-1);   // the mouth faces back toward the camera side as it lands
+    for (let i = 0; i < KERNELS; i++) { const sp = (0.4 + r() * 1.1) * K, a = (r() - 0.5) * 1.6; const dir = out.clone().multiplyScalar(0.4).add(camLeft()).normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), a);   // spray mostly screen-left, away from the buttons
       spill.push({ p: at.clone().add(new THREE.Vector3(0, 0.03 * K, 0)), v: dir.multiplyScalar(sp).add(new THREE.Vector3(0, (0.3 + r() * 0.9) * K, 0)), r: r() * 6, rest: false }); } }
 
   // ---------- reveal, approach, landing, leave (as the desert) ----------
