@@ -231,7 +231,8 @@ adaptive edge refinement for thin features → exact level-set cuts → labelled
 one config file per car (`hero.py`, `wagon.py`, `sedan_a.py`, `suv.py`, `sedan_b.py`), `wheels90.py` (wheel covers / steel /
 alloy), `speaker_post.py`; shared code adapted from `../desert/src/cars/` (`carlib.py`, `body.py`, `surfops.py`, `details.py`,
 `wheels.py`, `interior.py`, `blendout.py`, `carbuild.py`). Rebuild everything under the lock: `sh src/cars/build_all.sh`
-(~30 s per car). `pickup_wip.py` is an unfinished compact pickup (not exported to assets). All geometry and textures are
+(~30 s per car; gltfpack is found via `$GLTFPACK`, default the npm copy in the session scratchpad, else on PATH; without it the
+GLB is written uncompressed). `pickup_wip.py` is an unfinished compact pickup (not exported to assets). All geometry and textures are
 procedural and original: no badges, no logos, plates are blank (border + plain colour band, no characters).
 
 - Frame (all cars): nose toward **+Z**, +Y up, origin at the footprint centre on the ground, tyres touch y = 0. The car's
