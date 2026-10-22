@@ -10,7 +10,7 @@ SCR = os.environ.get('SET_SCRATCH', '/tmp/claude-0/-home-claude/8b2a0eb3-2d3d-5e
 os.makedirs(SCR, exist_ok=True)
 BLEND = f'{SCR}/bb_stage1.blend'
 CACHE = f'{SCR}/bb_bake'
-ATLAS = {'paint_peeling': 2048, 'paint_peeling_rear': 1024, 'steel_weathered': 2048, 'concrete': 1024}
+ATLAS = {'paint_peeling': 2048, 'steel_weathered_rear': 1024, 'steel_weathered': 2048, 'concrete': 1024}
 t0 = time.time()
 
 
@@ -137,7 +137,7 @@ def main():
         elif kind == 'nrm':
             nt.links.new(geo.outputs['Normal'], em.inputs['Color'])
         elif kind == 'edge':
-            bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 16
+            bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 8
             dot = nt.nodes.new('ShaderNodeVectorMath'); dot.operation = 'DOT_PRODUCT'
             nt.links.new(bev.outputs['Normal'], dot.inputs[0]); nt.links.new(geo.outputs['Normal'], dot.inputs[1])
             nt.links.new(dot.outputs['Value'], em.inputs['Color'])
@@ -158,10 +158,10 @@ def main():
             bpy.ops.object.select_all(action='DESELECT')
             ob.select_set(True); bpy.context.view_layer.objects.active = ob
             if kind == 'ao':
-                sc.cycles.samples = 48
+                sc.cycles.samples = 24
                 bpy.ops.object.bake(type='AO', margin=8)
             else:
-                sc.cycles.samples = 16 if kind == 'edge' else 1
+                sc.cycles.samples = 8 if kind == 'edge' else 1
                 bpy.ops.object.bake(type='EMIT', margin=8)
             a = np.empty(res * res * 4, np.float32)
             img.pixels.foreach_get(a)

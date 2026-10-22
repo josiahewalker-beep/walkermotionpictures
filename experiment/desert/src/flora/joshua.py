@@ -176,7 +176,8 @@ def sample_curve(b, s_vals):
 
 # =================================================================================================== tubes
 def tube(part_bark, part_core, b, P, rng, lod=False):
-    """Trunk/branch surface. Rings sampled every ~0.1 m; each ring is bark or thatch-core depending on s."""
+    """Trunk/branch surface. Rings every ~0.09 m. Each quad is bark or thatch-core: the boundary is ragged
+    (s + angular noise), the thatch core swells smoothly out of the bark above the skirt edge."""
     n_r = max(4, int(b.length / (0.16 if lod else 0.09)))
     arc = np.linspace(0, b.length, n_r + 1)
     s = b.length - arc + b.s[-1]
@@ -185,57 +186,49 @@ def tube(part_bark, part_core, b, P, rng, lod=False):
     rmax = b.r.max()
     sides = 6 if lod else int(np.clip(round(rmax * 55), 9, 22))
     ang = np.linspace(0, 2 * math.pi, sides + 1)
-    fur_len = P['fur_len']
-    is_fur = s < fur_len + 0.12
-    # thatch core sits outside the stem; tapers into the bark at the ragged skirt edge
-    core_extra = (0.10 if lod else 0.05) * smoothstep(fur_len + 0.35, fur_len - 0.15, s)
-    rad = r + core_extra
-    if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
-        rad = rad * (0.25 + 0.75 * smoothstep(0.0, 0.16, s))
-    # bark lumps / vertical furrows (bark only)
-    phase = rng.uniform(0, 6.28)
     A = ang[None, :]
-    bark_mod = 1 + (1 - is_fur[:, None]) * (0.05 * np.sin(A * 7 + phase + 0.8 * np.sin(arc[:, None] * 3))
-                                            + 0.035 * np.sin(A * 13 + 2 * phase + arc[:, None] * 1.7))
-    R = rad[:, None] * bark_mod
-    pos = p[:, None, :] + (np.cos(A)[..., None] * N[:, None, :] + np.sin(A)[..., None] * Bv[:, None, :]) * R[..., None]
-    nor = np.cos(A)[..., None] * N[:, None, :] + np.sin(A)[..., None] * Bv[:, None, :]
-    nor = nor + 0.0 * T[:, None, :]
-    circ = 2 * math.pi * rad.mean()
-    tile_b, tile_f = 0.55, 0.32
-    # split rings into runs of the same material (duplicate the boundary ring so each run is closed)
-    edges = np.flatnonzero(np.diff(is_fur.astype(int))) + 1
-    runs = np.split(np.arange(len(arc)), edges)
-    for run in runs:
-        if len(run) == 0:
+    fur_len = P['fur_len']
+    # ragged skirt edge: boundary s varies around the stem by ±0.25 m
+    ph = rng.uniform(0, 6.28, 3)
+    edge = fur_len + 0.12 + 0.13 * np.sin(A * 2 + ph[0]) + 0.08 * np.sin(A * 3 + ph[1]) + 0.05 * np.sin(A * 5 + ph[2])
+    furness = smoothstep(edge + 0.02, edge - 0.40, s[:, None])        # 0 bark → 1 full thatch (per vertex)
+    core_extra = (0.10 if lod else 0.05) * furness
+    rad = r[:, None] + core_extra
+    if not b.children:          # apex: the stem narrows into the terminal bud inside the rosette
+        rad = rad * (0.25 + 0.75 * smoothstep(0.0, 0.16, s))[:, None]
+    phase = rng.uniform(0, 6.28)
+    bark_mod = 1 + (1 - furness) * (0.05 * np.sin(A * 7 + phase + 0.8 * np.sin(arc[:, None] * 3))
+                                    + 0.035 * np.sin(A * 13 + 2 * phase + arc[:, None] * 1.7))
+    R = rad * bark_mod
+    radial = np.cos(A)[..., None] * N[:, None, :] + np.sin(A)[..., None] * Bv[:, None, :]
+    pos = p[:, None, :] + radial * R[..., None]
+    nor = radial
+    circ = 2 * math.pi * r.mean()
+    W = sides + 1
+    v_all = pos.reshape(-1, 3); n_all = nor.reshape(-1, 3)
+    sv = np.repeat(s, W)
+    i = np.arange(n_r)[:, None] * W + np.arange(sides)[None, :]
+    quad_fur = (furness[:-1, :-1] + furness[1:, :-1] + furness[:-1, 1:] + furness[1:, 1:]) * 0.25 > 0.35
+    for fur in (False, True):
+        q = i[quad_fur == fur]
+        if len(q) == 0:
             continue
-        lo, hi = run[0], run[-1]
-        if hi + 1 < len(arc):
-            hi += 1
-        if hi <= lo:
-            continue
-        rows = np.arange(lo, hi + 1)
-        fur = is_fur[run[0]]
-        tile = tile_f if fur else tile_b
+        tris = np.concatenate([np.stack([q, q + 1, q + W], -1), np.stack([q + 1, q + W + 1, q + W], -1)])
+        tile = 0.32 if fur else 0.55
         nu = max(1, round(circ / tile))
-        U = (ang / (2 * math.pi) * nu)[None, :].repeat(len(rows), 0)
-        V = (arc[rows] / tile)[:, None].repeat(sides + 1, 1)
-        v = pos[rows].reshape(-1, 3); n = nor[rows].reshape(-1, 3)
-        uv = np.stack([U.ravel(), V.ravel()], 1)
-        W = sides + 1
-        i = np.arange(len(rows) - 1)[:, None] * W + np.arange(sides)[None, :]
-        tris = np.concatenate([np.stack([i, i + 1, i + W], -1).reshape(-1, 3),
-                               np.stack([i + 1, i + W + 1, i + W], -1).reshape(-1, 3)])
-        sv = np.repeat(s[rows], W)
-        tone = np.ones((len(v), 3))
+        U = np.tile(ang / (2 * math.pi) * nu, n_r + 1)
+        V = np.repeat(arc / tile, W)
+        tone = np.ones((len(v_all), 3))
         if fur:
-            tone *= np.array([0.50, 0.47, 0.43])
-            # living-rosette core darker/greener near the tip (it is buried inside the leaves)
+            tone *= np.array([0.50, 0.47, 0.43]) * (0.55 + 0.45 * furness.ravel())[:, None]   # darker where thin
             g = smoothstep(DEAD, 0.0, sv)[:, None]
             tone = tone * (1 - g) + g * np.array([0.30, 0.34, 0.22])
         else:
             tone *= rng.uniform(0.92, 1.08)
-        (part_core if fur else part_bark).add(v, tris, n=n, c=np.c_[tone, sv], uv=uv)
+        used = np.unique(tris)
+        remap = -np.ones(len(v_all), int); remap[used] = np.arange(len(used))
+        (part_core if fur else part_bark).add(v_all[used], remap[tris], n=n_all[used],
+                                              c=np.c_[tone[used], sv[used]], uv=np.c_[U, V][used])
     # cap the tip (hidden under the rosette)
     if not b.children:
         c0 = p[-1] + T[-1] * 0.01
@@ -485,6 +478,7 @@ def build_tree(name, P, lod=False, seed_override=None):
     else:
         bake_ao(parts, strength=0.8, cell=0.15)
     stats = {k: v.ntris for k, v in parts.items()}
+    build_tree.tips = [[float(b.pts[-1][0]), float(b.pts[-1][2]), float(-b.pts[-1][1])] for b in tips]
     return parts, stats, len(tips), dens_fur
 
 
@@ -511,6 +505,9 @@ def export_tree(key, lod=False):
     path = os.path.join(ASSETS, name + '.glb')
     export_glb(path)
     info = glb_info(path)
+    if not lod:
+        import json
+        json.dump(build_tree.tips, open(os.path.join(os.path.dirname(__file__), '_tex', name + '_tips.json'), 'w'))
     print(f'{name}: tips={ntips} fur_density={df:.0f}/m parts={stats} total={info["tris"]} '
           f'size={info["bytes"]/1e6:.2f}MB  {time.time()-t0:.1f}s', flush=True)
     return info

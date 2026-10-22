@@ -192,7 +192,7 @@ def hexbolt(bname, p, d, r=0.012, head=0.010, shank=0.0, tag=0, src=1.0):
 def build(seed=3):
     rs = np.random.default_rng(seed)
     B.clear(); SOURCES.clear(); PERCH.clear()
-    P = 'paint_peeling'; PR = 'paint_peeling_rear'; G = 'steel_weathered'; R = 'rust'
+    P = 'paint_peeling'; PR = 'steel_weathered_rear'; G = 'steel_weathered'; R = 'rust'
 
     # ---- face panels (behind z = 0, hidden by the slide from the front) ----
     zf0, zf1 = -0.012, -0.034
@@ -213,7 +213,7 @@ def build(seed=3):
     # sweep a closed rectangle path; the profile's 'a' axis must point outward: use up=(0,0,1) and order CCW seen from +z
     path = [(x, y, zfr) for x, y in corners]
     prof_sw = [(-a, b) for a, b in prof]      # B = T x N points inward for CCW path → negate a for outward
-    sweep(P, prof_sw[::-1], path, up=(0, 0, 1), closed=True, caps=False, tag=2)
+    sweep(G, prof_sw[::-1], path, up=(0, 0, 1), closed=True, caps=False, tag=2)
     # staples / small bolts along the frame front lip (only on the border, outside the face rectangle)
     for k in range(70):
         side = rs.integers(4)
