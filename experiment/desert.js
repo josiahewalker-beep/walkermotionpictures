@@ -467,7 +467,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
         for (let k = 0; k < kids; k++) { const nd = d.clone().add(new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).multiplyScalar(1.3)).normalize();
           grow(q, nd, len * (0.6 + r() * 0.12), rr * 0.78, depth + 1); } }
     };
-    for (let i = 0; i < 16; i++) { const d = new THREE.Vector3(r() * 2 - 1, (r() * 2 - 1) * 0.8, r() * 2 - 1).normalize(); grow(d.clone().multiplyScalar(radius * 0.05), d, radius * 0.3, radius * 0.022, 0); }
+    for (let i = 0; i < 30; i++) { const d = new THREE.Vector3(r() * 2 - 1, (r() * 2 - 1) * 0.8, r() * 2 - 1).normalize(); grow(d.clone().multiplyScalar(radius * 0.05), d, radius * 0.3, radius * 0.036, 0); }   // dense enough to read as a ball at 20+ m
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     g.computeBoundingSphere(); { const bs = g.boundingSphere, k = radius / Math.max(1, bs.radius); g.translate(-bs.center.x, -bs.center.y, -bs.center.z); g.scale(k, k, k); }   // centred, true to size
     const m = new THREE.Mesh(g, mat(0xffffff, { flatShading: false, vertexColors: true, roughness: 0.85 })); m.scale.y = 0.86; m.castShadow = true; m.receiveShadow = true; m.customDepthMaterial = DEPTH;
@@ -504,7 +504,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const first = viewInfo ? viewInfo.row : (depths.slice(0, 3).reduce((a, o) => a + o.d, 0) / Math.max(1, Math.min(3, depths.length)) || 22 * M);
     const depth = first + 3.5 * M, half = depth * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
     const a = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, -half * 1.12), b = eye.clone().addScaledVector(fwd, depth).addScaledVector(right, half * 1.12);
-    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.5 * M, tw = tumbleweed(rad, 31); world.add(tw);
+    const len = a.distanceTo(b), dur = seconds * 1.12, rad = 0.5 * M, tw = tumbleweed(rad, 31); world.add(tw); window.__lastTw = tw;
     const r = rng(77), hops = []; { let t = 0; while (t < dur + 1) { const d = 0.5 + r() * 0.5; hops.push({ t, d, h: (0.3 + r() * 0.75) * M }); t += d; } }
     const axis = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), right).normalize().negate();
     let t = 0, rolled = 0, lastX = 0;

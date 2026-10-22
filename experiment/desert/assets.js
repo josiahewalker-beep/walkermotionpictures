@@ -72,6 +72,7 @@ export function vehicleFrom(template) {
   const v = template.clone(true); v.scale.setScalar(M);
   const spin = []; let r = 0.34; v.updateMatrixWorld(true);
   v.traverse(o => { if (/^wheel_(FL|FR|RL|RR)/i.test(o.name)) { spin.push(o); const b = new THREE.Box3().setFromObject(o); r = (b.max.y - b.min.y) / 2 / M || r; } });
+  v.traverse(o => { if (o.isMesh) o.receiveShadow = false; });   // low-sun self-shadow on glossy paint shows shadow-map texels; cars still cast
   const g = new THREE.Group(); g.add(v); g.userData = { spin, wheelR: r * M, scaleInside: M };
   return g;
 }
