@@ -398,7 +398,7 @@ body.intro header, body.intro .rail, body.intro .hint, body.intro .ctl, body.int
 }
 
 /* the way in (Josiah 10-21): browsers hold sound until a first click, so the entrance is that click. The grid fades in behind it. */
-#gate { position:fixed; inset:0; z-index:35; display:grid; place-content:center; justify-items:center; gap:12px; pointer-events:none; opacity:0; transition:opacity .8s ease; }
+#gate { -webkit-user-select:none; user-select:none; position:fixed; inset:0; z-index:35; display:grid; place-content:center; justify-items:center; gap:12px; pointer-events:none; opacity:0; transition:opacity .8s ease; }
 body.gate #gate { opacity:1; pointer-events:auto; transition-delay:.7s; }
 body.entered #gate { opacity:0; pointer-events:none; transition:opacity .45s ease; }
 #gate button { font:inherit; font-size:17px; font-weight:600; letter-spacing:.01em; color:#fff; background:var(--ink); border:0; border-radius:999px; padding:15px 30px 15px 24px; min-height:52px; display:inline-flex; align-items:center; gap:12px; cursor:pointer; box-shadow:0 18px 40px -18px rgba(11,18,32,.55); transition:background .2s, transform .2s; }
@@ -950,6 +950,7 @@ function eyeNow() { return camera.position.clone(); }
 function lookNow() { const d = new THREE.Vector3(); camera.getWorldDirection(d); return camera.position.clone().addScaledVector(d, Math.max(400, cam.pos.distanceTo(cam.look))); }
 
 function go(id, opt = {}) {
+  if (document.body.classList.contains('gate')) return;
   if (HOLE.active) return;
   if (id !== 'overview' && !cards[id]) return;
   if (id === current && !flight) return;
@@ -993,7 +994,7 @@ const step = (d, opt = {}) => { if (flight || HOLE.active) return; const i = ORD
 // ---------- input: drag looks, scroll / swipe / keys travel ----------
 const el = $('css');
 let down = null, moved = 0, wheelAcc = 0, wheelT = 0;
-el.addEventListener('pointerdown', e => { if (flight || HOLE.active || !$('lb').hidden) return; down = { x: e.clientX, y: e.clientY, yaw: tYaw, pitch: tPitch, pan: pan.y, touch: e.pointerType === 'touch' }; moved = 0; el.classList.add('dragging'); });
+el.addEventListener('pointerdown', e => { if (document.body.classList.contains('gate') || flight || HOLE.active || !$('lb').hidden) return; down = { x: e.clientX, y: e.clientY, yaw: tYaw, pitch: tPitch, pan: pan.y, touch: e.pointerType === 'touch' }; moved = 0; el.classList.add('dragging'); });
 addEventListener('pointermove', e => {
   if (!down) return;
   const dx = e.clientX - down.x, dy = e.clientY - down.y; moved = Math.max(moved, Math.hypot(dx, dy));
@@ -1014,14 +1015,17 @@ addEventListener('pointerup', e => {
   down = null; el.classList.remove('dragging');
 });
 addEventListener('pointercancel', () => { down = null; el.classList.remove('dragging'); });
+// nothing moves the camera while the Enter button is up (Josiah 10-22: a scroll at the entrance flew the camera off-centre)
+const atGate = () => document.body.classList.contains('gate');
 addEventListener('wheel', e => {
+  if (atGate()) { e.preventDefault(); return; }
   if (!$('list').hidden || HOLE.active || !$('lb').hidden) return; e.preventDefault();
   const now = performance.now(); if (now - wheelT > 500) wheelAcc = 0; wheelT = now; wheelAcc += e.deltaY;
   if (pan.max && !flight) { const ny = Math.round(THREE.MathUtils.clamp(pan.y + e.deltaY * pan.k, 0, pan.max)); const used = ny !== pan.y; pan.y = ny; if (used) { wheelAcc = 0; return; } }
   if (Math.abs(wheelAcc) > 60 && !flight) { step(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; hideHint(); }
 }, { passive: false });
 addEventListener('keydown', e => {
-  if (!$('list').hidden || HOLE.active || !$('lb').hidden) return;
+  if (atGate() || e.defaultPrevented || !$('list').hidden || HOLE.active || !$('lb').hidden) return;   // defaultPrevented: the Enter/Space that came in through the gate
   if (['ArrowDown', 'ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); step(1); }
   if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); step(-1); }
   if (e.key === 'Escape') go('overview');
