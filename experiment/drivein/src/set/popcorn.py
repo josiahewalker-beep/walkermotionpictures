@@ -25,7 +25,7 @@ def kernel(rs, size=0.02, lumps=4, m=8, n=5, nub=True):
         s = clib.sphere(d, r, m=m, n=n, squash=sq)
         V, F, UV = s.arrays()
         # lumpy surface
-        V = V + nrm(V - d) * (r * 0.12 * np.sin(V[:, 0] * 900 + k) * np.sin(V[:, 1] * 700 + 2 * k))[:, None]
+        V = V + nrm(V - d) * (r * 0.06 * np.sin(V[:, 0] * 900 + k) * np.sin(V[:, 1] * 700 + 2 * k))[:, None]
         UV = UV * 0.45 + rs.uniform(0, 0.5, 2)
         out.add(V, F, UV)
     # hull nub: a small dark flake near the centre (bottom-right corner of the texture is hull brown)
@@ -188,7 +188,7 @@ def export_all():
     ob2 = pipe.make_mesh('popcorn', V, F, uvs=h.loop_uvs(), smooth_angle=80, recalc=False, parent=root)
     T = TEXD
     pipe.assign(ob1, pipe.material('paper', f'{T}/paper_albedo.jpg', f'{T}/paper_orm.png', f'{T}/paper_normal.jpg', double=True))
-    pop = pipe.material('popcorn', f'{T}/popcorn_albedo.jpg', None, f'{T}/popcorn_normal.jpg', rough=0.7)
+    pop = pipe.material('popcorn', f'{T}/popcorn_albedo.jpg', None, f'{T}/popcorn_normal.jpg', rough=0.7, nstr=0.35)
     pipe.assign(ob2, pop)
     print('bucket tris', b.tris() + h.tris())
     pipe.export(f'{ROOT}/assets/popcorn_bucket.glb')
@@ -198,7 +198,7 @@ def export_all():
     V, F, _ = k.arrays()
     V = V - np.array([0, V[:, 1].min(), 0])          # origin at the bottom
     ob = pipe.make_mesh('popcorn_kernel', V, F, uvs=k.loop_uvs(), smooth_angle=80, recalc=False)
-    pipe.assign(ob, pipe.material('popcorn', f'{T}/popcorn_albedo.jpg', None, f'{T}/popcorn_normal.jpg', rough=0.7))
+    pipe.assign(ob, pipe.material('popcorn', f'{T}/popcorn_albedo.jpg', None, f'{T}/popcorn_normal.jpg', rough=0.7, nstr=0.35))
     print('kernel tris', k.tris())
     pipe.export(f'{ROOT}/assets/popcorn_kernel.glb')
 

@@ -47,7 +47,7 @@ C = dict(
     dlo_rear=lambda Z, c_s: c_s(Z) + 0.10, top_off=0.055, a_off=0.075,
     pillars=[(-0.10, 0.035, -0.08), (-1.10, 0.02, 0.0)], b_s=-0.10, b_slant=-0.08, fd0=0.92,
     rd1=lambda Z, c_s: np.full_like(Z, -1.10), sill=0.28,
-    ws_dom=0.3, bl_dom=-1.0, bl_zlo=0.965, bl_ztop=1.31,
+    ws_dom=0.3, bl_dom=-1.0, bl_zlo=0.965, bl_ztop=1.31, ws_ztop=1.30,
     hood=(1.10, 0.66, HL[3] + 0.012), lid=(-1.82, 0.66, 0.812),
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.60,
     grille=(0.30, 0.555, 0.625), grille_bars=2, bar_mat='trim_black', lower_intake=(0.42, 0.24, 0.35),

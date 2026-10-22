@@ -7,7 +7,7 @@ import car90
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_wagon.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.011
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 5000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 4500
 
 S_FA, S_RA, RT = 1.55, -1.39, 0.34
 BELT = 0.93
