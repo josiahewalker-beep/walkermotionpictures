@@ -390,7 +390,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       moth.position.copy(p); const lit = inBeam(p, 0.05) * fl; mothSprite.material.opacity = 0.15 + 0.85 * lit; moth.traverse(o => { if (o.isMesh && o.material && 'emissiveIntensity' in o.material) { o.material.emissive = o.material.emissive || new THREE.Color(); o.material.emissive.setRGB(1, 0.92, 0.78); o.material.emissiveIntensity = 0.9 * lit; } });
       const flap = Math.sin(t * 38) * 0.9; (moth.userData.wings || []).forEach((w, i) => w.rotation.z = (i ? -1 : 1) * flap); moth.lookAt(camera.position); }
     // 3 s: the bucket tips off the ledge, falls, lands on its side; popcorn sprays out and settles
-    if (bucket.phase === 0 && t >= 3) { bucket = { phase: 1, t0: t, p: bucketGroup.position.clone(), v: outward().multiplyScalar(0.6 * K).addScaledVector(camLeft(), 1.1 * K).add(new THREE.Vector3(0, 0.4 * K, 0)), spin: 0 };   // lands left of the door, clear of the page's buttons }
+    if (bucket.phase === 0 && t >= 3) { bucket = { phase: 1, t0: t, p: bucketGroup.position.clone(), v: outward().multiplyScalar(0.6 * K).addScaledVector(camLeft(), 1.1 * K).add(new THREE.Vector3(0, 0.4 * K, 0)), spin: 0 }; }   // lands left of the door, clear of the page's buttons
     if (bucket.phase === 1) { const g = -9.8 * K; bucket.v.y += g * dt; bucket.p.addScaledVector(bucket.v, dt); bucket.spin += dt * 6.5;
       const gy = groundAt(bucket.p) + 0.09 * K; if (bucket.p.y <= gy) { bucket.p.y = gy; bucket.phase = 2; bucket.t1 = t; burst(bucket.p); }
       bucketGroup.position.copy(bucket.p); bucketGroup.rotation.set(0, CARS[0].ry, 0); bucketGroup.rotateOnAxis(new THREE.Vector3(0, 0, 1), Math.min(Math.PI / 2, bucket.spin)); }
