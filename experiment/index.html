@@ -1161,6 +1161,7 @@ function frame(now) {
   // ground rings breathe gently
   const s = 1 + Math.sin(now / 700) * .06; for (const k in cards) cards[k].ring.scale.setScalar(k === current ? s * 1.25 : 1);
   placeCtl(dt); CODE.tick(now); HOLE.tick(now, dt);
+  if (window.__desert) window.__desert.tick(dt);
   gl.render(scene, camera); css.render(cssScene, camera);
   requestAnimationFrame(frame);
 }
@@ -1462,7 +1463,16 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
 window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, setOver(pos, look) { OVER.pos.set(pos[0] * G, pos[1] * G, pos[2] * G); OVER.look.set(look[0] * G, look[1] * G, look[2] * G); cam.pos.copy(OVER.pos); cam.look.copy(OVER.look); }, go, step, get current() { return current; }, get flight() { return flight; }, get look() { return { yaw, tYaw, pitch, tPitch, pan: pan.cur, down: !!down }; }, cards, camPos: () => camera.position.clone(), HOLE };   // QA
 // desert billboard audition (experiment only): #desert loads the blockout; __wmp.shot parks the camera on an exact framing
 window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
-if (/desert/.test(location.hash)) import('./desert.js').then(m => { window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl }); });
+if (/desert/.test(location.hash)) import('./desert.js').then(m => {
+  const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear });
+  if (window.__desertManualClock) D.clock.manual = true;
+  if (/desert-manual/.test(location.hash)) return;           // framing renders drive it themselves
+  // #desert: once the intro has settled, land on the billboard and start the sequence
+  const phone = innerWidth < 700, shot = phone ? { ...m.HERO_SHOT, ux: 0.08, uy: 0.30, fw: 0.9, fh: 0.56 } : m.HERO_SHOT;
+  const wait = () => { if (document.body.classList.contains('intro') || document.body.classList.contains('intro-c')) return setTimeout(wait, 200);
+    const f = D.heroShot(shot); window.__wmp.shot(f.pos, f.look, shot.fov); D.play(); };
+  setTimeout(wait, 400);
+});
 </script>
 <script>
 // safety net: if anything stops the opening sequence, show the page anyway

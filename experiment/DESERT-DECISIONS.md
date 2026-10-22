@@ -6,3 +6,12 @@
   double yellow stays in the bottom-left. Parameters in `desert.js` → `HERO_SHOT`.
 - Rejected for this: a longer lens (≈50 mm) from the same spot — bigger slide, but the road shrinks to a sliver.
 - Open: phone handling (vertical sign vs skip), render-in/out style (next audition), control bar over the pole.
+- 10-21 Josiah: atmosphere and sequence after landing (all in `desert.js`):
+  - soft haze for depth: exponential, thicker near the ground, warmer toward the sun; the slide stays clear, each band behind it fades further
+  - t = 2 s red modern sports car, left to right (near lane, 30 m/s)
+  - t = 10 s blue modern minivan, right to left (far lane, 24 m/s)
+  - t = 13 s tumbleweed rolls and bounces left to right ~3.5 m behind a composed first row of Joshua trees (20 m out); ~8 s across the frame
+  - stars fade in over ~20 s: sparse, faint, each twinkling at its own rate
+  - after the sequence: an occasional car every 14–24 s, alternating direction
+- Technical: vehicles render on a second canvas above the slide (the slide is HTML over the 3D canvas), with an invisible twin in the
+  main scene that still casts the shadow. Only valid while nothing stands between the camera and the road.
