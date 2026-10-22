@@ -61,14 +61,14 @@ Rebuild: `cd src/flora && python3 textures.py && python3 joshua.py && python3 sh
 | `bursage_a.glb` | 0.92 × 0.46 × 0.94 | 6,900 | 0.5 MB | bark, leaf |
 | `creosote_a.glb` | 1.82 × 1.99 × 1.73 | 4,812 | 0.3 MB | bark, leaf |
 | `creosote_b.glb` | 1.50 × 1.42 × 1.35 | 3,252 | 0.3 MB | bark, leaf |
-| `joshua_a.glb` | 1.07 × 2.99 × 1.51 | 61,284 | 6.5 MB | bark, fur, leaf |
-| `joshua_a_lod1.glb` | 1.05 × 2.99 × 1.46 | 7,905 | 0.9 MB | bark, fur, leaf |
-| `joshua_b.glb` | 2.99 × 5.00 × 2.80 | 67,586 | 6.9 MB | bark, fur, leaf |
-| `joshua_b_lod1.glb` | 3.00 × 5.01 × 2.78 | 7,599 | 0.9 MB | bark, fur, leaf |
-| `joshua_c.glb` | 4.68 × 6.92 × 7.90 | 69,024 | 6.6 MB | bark, fur, leaf |
-| `joshua_c_lod1.glb` | 4.65 × 6.91 × 7.95 | 7,657 | 0.8 MB | bark, fur, leaf |
-| `joshua_d.glb` | 8.50 × 8.86 × 8.32 | 69,687 | 6.4 MB | bark, fur, leaf |
-| `joshua_d_lod1.glb` | 8.48 × 8.87 × 8.27 | 7,598 | 0.8 MB | bark, fur, leaf |
+| `joshua_a.glb` | 1.11 × 3.03 × 1.55 | 61,284 | 6.5 MB | bark, fur, leaf |
+| `joshua_a_lod1.glb` | 1.08 × 3.02 × 1.50 | 7,905 | 0.9 MB | bark, fur, leaf |
+| `joshua_b.glb` | 3.07 × 5.04 × 2.84 | 67,586 | 6.9 MB | bark, fur, leaf |
+| `joshua_b_lod1.glb` | 3.08 × 5.05 × 2.82 | 7,599 | 0.9 MB | bark, fur, leaf |
+| `joshua_c.glb` | 4.76 × 6.96 × 7.97 | 69,024 | 6.6 MB | bark, fur, leaf |
+| `joshua_c_lod1.glb` | 4.73 × 6.95 × 8.03 | 7,657 | 0.8 MB | bark, fur, leaf |
+| `joshua_d.glb` | 8.57 × 8.89 × 8.39 | 69,687 | 6.4 MB | bark, fur, leaf |
+| `joshua_d_lod1.glb` | 8.55 × 8.91 × 8.35 | 7,598 | 0.8 MB | bark, fur, leaf |
 | `rock_a.glb` | 2.46 × 1.48 × 1.91 | 3,999 | 0.7 MB | rock |
 | `rock_b.glb` | 1.33 × 1.43 × 1.19 | 3,999 | 0.7 MB | rock |
 | `rock_c.glb` | 1.49 × 0.53 × 1.02 | 2,998 | 0.4 MB | rock |

@@ -22,10 +22,10 @@ BELT = P['belt']
 
 def dlo_outline():
     zb = lambda s: BELT + 0.04 + 0.03 * sstep(-0.5, -2.2, s)
-    zs = np.linspace(zb(1.2), 1.62, 12)
+    zs = np.linspace(zb(1.1), 1.62, 12)
     front = []
     for z in zs:
-        ss = np.linspace(0.3, 1.7, 700)
+        ss = np.linspace(0.2, 1.6, 700)
         wg = B.gh_width(ss, z)
         d = B.ws_dist(wg, ss, np.full_like(ss, z))
         i = np.argmin(np.abs(d))
@@ -57,37 +57,37 @@ def fn_ws(V, N):
 
 def fn_bl(V, N):
     x, s, z = V[:, 0], V[:, 1], V[:, 2]; ax = np.abs(x)
-    d = smax(smax(ax - (B.gh_width(s, z) - 0.115), z - 1.665, 0.05), 1.21 - z, 0.05)
+    d = smax(smax(ax - (B.gh_width(s, z) - 0.115), z - 1.665, 0.05), 1.27 - z, 0.05)
     return np.where((s < -2.2) & (z > 1.0), d, 1.0)
 
 GAP = 0.0024
 sd2 = lambda V: np.abs(V[:, 0]) > 0.55
-FDOOR = [(1.075, 0.33), (1.08, 0.80), (1.13, 1.0), (1.17, 1.25), (0.20, 1.25), (0.195, 0.80), (0.20, 0.33)]
-SDOOR = [(0.135, 0.33), (0.14, 0.80), (0.135, 1.25), (-1.06, 1.25), (-1.035, 0.80), (-1.0, 0.33)]
+FDOOR = [(1.075, 0.33), (1.08, 0.80), (1.11, 1.05), (1.10, 1.30), (0.20, 1.30), (0.195, 0.80), (0.20, 0.33)]
+SDOOR = [(0.135, 0.33), (0.14, 0.80), (0.135, 1.30), (-1.06, 1.30), (-1.035, 0.80), (-1.0, 0.33)]
 fn_fdoor = D.proj_fn(FDOOR, 'side', domain=sd2, n_per=5)
 fn_sdoor = D.proj_fn(SDOOR, 'side', domain=sd2, n_per=5)
-TRACK = [(-1.07, 1.026), (-2.30, 1.034), (-2.30, 1.042), (-1.07, 1.034)]
+TRACK = [(-1.07, 1.118), (-1.6, 1.121), (-2.30, 1.126), (-2.30, 1.136), (-1.6, 1.131), (-1.07, 1.128)]
 fn_track = D.proj_fn(TRACK, 'side', domain=sd2, n_per=2)
-HOOD = [(0.0, 2.43), (0.40, 2.41), (0.62, 2.33), (0.70, 2.2), (0.70, 1.64), (0.0, 1.64)]
+HOOD = [(0.0, 2.45), (0.40, 2.43), (0.62, 2.36), (0.70, 2.25), (0.70, 1.52), (0.0, 1.52)]
 HOOD = np.concatenate([np.array(HOOD), np.array(HOOD)[::-1][1:-1] * [-1, 1]])
-fn_hood = D.proj_fn(HOOD, 'top', domain=lambda V: (V[:, 2] > 0.8) & (V[:, 1] > 1.4), n_per=8, mirror=False)
+fn_hood = D.proj_fn(HOOD, 'top', domain=lambda V: (V[:, 2] > 0.85) & (V[:, 1] > 1.3), n_per=8, mirror=False)
 HATCH = [(0.0, 0.62), (0.62, 0.62), (0.70, 0.66), (0.73, 0.90), (0.74, 1.30), (0.73, 1.95), (0.0, 1.95)]
 fn_hatch = D.proj_fn(mirror_half(HATCH), 'rear', domain=lambda V: V[:, 1] < -2.3, n_per=6, mirror=False)
 fn_fuel = D.proj_fn(catmull_closed(np.array([(-1.78, 0.90), (-1.78, 1.0), (-1.785, 1.005), (-1.915, 1.005), (-1.92, 1.0), (-1.92, 0.90), (-1.915, 0.895), (-1.785, 0.895)]), 3),
                     'side', domain=lambda V: V[:, 0] > 0.5, n_per=3, mirror=False)
 
 front_dom = lambda V: V[:, 1] > 1.95
-HEAD = [(0.42, 0.87), (0.60, 0.885), (0.78, 0.925), (0.90, 0.965), (0.945, 0.958), (0.95, 0.90), (0.90, 0.845),
-        (0.74, 0.815), (0.56, 0.80), (0.44, 0.805), (0.40, 0.835)]
+HEAD = [(0.42, 0.90), (0.60, 0.915), (0.78, 0.955), (0.88, 0.99), (0.925, 0.985), (0.93, 0.93), (0.88, 0.875),
+        (0.74, 0.845), (0.56, 0.83), (0.44, 0.835), (0.40, 0.865)]
 fn_head = D.proj_fn(HEAD, 'front', domain=front_dom, n_per=8)
-GRILLE = [(0.0, 0.80), (0.36, 0.80), (0.46, 0.765), (0.50, 0.62), (0.46, 0.50), (0.0, 0.50)]
+GRILLE = [(0.0, 0.81), (0.36, 0.81), (0.46, 0.775), (0.50, 0.62), (0.46, 0.50), (0.0, 0.50)]
 fn_grille = D.proj_fn(mirror_half(GRILLE), 'front', domain=front_dom, n_per=8, mirror=False)
 LOWER = [(0.0, 0.42), (0.46, 0.42), (0.54, 0.37), (0.50, 0.27), (0.0, 0.27)]
 fn_lowg = D.proj_fn(mirror_half(LOWER), 'front', domain=front_dom, n_per=6, mirror=False)
 FOG = [(0.66, 0.40), (0.80, 0.42), (0.86, 0.36), (0.80, 0.31), (0.66, 0.31), (0.62, 0.35)]
 fn_fog = D.proj_fn(FOG, 'front', domain=front_dom, n_per=6)
 rear_dom = lambda V: V[:, 1] < -2.25
-TAIL = [(0.72, 1.30), (0.90, 1.31), (0.965, 1.27), (0.975, 1.10), (0.96, 0.98), (0.88, 0.96), (0.74, 0.99), (0.70, 1.10)]
+TAIL = [(0.70, 1.33), (0.88, 1.34), (0.935, 1.30), (0.945, 1.13), (0.93, 1.01), (0.86, 0.99), (0.72, 1.02), (0.68, 1.13)]
 fn_tail = D.proj_fn(TAIL, 'rear', domain=rear_dom, n_per=8)
 TBAR = [(0.0, 1.135), (0.66, 1.135), (0.66, 1.155), (0.0, 1.155)]
 fn_tbar = D.proj_fn(mirror_half(TBAR), 'rear', domain=rear_dom, n_per=3, mirror=False)
@@ -135,7 +135,7 @@ cuts = [
 labels = {
     'paint': dict(mat='paint'),
     'gap': dict(mat='trim_black', depth=0.005, wall='paint', wall_col=0.25, col=0.5),
-    'glass': dict(mat='glass', depth=0.008, wall='trim_black', wall_col=0.6),
+    'glass': dict(mat='glass', depth=0.006, wall='trim_black', wall_col=0.15),
     'frit': dict(mat='trim_black', depth=0.008, wall='trim_black', col=0.8),
     'dlo_trim': dict(mat='trim_black', depth=0.0, col=1.0),
     'lamp': dict(mat='trim_black', depth=0.035, wall='chrome', wall_col=0.6, col=0.7),
@@ -206,11 +206,11 @@ def build():
     CB.log('body labelled', parts.tris('body'))
     # headlamp internals: DRL strip + projector
     for sgn in (1, -1):
-        c = surf([(0.44, 0.858), (0.60, 0.868), (0.78, 0.905), (0.90, 0.945), (0.935, 0.94)], 'front', sgn, -0.014)
+        c = surf([(0.44, 0.888), (0.60, 0.898), (0.78, 0.935), (0.88, 0.970), (0.915, 0.968)], 'front', sgn, -0.014)
         if len(c) > 1: D.strip_along(parts, D.smooth_path(c, 40), 0.0045, 'light_front')
-        c = surf([(0.47, 0.82), (0.62, 0.818), (0.78, 0.835), (0.90, 0.865)], 'front', sgn, -0.02)
+        c = surf([(0.47, 0.85), (0.62, 0.848), (0.78, 0.865), (0.88, 0.89)], 'front', sgn, -0.02)
         if len(c) > 1: D.strip_along(parts, D.smooth_path(c, 30), 0.0035, 'chrome')
-        for (px, pz) in [(0.62, 0.85), (0.76, 0.87)]:
+        for (px, pz) in [(0.62, 0.88), (0.76, 0.90)]:
             h = surf([(px, pz)], 'front', sgn, -0.03)
             if len(h) == 0: continue
             prof = [(-0.012, 0.027), (0.0, 0.027), (0.0, 0.021), (0.005, 0.02), (0.011, 0.013), (0.014, 0.0)]
@@ -230,10 +230,10 @@ def build():
             if np.mean(Nn @ u) < 0: Fl = Fl[:, ::-1]
             parts.add('body', Vw, Fl, 'light_front')
         # tail LED bars (vertical C shape)
-        c = surf([(0.76, 1.27), (0.90, 1.275), (0.945, 1.22), (0.95, 1.08), (0.93, 1.0), (0.82, 0.99)], 'rear', sgn, -0.004)
+        c = surf([(0.74, 1.30), (0.87, 1.305), (0.915, 1.25), (0.92, 1.11), (0.90, 1.03), (0.80, 1.02)], 'rear', sgn, -0.004)
         if len(c) > 1: D.strip_along(parts, D.smooth_path(c, 40), 0.004, 'light_rear_led', n_seg=6)
     # grille slats (horizontal chrome-dark bars)
-    for z in np.linspace(0.54, 0.76, 6):
+    for z in np.linspace(0.54, 0.77, 6):
         for sgn in (1, -1):
             pass
         pts = []
@@ -255,7 +255,7 @@ def build():
         D.plate_mesh(parts, p[0] - n * 0.012, n, (0, 0, 1.0))
     wp = []
     for t in np.linspace(0, 1, 8):
-        x = -0.06 + t * 0.52; z = 1.255 + t * 0.03
+        x = -0.06 + t * 0.52; z = 1.315 + t * 0.03
         h = surf([(abs(x), z)], 'rear', np.sign(x) or 1, 0.012)
         if len(h): wp.append(h[0])
     if len(wp) > 1: D.strip_along(parts, np.array(wp), 0.006, 'trim_black', col=(0.5, 0.5, 0.5))
@@ -273,7 +273,7 @@ def build():
                 parts.add('body', bv, bf, 'trim_black', flat=True)
     # mirrors (larger)
     for sgn in (1, -1):
-        h = surf([(1.15, 1.13)], 'side', sgn, -0.005)
+        h = surf([(1.05, 1.19)], 'side', sgn, -0.005)
         if len(h):
             b = h[0].copy(); b[0] = abs(b[0])
             D.mirror_parts(parts, f, tuple(b), sgn, scale=1.15)

@@ -583,9 +583,9 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     const heroT = [ja, jb, jc, jd].filter(Boolean).map(prep), lodT = [jal, jbl, jcl, jdl].map((l, i) => l ? prep(l) : null);
     if (heroT.length) {
       const sets = heroT.map(() => ({ hi: [], lo: [] }));
-      placed.tree.forEach((t, k) => { const h = hash(t.x, t.z), v = t.row ? (heroT.length > 2 ? 2 + (k % 2) : heroT.length - 1) % heroT.length : Math.floor(h * heroT.length);
+      placed.tree.forEach((t, k) => { const h = hash(t.x, t.z), v = t.row ? (heroT.length > 2 ? 1 + (k % 2) : heroT.length - 1) % heroT.length : Math.floor(h * heroT.length);
         const sc = M * (0.85 + hash(t.z, t.x) * 0.3) * (t.big ? 1.15 : 1), m = mtx(t.x, t.z, t.rot, sc);
-        (near(t.x, t.z, 55) || !lodT[v] ? sets[v].hi : sets[v].lo).push(m); });
+        (near(t.x, t.z, 45) || !lodT[v] ? sets[v].hi : sets[v].lo).push(m); });
       hide('tree'); const g = new THREE.Group(); g.userData.kind = 'asset';
       sets.forEach((st, v) => { if (st.hi.length) g.add(instance(heroT[v], st.hi)); if (st.lo.length) g.add(instance(lodT[v], st.lo)); });
       world.add(g); done.push('joshua');

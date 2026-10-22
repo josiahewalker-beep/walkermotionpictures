@@ -13,7 +13,7 @@ def log(*a):
     print(time.strftime('%H:%M:%S'), *a, flush=True)
 
 def body_normals(B, V):
-    n_out = blurred_normals(B.outer, V, radius=NORMAL_BLUR)
+    n_out = blurred_normals(B.outer, V, radius=B.P.get('normal_blur', NORMAL_BLUR))
     n_full = field_normals(B.field, V, h=0.0015)
     dw = B.well_dist(V[:, 0], V[:, 1], V[:, 2])
     w = np.clip((-dw - 0.001) / 0.004, 0, 1)[:, None]   # inside the well cut -> well normals
