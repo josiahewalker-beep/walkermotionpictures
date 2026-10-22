@@ -242,6 +242,9 @@ def build(name):
         foliage_bursage(S, rng, leaves, n_cards)
     parts = {'bark': stems, 'leaf': leaves}
     bake_ao(parts, cell=0.04 if S['kind'] == 'bursage' else 0.06)
+    for part in parts.values():
+        for v in part.v:
+            v[:, 2] = np.maximum(v[:, 2], 0.0)
     tex = leaf_card_texture(S['kind'], seed=S['seed'])
     bpy_reset()
     mats = {'bark': make_material('bark', rough=0.9),

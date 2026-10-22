@@ -13,7 +13,7 @@ import sports_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_sports.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0065
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 50000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 45000
 
 B = Body(M.P)
 P = M.P
@@ -232,12 +232,13 @@ def build():
                                     seat_h=0.62, rear_seats=False, cabin_bounds=((-0.8, -1.5, 0.2), (0.8, 0.6, 1.24))))
     CB.log('details done', parts.tris('body'))
     axles = [('FL', M.S_FA, M.X_WF, 0.255), ('FR', M.S_FA, M.X_WF, 0.255), ('RL', M.S_RA, M.X_WR, 0.285), ('RR', M.S_RA, M.X_WR, 0.285)]
-    style = dict(r_lip=0.262, r_barrel=0.232, width=0.24, spokes=5, split=0.030, a_face=0.102, dish=0.032,
-                 spoke_depth=0.03, spoke_w0=0.016, spoke_w1=0.013)
+    style = dict(r_lip=0.262, r_barrel=0.232, width=0.24, spokes=10, split=0.0, a_face=0.102, dish=0.032,
+                 spoke_depth=0.03, spoke_w0=0.0145, spoke_w1=0.011)
     cent = W.add_wheels(parts, axles, None, M.R_TYRE, 0.254, 0.255, style, 0.19)
-    mats = CB.base_materials((0.45, 0.02, 0.02), (0.22, 0.22, 0.23), rim_rough=0.3)
+    mats = CB.base_materials((0.45, 0.02, 0.02), (0.13, 0.13, 0.14), rim_rough=0.3)
     mats['plate']['tex_arr'] = D.plate_texture('7ABC123')
     mats['brake']['tex_arr'] = W.disc_texture(0.19)
+    mats['brake']['color'] = (0.9, 0.9, 0.9)
     CB.export(parts, mats, OUT, cent)
 
 def add_lamp_internals(parts):

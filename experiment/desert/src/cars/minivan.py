@@ -13,7 +13,7 @@ import minivan_params as M
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '../../assets/car_minivan.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0075
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 50000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 45000
 
 B = Body(M.P)
 P = M.P
@@ -171,7 +171,6 @@ rules = [
     ('fog_sur', lambda fm: fm['fog'] < 0.006),
     ('tail', lambda fm: fm['tail'] < -0.006),
     ('tail_bez', lambda fm: fm['tail'] < 0),
-    ('tbar', lambda fm: fm['tbar'] < 0),
     ('rplate', lambda fm: fm['rplate'] < 0),
     ('handle', lambda fm: (fm['h1'] < 0) | (fm['h2'] < 0)),
     ('marker_f', lambda fm: fm['mark_f'] < 0),
@@ -256,7 +255,7 @@ def build():
         D.plate_mesh(parts, p[0] - n * 0.012, n, (0, 0, 1.0))
     wp = []
     for t in np.linspace(0, 1, 8):
-        x = -0.05 + t * 0.55; z = 1.24 + t * 0.28
+        x = -0.06 + t * 0.52; z = 1.255 + t * 0.03
         h = surf([(abs(x), z)], 'rear', np.sign(x) or 1, 0.012)
         if len(h): wp.append(h[0])
     if len(wp) > 1: D.strip_along(parts, np.array(wp), 0.006, 'trim_black', col=(0.5, 0.5, 0.5))
@@ -299,6 +298,7 @@ def build():
     mats['plate']['tex_arr'] = D.plate_texture('8MVN417')
     mats['brake']['tex_arr'] = W.disc_texture(0.165)
     mats['glass']['color'] = (0.025, 0.028, 0.03)
+    mats['brake']['color'] = (0.9, 0.9, 0.9)
     CB.export(parts, mats, OUT, cent)
 
 if __name__ == '__main__':

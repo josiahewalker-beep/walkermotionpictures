@@ -431,3 +431,14 @@ def smooth_normals(V, F, N, iters=4, lam=0.6):
         avg = (A @ N) / deg[:, None]
         N = normalize((1 - lam) * N + lam * avg)
     return N
+
+def blurred_normals(field, V, radius=0.015, h=0.0015):
+    """Average analytic normals over a small sphere of sample points: irons out high-frequency ripples of the
+    implicit field so paint reflections flow."""
+    dirs = np.array([[0, 0, 0]] + [[np.cos(a) * np.sin(b), np.sin(a) * np.sin(b), np.cos(b)]
+                                   for b in (np.pi / 3, 2 * np.pi / 3) for a in np.linspace(0, 2 * np.pi, 6, endpoint=False)]
+                    + [[0, 0, 1], [0, 0, -1]], float)
+    acc = np.zeros_like(V)
+    for d in dirs:
+        acc += field_normals(field, V + d * radius, h=h)
+    return normalize(acc)

@@ -1,15 +1,23 @@
 """Shared build pipeline: body field -> MC -> decimate -> project -> cuts -> labels/insets -> parts -> GLB."""
 import time
 import numpy as np
-from carlib import smooth_normals, mc_mesh, decimate, field_normals, fix_winding, project_to_surface, Parts, normalize, sstep
+from carlib import smooth_normals, blurred_normals, mc_mesh, decimate, field_normals, fix_winding, project_to_surface, Parts, normalize, sstep
 from surfops import CutSurface, build_labelled
 import wheels as W
 import blendout
 
-SMOOTH_ITERS = 6
+SMOOTH_ITERS = 4
+NORMAL_BLUR = 0.018
 
 def log(*a):
     print(time.strftime('%H:%M:%S'), *a, flush=True)
+
+def body_normals(B, V):
+    n_out = blurred_normals(B.outer, V, radius=NORMAL_BLUR)
+    n_full = field_normals(B.field, V, h=0.0015)
+    dw = B.well_dist(V[:, 0], V[:, 1], V[:, 2])
+    w = np.clip((-dw - 0.001) / 0.004, 0, 1)[:, None]   # inside the well cut -> well normals
+    return normalize(n_out * (1 - w) + n_full * w)
 
 def body_surface(B, bounds, res, target):
     t = time.time()
@@ -17,20 +25,19 @@ def body_surface(B, bounds, res, target):
     log('mc', len(F), round(time.time() - t, 1))
     V, F = decimate(V, F, target)
     V = project_to_surface(B.field, V)
-    N = field_normals(B.field, V, h=0.0015)
+    N = body_normals(B, V)
     F = fix_winding(V, F, N)
     log('decimated', len(F))
     return V, F, N
 
 def run_cuts(B, V, F, N, cuts):
     """cuts: list of (name, fn, offsets)"""
-    cs = CutSurface(V, F, N, normal_fn=lambda P: field_normals(B.field, P, h=0.0015))
+    cs = CutSurface(V, F, N, normal_fn=lambda P: body_normals(B, P))
     for name, fn, offs in cuts:
         cs.add_fn(name, fn)
     for name, fn, offs in cuts:
         for o in offs:
             cs.cut(name, o)
-    cs.N = smooth_normals(cs.V, cs.F, cs.N, iters=SMOOTH_ITERS)
     log('cut faces', len(cs.F))
     return cs
 

@@ -46,7 +46,7 @@ class Body:
         # arch flares
         for (sa, za, R, fl, wfl) in P['flares']:
             r = np.sqrt((s - sa) ** 2 + (z - za) ** 2)
-            W = W + fl * np.exp(-((r - R) / wfl) ** 2) * sstep(za - 0.15, za + 0.05, z)
+            W = W + fl * np.exp(-((r - R) / wfl) ** 2) * sstep(za - 0.30, za + 0.10, z)
         for (sa, ws, zz, wz, amt) in P.get('haunches', []):
             W = W + amt * gauss(s, sa, ws) * gauss(z, zz, wz)
         return ax - W
@@ -123,6 +123,13 @@ class Body:
             dw = smax(dc, xin - ax, 0.02)
             d = dw if d is None else np.minimum(d, dw)
         return d
+
+    def outer(self, x, s, z):
+        ax = np.abs(x)
+        return smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self.P['k_belt'])
+
+    def well_dist(self, x, s, z):
+        return self.wells(np.abs(x), s, z)
 
     def field(self, x, s, z):
         ax = np.abs(x)

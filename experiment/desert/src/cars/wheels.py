@@ -45,7 +45,7 @@ def tyre_profile(r_out, r_bead, width, grooves=4, sidewall_bulge=0.012):
     pts.append((-hw + 0.02, r_bead - 0.004))
     return np.array(pts)
 
-def tyre_mesh(r_out, r_bead, width, n_seg=72):
+def tyre_mesh(r_out, r_bead, width, n_seg=64):
     P = tyre_profile(r_out, r_bead, width)
     # revolve: profile (a, r); revolve gives V (a, r cos, r sin)
     V, F, UV = revolve(P, n_seg, closed_profile=True)
@@ -145,7 +145,7 @@ def rim_field(style):
         return d
     return field
 
-def rim_mesh(style, res=0.0022, target=8000):
+def rim_mesh(style, res=0.0022, target=5500):
     R = style['r_lip'] + 0.01; aw = style['width'] / 2 + 0.012
     f = rim_field(style)
     fld = lambda X, Y, Z: f(X, Y, Z)
@@ -174,7 +174,7 @@ def disc_texture(r_disc, size=512):
     h = w = size
     y, z = np.meshgrid(np.linspace(-r_disc, r_disc, w), np.linspace(-r_disc, r_disc, h))
     r = np.sqrt(y * y + z * z); th = np.arctan2(z, y)
-    base = 0.42 + 0.04 * np.sin(r * 2200) * 0.3
+    base = 0.30 + 0.03 * np.sin(r * 2200)
     # cross-drilled holes in 3 rows, 12 around
     holes = np.zeros_like(r)
     for row, rr in enumerate([r_disc * 0.62, r_disc * 0.74, r_disc * 0.86]):

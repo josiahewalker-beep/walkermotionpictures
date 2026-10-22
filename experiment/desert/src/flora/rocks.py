@@ -302,9 +302,11 @@ def bake(shape, P, F, N, UV, tex, sink):
     col = col * (1 + 0.06 * nz(p, 90.0))[:, None]
     # desert varnish (dark brown-black) on steep, older faces, streaking down
     up = n[:, 2]
-    streak = nz.fbm(np.c_[p[:, 0] * 3, p[:, 1] * 3, p[:, 2] * 0.4] / sc, 2.0, oct=3)
-    varnish = smoothstep(0.0, 0.9, streak + 0.4 * (0.3 - up)) * smoothstep(0.8, -0.2, up)
-    col = col * (1 - 0.65 * varnish[:, None]) + np.array([0.09, 0.055, 0.035]) * 0.65 * varnish[:, None]
+    # desert varnish: thin dark streaks running down steep faces (narrow in plan, long vertically)
+    streak = nz.fbm(np.c_[p[:, 0] * 9, p[:, 1] * 9, p[:, 2] * 0.5] / sc, 1.6, oct=3)
+    patch = smoothstep(0.1, 0.6, nz.fbm(p / sc + 77, 1.3, oct=2))
+    varnish = smoothstep(0.35, 0.75, streak) * patch * smoothstep(0.6, -0.1, up)
+    col = col * (1 - 0.45 * varnish[:, None]) + np.array([0.10, 0.06, 0.04]) * 0.45 * varnish[:, None]
     # fresher, paler stone where the shell spalled; the old weathered rind is warmer/darker
     col = col * (1 - 0.35 * spall[:, None]) + np.array([0.50, 0.42, 0.33]) * 0.35 * spall[:, None]
     # lichens: small, muted crusts — yellow-green on tops, grey-green, rare orange dots

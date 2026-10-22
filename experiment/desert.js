@@ -766,7 +766,7 @@ export function makeDesert({ scene, cssCards, heroId = 'hero', camera, renderer,
     },
     bakeEnv() { bakeEnv(); }, applyAssets() { return applyAssets(); },
     // QA: jump straight to the landed state
-    get debug() { return { sunLight, hemiLight, envTex, scene, renderer, actors, clock, lastCar: window.__lastCar }; },
+    get debug() { return { sunLight, hemiLight, envTex, scene, renderer, camera, actors, clock, road, Y0, lastCar: window.__lastCar }; },
     landNow() { api.approachFrom(camera.position.clone(), camera.position.clone().add(new THREE.Vector3(0, 0, -1)), camera.fov); fly.t = 1; const s2 = pose(1); fly = null; inside = true; setReveal(1); landedAt = 5; return s2; },
     // storyboards: pose and build state at time t of the approach from the current camera
     storyFrom(pos, look, fov) { api.approachFrom(pos, look, fov); fly.dir = 0; },

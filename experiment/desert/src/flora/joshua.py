@@ -524,18 +524,34 @@ def build_tree(name, P, lod=False, seed_override=None):
         bake_ao(parts, strength=0.45, cell=0.09)
     else:
         bake_ao(parts, strength=0.35, cell=0.15)
+    # dead leaves that would hang below the ground rest on it instead
+    for part in parts.values():
+        for v in part.v:
+            v[:, 2] = np.maximum(v[:, 2], 0.005)
     stats = {k: v.ntris for k, v in parts.items()}
     build_tree.tips = [[float(b.pts[-1][0]), float(b.pts[-1][2]), float(-b.pts[-1][1])] for b in tips]
     return parts, stats, len(tips), dens_fur
 
 
+def small(name, size=512):
+    """Downsampled copy of a cached texture for the LODs."""
+    from PIL import Image
+    src = os.path.join(TEXCACHE, name)
+    root, ext = os.path.splitext(name)
+    dst = os.path.join(TEXCACHE, f'{root}_{size}{ext}')
+    im = Image.open(src)
+    im.resize((max(1, im.width * size // max(im.size)), max(1, im.height * size // max(im.size))), Image.LANCZOS).save(dst)
+    return dst
+
+
 def materials(lod=False):
-    bark = make_material('bark', base=os.path.join(TEXCACHE, 'bark_albedo.jpg'),
-                         normal=os.path.join(TEXCACHE, 'bark_normal.jpg'), normal_strength=1.0, rough=0.95, spec=0.25)
-    fur = make_material('fur', base=os.path.join(TEXCACHE, 'thatch_albedo.jpg'),
+    T = (lambda n: small(n)) if lod else (lambda n: os.path.join(TEXCACHE, n))
+    bark = make_material('bark', base=T('bark_albedo.jpg'),
+                         normal=T('bark_normal.jpg'), normal_strength=1.0, rough=0.95, spec=0.25)
+    fur = make_material('fur', base=T('thatch_albedo.jpg'),
                         normal=None if lod else os.path.join(TEXCACHE, 'thatch_normal.jpg'),
                         rough=1.0, double=True, spec=0.2)
-    leaf = make_material('leaf', base=os.path.join(TEXCACHE, 'leaf_albedo.png'), rough=0.6, double=True, spec=0.45)
+    leaf = make_material('leaf', base=T('leaf_albedo.png'), rough=0.6, double=True, spec=0.45)
     return dict(bark=bark, fur=fur, leaf=leaf)
 
 
