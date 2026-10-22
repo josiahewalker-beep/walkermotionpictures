@@ -1,0 +1,113 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}</style>
+<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script></head><body>
+<script type="module">
+// Drive-in blockout for framing mockups (not the site). Metres, +Y up. Screen faces +Z, centred at x=0.
+import * as THREE from 'three';
+const q = new URLSearchParams(location.search), n = (k, d) => q.has(k) ? +q.get(k) : d;
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setPixelRatio(1); r.setSize(innerWidth, innerHeight);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.1; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const S = new THREE.Scene(); S.fog = new THREE.FogExp2(n('warm',1) ? 0x1d1a15 : 0x0b1324, n('warm',1) ? 0.009 : 0.0065);
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+// sky
+{ const g = new THREE.SphereGeometry(900, 32, 16), m = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: 'varying vec3 v; void main(){ v = normalize(position); gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: 'varying vec3 v; void main(){ float h = clamp(v.y,0.,1.); vec3 c = mix(vec3(.13,.13,.15), vec3(.012,.02,.045), pow(h,.4)); c += vec3(.16,.10,.05)*exp(-h*9.); gl_FragColor = vec4(c,1.); }' });
+  S.add(new THREE.Mesh(g, m)); }
+// stars
+{ const p = []; for (let i = 0; i < 900; i++) { const a = rnd() * 6.283, y = 0.08 + Math.pow(rnd(), 0.7) * 0.92, rr = Math.sqrt(1 - y * y); p.push(Math.cos(a) * rr * 850, y * 850, Math.sin(a) * rr * 850); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  S.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xdfe6ff, size: 1.6, sizeAttenuation: false, fog: false, transparent: true, opacity: 0.85 }))); }
+// moon: crescent sprite
+{ const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  const gr = x.createRadialGradient(128, 128, 30, 128, 128, 128); gr.addColorStop(0, 'rgba(220,230,255,.35)'); gr.addColorStop(1, 'rgba(220,230,255,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
+  x.fillStyle = '#f3f1e6'; x.beginPath(); x.arc(128, 128, 44, 0, 7); x.fill(); x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.arc(108, 116, 42, 0, 7); x.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, fog: false, depthWrite: false })); s.scale.setScalar(70); s.position.set(n('mx', 220), n('my', 330), -700); S.add(s); window.__moon = s; }
+// light
+S.add(new THREE.HemisphereLight(0x6a6a70, 0x2a1d12, 1.0));
+const moon = new THREE.DirectionalLight(0xaab8e0, 1.0); moon.position.set(120, 200, -300); S.add(moon);
+// ground: gravel lot + humps (car ramps)
+{ const g = new THREE.PlaneGeometry(600, 600, 300, 300); g.rotateX(-Math.PI / 2); const P = g.attributes.position;
+  const MOUNDS = JSON.parse(q.get('mounds') || '[]');
+  const lot = (x, z) => { if (!n('lot', 0)) return 0; let y = 2.7 * Math.min(1, Math.max(0, (40 - z) / 30));
+    for (const [mx, mz, mh, mr] of MOUNDS) { const d = Math.hypot(x - mx, z - mz) / mr; y += mh * (d < 0.6 ? 1 : d < 1.4 ? 0.5 + 0.5 * Math.cos((d - 0.6) / 0.8 * Math.PI) : 0); } return y; }; window.__lot = lot;
+  for (let i = 0; i < P.count; i++) { const z = P.getZ(i), x = P.getX(i); let y = lot(x, z); if (!n('lot', 0) && z > 8 && z < 90) { const k = ((z - 8) % 9) / 9; y += 0.35 * Math.max(0, Math.sin(k * Math.PI)) * Math.exp(-(Math.max(0, Math.abs(x) - 45)) * 0.1); }
+    if (Math.hypot(x, z + 10) > 90) y += (Math.hypot(x, z + 10) - 90) * 0.22 * (0.6 + 0.4 * Math.sin(x * 0.05) * Math.cos(z * 0.04)); P.setY(i, y); }
+  g.computeVertexNormals(); S.add(new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x3b2c1f, roughness: 0.95 }))); }
+// mountains behind
+for (const [d, h, col, s2] of [[300, 150, 0x1a2219, 3], [210, 85, 0x141b12, 9]]) { const pts = []; for (let i = 0; i <= 120; i++) { const a = -Math.PI * 0.95 + i / 120 * Math.PI * 1.9; const hh = h * (0.45 + 0.55 * Math.abs(Math.sin(a * s2 * 0.7 + 1) * Math.cos(a * 1.7))); pts.push(new THREE.Vector3(Math.sin(a) * d, hh, -Math.cos(a) * d)); }
+  const pos = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1]; pos.push(a.x, -5, a.z, b.x, -5, b.z, a.x, a.y, a.z, b.x, -5, b.z, b.x, b.y, b.z, a.x, a.y, a.z); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  S.add(new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide, fog: false }))); }
+// pines
+const pineMat = new THREE.MeshStandardMaterial({ color: 0x24402a, roughness: 1 }), trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a3820, roughness: 1 });
+function pine(x, z, h) { const g = new THREE.Group(); const tr = new THREE.Mesh(new THREE.CylinderGeometry(h * 0.012, h * 0.02, h * 0.3, 6), trunkMat); tr.position.y = h * 0.15; g.add(tr);
+  const tiers = 7; for (let i = 0; i < tiers; i++) { const k = i / tiers, rad = h * 0.2 * (1 - k * 0.85) * (0.85 + rnd() * 0.3), ch = h * 0.22; const c = new THREE.Mesh(new THREE.ConeGeometry(rad, ch, 9), pineMat); c.position.y = h * 0.18 + k * h * 0.78 + ch / 2; c.rotation.y = rnd() * 3; g.add(c); }
+  g.position.set(x, 0, z); S.add(g); return g; }
+for (let i = 0; i < 260; i++) { const a = rnd() * Math.PI * 2, d = 70 + rnd() * 130; const x = Math.sin(a) * d, z = -Math.cos(a) * d - 10; if (z > 60 && Math.abs(x) < 80) continue; pine(x, z, 14 + rnd() * 22); }
+for (const [x, z, h] of JSON.parse(q.get('fg') || '[]')) pine(x, z, h);   // framing-specific foreground pines
+for (let i = 0; i < 40; i++) pine(-60 - rnd() * 40, -20 + rnd() * 120, 16 + rnd() * 18);
+for (let i = 0; i < 40; i++) pine(60 + rnd() * 40, -20 + rnd() * 120, 16 + rnd() * 18);
+// screen tower: white screen panel with the slide projected on it, plywood back, timber frame
+const SW = 22, SH = SW / 1.736, SB = 6;
+const slideTex = new Promise(res => new THREE.TextureLoader().load('work_card.png', res));
+{ const t = await slideTex; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  const rr = SW * 22 / 1120, rs = (w, h, r) => { const sh = new THREE.Shape(), x = -w / 2, y = -h / 2; sh.moveTo(x + r, y); sh.lineTo(x + w - r, y); sh.quadraticCurveTo(x + w, y, x + w, y + r); sh.lineTo(x + w, y + h - r); sh.quadraticCurveTo(x + w, y + h, x + w - r, y + h); sh.lineTo(x + r, y + h); sh.quadraticCurveTo(x, y + h, x, y + h - r); sh.lineTo(x, y + r); sh.quadraticCurveTo(x, y, x + r, y); return sh; };
+  const back = new THREE.Mesh(new THREE.ExtrudeGeometry(rs(SW, SH, rr), { depth: 0.3, bevelEnabled: false, curveSegments: 10 }), new THREE.MeshStandardMaterial({ color: 0x2a2520, roughness: 1 })); back.position.set(0, SB + SH / 2, -0.45); S.add(back);
+  const ig = new THREE.ShapeGeometry(rs(SW, SH, rr), 10), up2 = ig.attributes.position, uv = new Float32Array(up2.count * 2); for (let i = 0; i < up2.count; i++) { uv[i * 2] = up2.getX(i) / SW + 0.5; uv[i * 2 + 1] = up2.getY(i) / SH + 0.5; } ig.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  const img = new THREE.Mesh(ig, new THREE.MeshBasicMaterial({ map: t, toneMapped: false })); img.position.set(0, SB + SH / 2, -0.12); S.add(img);
+  const wood = new THREE.MeshStandardMaterial({ color: 0x2b211a, roughness: 1 });
+  for (const x of [-10, -4, 4, 10]) { const p = new THREE.Mesh(new THREE.BoxGeometry(0.5, SB + SH + 1, 0.5), wood); p.position.set(x, (SB + SH + 1) / 2, -2.2); S.add(p); }
+  for (let y = 2; y < SB + SH; y += 3) { const b = new THREE.Mesh(new THREE.BoxGeometry(SW + 2, 0.25, 0.25), wood); b.position.set(0, y, -2.2); S.add(b); }
+  const glow = new THREE.RectAreaLight ? null : null;
+  const spill = new THREE.PointLight(0x7f95c8, 260, 90, 1.6); spill.position.set(0, SB + SH * 0.4, 8); S.add(spill); }
+// cars: rows facing the screen
+const carCols = [0x6b4a2b, 0xb08a3a, 0x8a3a24, 0x2f4a32, 0xd8cbaa, 0x4a3220, 0x7a6a4a, 0x3c5a5a];   // 80s: wood-panel brown, mustard, rust, forest green, cream
+function car(x, z, ry, kind, col, gy = 0) { const g = new THREE.Group(), m = new THREE.MeshStandardMaterial({ color: col ?? carCols[Math.floor(rnd() * carCols.length)], roughness: 0.45, metalness: 0.5 });
+  const L = kind ? 5.4 : 4.7, W = 1.9, body = new THREE.Mesh(new THREE.BoxGeometry(W, 0.75, L), m); body.position.y = 0.65; g.add(body);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(W * 0.9, 0.6, kind ? 1.8 : 2.3), new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 0.15, metalness: 0.2 })); cab.position.set(0, 1.3, kind ? 0.9 : 0.2); g.add(cab);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.25, 12), new THREE.MeshStandardMaterial({ color: 0x090909 })); w.rotation.z = Math.PI / 2; w.position.set(sx * W / 2, 0.36, sz * L * 0.32); g.add(w); }
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.3, 6), new THREE.MeshStandardMaterial({ color: 0x555555 })); post.position.set(W / 2 + 0.7, 0.65, 0); g.add(post);   // speaker post
+  // a door seam and handle so the side reads as a car door
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.6, 0.02), new THREE.MeshBasicMaterial({ color: 0x111111 })); seam.position.set(-W / 2 - 0.01, 0.75, -0.35); g.add(seam);
+  const hd = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.05, 0.22), new THREE.MeshStandardMaterial({ color: 0xbfb8a8, metalness: 0.8, roughness: 0.3 })); hd.position.set(-W / 2 - 0.02, 0.92, -0.05); g.add(hd);
+  g.position.set(x, 0.12 + gy, z); g.rotation.y = ry; S.add(g); }
+if (q.has('cars')) for (const c of JSON.parse(q.get('cars'))) car(c[0], c[1], c[2], c[3], parseInt(c[4], 16), window.__lot(c[0], c[1]) + (c[5] || 0));
+else for (let row = 0; row < 9; row++) { const z = 15 + row * 7; for (let x = -34; x <= 34; x += 3.2) { if (rnd() < 0.12) continue; if (Math.abs(x) < 2) continue; if (Math.hypot(x - n('cx', 0), z + 1.5 - n('cz', 40)) < 4.5) continue; car(x + (rnd() - 0.5) * 0.6, z + 1.5, Math.atan2(-x * 0.02, 1) + (rnd() - 0.5) * 0.08, rnd() < 0.3 ? 1 : 0); } }
+// projection booth
+if (q.has('by')) { const L = new THREE.Vector3(n('bx', 0), n('by', 0), n('bz', 92)), aim = new THREE.Vector3(0, SB + SH / 2, 0), dir = aim.clone().sub(L).setY(0).normalize();
+  const booth = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3.2, 4.5), new THREE.MeshStandardMaterial({ color: 0x4a3828, roughness: 1 })); booth.position.copy(L).addScaledVector(dir, -2.3).add(new THREE.Vector3(0, 0.3, 0)); booth.lookAt(booth.position.clone().add(dir)); S.add(booth);
+  const wood = new THREE.MeshStandardMaterial({ color: 0x2b211a, roughness: 1 }); for (const [ox, oz] of [[-1.8, -1.8], [1.8, -1.8], [-1.8, 1.8], [1.8, 1.8]]) { const leg = new THREE.Mesh(new THREE.BoxGeometry(0.3, L.y - 1.3, 0.3), wood); leg.position.set(booth.position.x + ox, (L.y - 1.3) / 2, booth.position.z + oz); S.add(leg); }
+  const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.3, 16), new THREE.MeshBasicMaterial({ color: 0xfff2d8 })); lamp.position.copy(L); lamp.lookAt(aim); S.add(lamp); }
+else { const b = new THREE.Mesh(new THREE.BoxGeometry(8, 3.4, 6), new THREE.MeshStandardMaterial({ color: 0x3a3430, roughness: 1 })); b.position.set(n('bx', 0), 1.7, n('bz', 92)); S.add(b);
+  const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.35, 16), new THREE.MeshBasicMaterial({ color: 0xffffff })); lamp.position.set(n('bx', 0), 2.6, n('bz', 92) - 3.05); lamp.rotation.y = Math.PI; S.add(lamp); }
+// projector beam: a soft additive frustum from the booth lens to the screen corners
+const lens = q.has('by') ? new THREE.Vector3(n('bx', 0), n('by', 0), n('bz', 92)) : new THREE.Vector3(n('bx', 0), 2.6, n('bz', 92) - 3.1);
+{ const c = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => new THREE.Vector3(a * SW / 2, SB + SH / 2 + b * SH / 2, 0));
+  const pos = [], uv = []; for (let i = 0; i < 4; i++) { const a = c[i], b = c[(i + 1) % 4]; pos.push(lens.x, lens.y, lens.z, a.x, a.y, a.z, b.x, b.y, b.z); uv.push(0, 0, 1, 0, 1, 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { k: { value: n('beam', 0.11) } },
+    vertexShader: 'varying vec2 u; varying vec3 w; void main(){ u = uv; w = (modelMatrix*vec4(position,1.)).xyz; gl_Position = projectionMatrix*viewMatrix*vec4(w,1.); }',
+    fragmentShader: 'uniform float k; varying vec2 u; varying vec3 w; void main(){ float d = u.x; float s = .55+.45*sin(w.x*1.7+w.y*2.3)*sin(w.z*.6); gl_FragColor = vec4(vec3(1.,.9,.74)*k*(1.-d*.55)*s, 1.); }' });
+  S.add(new THREE.Mesh(g, m));
+  // dust in the beam
+  const dp = []; for (let i = 0; i < 2600; i++) { const t = Math.pow(rnd(), 0.8), a = (rnd() - 0.5) * 2, b = (rnd() - 0.5) * 2; const tgt = new THREE.Vector3(a * SW / 2, SB + SH / 2 + b * SH / 2, 0); const p = lens.clone().lerp(tgt, t); dp.push(p.x, p.y, p.z); }
+  const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.Float32BufferAttribute(dp, 3));
+  S.add(new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xffe6c0, size: 0.07, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false })));
+  // the moth, caught in the beam
+  const mt = n('moth', 0.62), mp = lens.clone().lerp(new THREE.Vector3(n('mothx', 3), SB + SH * 0.55, 0), mt);
+  const c2 = document.createElement('canvas'); c2.width = c2.height = 64; const x2 = c2.getContext('2d'); x2.fillStyle = '#efe6d2'; x2.beginPath(); x2.ellipse(20, 32, 16, 9, -0.5, 0, 7); x2.ellipse(44, 32, 16, 9, 0.5, 0, 7); x2.fill(); x2.fillStyle = '#6b5a46'; x2.fillRect(30, 22, 4, 22);
+  const mt2 = new THREE.CanvasTexture(c2); const moth = new THREE.Sprite(new THREE.SpriteMaterial({ map: mt2, transparent: true })); moth.scale.setScalar(0.22); moth.position.copy(mp); S.add(moth); }
+// warm lot lights: concession stand glow and a few low pole lamps (amber, 80s sodium/incandescent)
+{ const stand = new THREE.Mesh(new THREE.BoxGeometry(10, 3.2, 6), new THREE.MeshStandardMaterial({ color: 0x5a3d26, roughness: 1 })); stand.position.set(-24, 1.6, 52); S.add(stand);
+  const win = new THREE.Mesh(new THREE.PlaneGeometry(7, 1.4), new THREE.MeshBasicMaterial({ color: 0xffc27a })); win.position.set(-24, 1.9, 48.95); win.rotation.y = Math.PI; S.add(win);
+  const sl = new THREE.PointLight(0xffa860, 120, 40, 1.8); sl.position.set(-24, 3, 46); S.add(sl);
+  for (const [x, z] of [[-30, 20], [30, 24], [-30, 40], [30, 46], [0, 70], [13, 29], [-13, 24], [24, 33]]) { const pl = new THREE.PointLight(0xffb070, 70, 26, 1.6); pl.position.set(x, 4, z); S.add(pl);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffd9a0 })); bulb.position.copy(pl.position); S.add(bulb);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 4, 6), new THREE.MeshStandardMaterial({ color: 0x2a2018 })); pole.position.set(x, 2, z); S.add(pole); } }
+// camera
+const cam = new THREE.PerspectiveCamera(n('fov', 38), innerWidth / innerHeight, 0.1, 3000);
+cam.position.set(n('cx', 0), n('cy', 1.4), n('cz', 40)); cam.lookAt(n('tx', 0), n('ty', 10), n('tz', 0));
+cam.updateMatrixWorld();
+if (q.has('mnx')) { const v = new THREE.Vector3(n('mnx', 0), n('mny', 0), 0.5).unproject(cam).sub(cam.position).normalize(); window.__moon.position.copy(cam.position).addScaledVector(v, 800); }
+r.render(S, cam); window.__ready = true;
+</script></body></html>
