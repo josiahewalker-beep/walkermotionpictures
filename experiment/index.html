@@ -1212,8 +1212,9 @@ function frame(now) {
   // ground rings breathe gently
   const s = 1 + Math.sin(now / 700) * .06; for (const k in cards) cards[k].ring.scale.setScalar(k === current ? s * 1.25 : 1);
   placeCtl(dt); CODE.tick(now); HOLE.tick(now, dt);
-  let drawn = false; for (const wid in WORLDS) { const W = WORLDS[wid]; if (!W) continue; W.tick(dt); if (!drawn && W.render(dt)) drawn = true; }
-  if (!drawn) gl.render(scene, camera); css.render(cssScene, camera);
+  const qaSkip = window.__qaNoRender === true;   // QA: step the state without drawing (headless captures draw only the frames they keep)
+  let drawn = false; for (const wid in WORLDS) { const W = WORLDS[wid]; if (!W) continue; W.tick(dt); if (!qaSkip && !drawn && W.render(dt)) drawn = true; }
+  if (!qaSkip) { if (!drawn) gl.render(scene, camera); css.render(cssScene, camera); }
   requestAnimationFrame(frame);
 }
 function resize() {
