@@ -21,15 +21,19 @@ LAMP_Z0, LAMP_Z1 = 0.815, 1.000          # band bottom / top
 SPLIT_Z = 0.915                          # smoked above, red below
 PANEL_Z0, PANEL_Z1 = 0.822, 0.995        # centre panel
 REV = (0.32, 0.46, 0.838, 0.902)         # reverse lens (x signed: passenger side +), z
-WEDGE = ((0.800, -2.252), (0.995, -2.108))   # outboard edge of the corner wrap in side view: (z, s) pairs
+# Corner wrap seen from the side (04 / 08): the lens runs round the corner onto the quarter panel; its bottom edge stays level
+# at LAMP_Z0 and its front edge sweeps down from the top-rear corner to a pointed tip at the bottom (a teardrop / wedge in side
+# view), the tip ~0.12 m forward of the tail silhouette. Front edge as (z, s offset forward of the tail profile Lr(z)).
+WRAP_EDGE = ((0.815, 0.225), (0.835, 0.210), (0.870, 0.186), (0.910, 0.156), (0.945, 0.124), (0.975, 0.094), (1.000, 0.062))
+TAIL_PROFILE = None                      # Lr(z): set by the car config (centre-line tail face s at height z)
 RECESS = (0.53, 0.625, 0.812)            # plate recess half width, z0, z1
 PLATE_Z = 0.718
 
 def lamp_fns(plane_fn, MaskSDF):
     """-> (fn_tail, fn_tpanel, fn_rev) for car90's rear_lamp_fns hook."""
-    (za, sa), (zb_, sb) = WEDGE
+    we = np.array(WRAP_EDGE)
     def s_edge(z):
-        return np.interp(z, [za, zb_], [sa, sb], left=sa, right=sb)
+        return TAIL_PROFILE(z) + np.interp(z, we[:, 0], we[:, 1])
     rear = lambda V, N: (V[:, 1] < -1.95) & (N[:, 1] < 0.45) & (V[:, 2] > 0.6) & (V[:, 2] < 1.12)
     base = plane_fn(lambda X, Z: (X > LAMP_X0) & (Z > LAMP_Z0) & (Z < LAMP_Z1 - 0.012 * np.clip((X - LAMP_X0) / 0.27, 0, 1)), rear, rnd=0.012)
     def fn_tail(V, N):

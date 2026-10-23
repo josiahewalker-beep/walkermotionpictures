@@ -83,10 +83,12 @@ ZROOF = [(0.55, 1.25), (0.40, 1.335)] + [(s, z + 0.017) for s, z in _roof] + [(-
 _nose = pts('nose')
 LF = [(0.17, 2.10), (0.20, 2.205), (0.228, 2.273), (0.324, 2.322), (0.371, 2.347), (0.42, 2.372), (0.455, 2.3805),
       (0.527, 2.3805), (0.540, 2.33), (0.551, 2.267), (0.659, 2.258), (0.695, 2.219), (0.73, 2.10)]
-LR = [(0.24, -2.10), (0.268, -2.186), (0.312, -2.333), (0.353, -2.357), (0.42, -2.374), (0.496, -2.3805),
-      (0.592, -2.3805), (0.603, -2.33), (0.615, -2.274), (0.855, -2.261), (1.0, -2.248), (1.046, -2.242), (1.08, -2.18)]
+# rear (v2.1): bumper face below the rub strip shortened to match 10 (valance turns under from z ~0.34), hatch face leans
+# forward ~5 cm from the bumper shelf to the deck
+LR = [(0.27, -2.06), (0.300, -2.215), (0.330, -2.318), (0.352, -2.355), (0.40, -2.374), (0.47, -2.3805),
+      (0.592, -2.3805), (0.603, -2.33), (0.615, -2.284), (0.82, -2.266), (1.0, -2.240), (1.046, -2.228), (1.08, -2.17)]
 ZBOT = [(L2, 0.26), (2.30, 0.215), (2.16, 0.199), (1.82, 0.195), (1.55, 0.205), (0.85, 0.224), (-0.93, 0.228),
-        (-1.62, 0.262), (-2.18, 0.268), (-2.30, 0.29), (-L2, 0.33)]
+        (-1.62, 0.262), (-2.05, 0.272), (-2.20, 0.295), (-2.32, 0.335), (-L2, 0.36)]
 WS_WRAP, BL_WRAP = 0.13, 0.10
 _a = pts('ascreen')
 _ws_dir = (_a[5] - _a[0]) / np.linalg.norm(_a[5] - _a[0])
@@ -115,8 +117,8 @@ P = dict(
     flares=[(S_FA, RT, 0.375, 0.003, 0.07), (S_RA, RT, 0.36, 0.003, 0.07)],
     haunches=[(-0.05, 0.62, 0.25, 0.045, 0.012)],
     fender_x0=0.45, fender_x1=0.78, hood_crown=0.03,
-    nose_corner=0.24, nose_pow=2.6, tail_corner=0.13, tail_pow=2.8,
-    k_shoulder=0.06, k_nose=0.022, k_tail=0.022, k_bottom=0.035, normal_blur=0.02,
+    nose_corner=0.24, nose_pow=2.6, tail_corner=0.13, tail_pow=2.3,
+    k_shoulder=0.06, k_nose=0.022, k_tail=0.03, k_bottom=0.035, normal_blur=0.02,
     belt=BELT, tumble=0.20, tumble2=0.30,
     ws_line=(tuple(_ws0), tuple(_ws1)), ws_wrap=WS_WRAP, ws_bulge=0.008,
     bl_line=(tuple(_bl0), tuple(_bl1)), bl_wrap=BL_WRAP,
@@ -124,6 +126,7 @@ P = dict(
     wells=[(S_FA, RT, 0.365, 0.48), (S_RA, RT, 0.350, 0.48)],
 )
 _B = Body(P)
+REAR.TAIL_PROFILE = _B.c['Lr']
 
 HL = (0.335, 0.665, 0.566, 0.664)      # slim rectangular headlamps under the bonnet edge
 B_S = float(_b_hi[0, 0])
