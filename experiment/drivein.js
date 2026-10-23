@@ -392,7 +392,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       const p = mothHome.clone().add(new THREE.Vector3(Math.sin(t * 2.3) * 0.5 + Math.sin(t * 5.1) * 0.15, Math.sin(t * 3.1) * 0.35 + Math.sin(t * 7.7) * 0.1, Math.cos(t * 1.9) * 0.4).multiplyScalar(K))
         .add(new THREE.Vector3(1.6, 1.1, 0.6).multiplyScalar(K * 2.2 * outPhase));
       moth.position.copy(p); const lit = inBeam(p, 0.05) * fl; mothSprite.material.opacity = 0.15 + 0.85 * lit; moth.traverse(o => { if (o.isMesh && o.material && 'emissiveIntensity' in o.material) { o.material.emissive = o.material.emissive || new THREE.Color(); o.material.emissive.setRGB(1, 0.92, 0.78); o.material.emissiveIntensity = 2.4 * lit; } });
-      const flap = Math.sin(t * 38) * 0.9; (moth.userData.wings || []).forEach((w, i) => w.rotation.z = (i ? -1 : 1) * flap); moth.lookAt(camera.position); }
+      const flap = Math.sin(t * 38) * 0.9; (moth.userData.wings || []).forEach((w, i) => w.rotation.z = (i ? -1 : 1) * flap); moth.lookAt(camera.position); if (moth.userData.wings && moth.userData.wings.length) moth.rotateX(-1.25); }   // the model's wings lie flat: tip it so they face the camera instead of showing their edge
     // 3 s: the bucket tips off the ledge, falls, lands on its side; popcorn sprays out and settles
     if (bucket.phase === 0 && t >= 3) { bucket = { phase: 1, t0: t, p: bucketGroup.position.clone(), v: outward().multiplyScalar(0.6 * K).addScaledVector(camLeft(), 1.1 * K).add(new THREE.Vector3(0, 0.4 * K, 0)), spin: 0 }; }   // lands left of the door, clear of the page's buttons
     if (bucket.phase === 1) { const g = -9.8 * K; bucket.v.y += g * dt; bucket.p.addScaledVector(bucket.v, dt); bucket.spin += dt * 6.5;
