@@ -26,15 +26,15 @@ P = dict(
         W=[(2.38, 0.70), (2.32, 0.80), (2.20, 0.856), (1.9, 0.880), (1.2, 0.889), (0.0, 0.889), (-1.4, 0.889), (-2.0, 0.880),
            (-2.24, 0.858), (-2.33, 0.82), (-2.38, 0.74)],
         # top of the lower body: low hood falling to a short nose, level belt, rear deck up at the hatch
-        Ztop=[(2.38, 0.66), (2.32, 0.705), (2.22, 0.74), (2.0, 0.775), (1.7, 0.815), (1.4, 0.855), (1.15, 0.88), (0.9, 0.90),
+        Ztop=[(2.38, 0.635), (2.32, 0.685), (2.22, 0.722), (2.0, 0.762), (1.7, 0.808), (1.4, 0.855), (1.15, 0.88), (0.9, 0.90),
               (0.4, 0.915), (0.0, 0.92), (-0.8, 0.93), (-1.3, 0.95), (-1.7, 0.99), (-2.0, 1.025), (-2.2, 1.035),
               (-2.32, 1.02), (-2.38, 0.98)],
         fender=[(2.38, 0.0), (2.0, 0.006), (1.3, 0.008), (0.9, 0.0), (-2.38, 0.0)],
         # Aero kit: deep front spoiler, low skirts, deep rear valance
         Zbot=[(2.38, 0.24), (2.32, 0.19), (2.15, 0.175), (0.0, 0.178), (-2.0, 0.185), (-2.25, 0.22), (-2.38, 0.27)],
         # front profile s(z): spoiler lip, bumper face, raked lamp/grille band tucked under the hood edge
-        Lf=[(0.17, 2.29), (0.22, 2.345), (0.30, 2.37), (0.45, 2.38), (0.55, 2.375), (0.59, 2.355), (0.64, 2.33),
-            (0.70, 2.295), (0.73, 2.25), (0.76, 2.10)],
+        Lf=[(0.17, 2.29), (0.22, 2.345), (0.30, 2.37), (0.45, 2.38), (0.54, 2.375), (0.58, 2.355), (0.63, 2.33),
+            (0.68, 2.29), (0.715, 2.22), (0.75, 2.05)],
         # rear profile s(z): valance, bumper, near-vertical tail panel, deck edge
         Lr=[(0.22, -2.30), (0.30, -2.365), (0.45, -2.385), (0.56, -2.38), (0.60, -2.345), (0.75, -2.335), (0.92, -2.325),
             (1.00, -2.31), (1.04, -2.26), (1.07, -2.10)],
@@ -54,11 +54,11 @@ P = dict(
     k_shoulder=0.07, k_nose=0.06, k_tail=0.05, k_bottom=0.04, normal_blur=0.022,
     belt=BELT, tumble=0.20, tumble2=0.30,
     ws_line=((1.12, 0.905), (0.24, 1.39)), ws_wrap=0.15, ws_bulge=0.01,
-    bl_line=((-2.10, 1.045), (-1.24, 1.375)), bl_wrap=0.08,
+    bl_line=((-2.10, 1.045), (-1.24, 1.375)), bl_wrap=0.12,
     roof_crown=0.035, k_roof=0.07, k_ws=0.05, k_bl=0.05, k_belt=0.03, k_well=0.012,
     wells=[(S_FA, RT + 0.012, 0.365, 0.48), (S_RA, RT + 0.012, 0.365, 0.48)],
 )
-HL = (0.30, 0.79, 0.600, 0.700)          # headlamps: long, low, under the hood edge
+HL = (0.30, 0.79, 0.588, 0.680)          # headlamps: long, low, under the hood edge
 B_S = -0.17                              # B-pillar at the belt
 
 # ---------------------------------------------------------------- Aero fog lamps in the front spoiler (extra cut)
@@ -124,11 +124,11 @@ C = dict(
     dlo_rear=lambda Z, c_s: -1.06 + 0.12 * (Z - BELT), top_off=0.05, a_off=0.07, dlo_round=0.03,
     pillars=[(B_S, 0.034, 0.03)], b_s=B_S, b_slant=0.03, fd0=0.955,
     rd1=lambda Z, c_s: np.where(Z > BELT - 0.03, -1.085 + 0.12 * (Z - BELT), -1.10), sill=0.285,
-    ws_dom=0.2, ws_ztop=1.345, ws_side=0.085,
-    bl_dom=-1.15, bl_zlo=1.08, bl_ztop=1.335, bl_side=0.10,
+    ws_dom=0.2, ws_ztop=1.345, ws_side=0.06,
+    bl_dom=-1.15, bl_zlo=1.075, bl_ztop=1.335, bl_side=0.035,
     hood=(1.13, 0.80, HL[3] + 0.012), lid=(-1.26, 0.69, 0.575),
     head=HL, head_rnd=0.03, corner=(HL[1] + 0.012, 2.0, HL[2] + 0.004, HL[3] - 0.004), corner_s=0.62,
-    grille=(0.235, 0.612, 0.692), grille_rnd=0.02, grille_bars=2, bar_mat='trim_black', lower_intake=(0.47, 0.255, 0.385),
+    grille=(0.235, 0.598, 0.672), grille_rnd=0.02, grille_bars=2, bar_mat='trim_black', lower_intake=(0.47, 0.255, 0.385),
     tail=(0.40, 0.775, 0.925), tail_s=S_RA - 0.62, reverse=(0.42, 0.53, 0.785, 0.835), rplate=0.665,
     handles=[0.10, -0.90], handle_z=BELT - 0.095,
     markers=((S_FA - 0.42, 0.62), (S_RA - 0.93, 0.42)),             # amber repeater behind the front arch; red US-spec reflector low on the rear bumper
@@ -138,7 +138,9 @@ C = dict(
     antenna=False, exhaust=(-0.46, S_RA - 0.9, 0.24),
     extra_cuts=[('fog', fn_fog, [0.0])],
     extra_labels={'fog': dict(mat='light_front', depth=0.012, wall='trim_black', wall_col=0.4, col=0.75)},
-    extra_rules=[('fog', lambda fm: fm['fog'] < 0)],
+    # fog lamps; and keep the whole upper wheel-well lining black (faces just past the well cut whose normals face into the arch)
+    extra_rules=[('fog', lambda fm: fm['fog'] < 0),
+                 ('well', lambda fm: (fm['well'] < 0.03) & (np.abs(fm['n'][:, 0]) < 0.7) & (fm['c'][:, 2] < 0.75))],
     extras=[ledge_felt, hatch_spoiler, stop_lamp],
     open_window=True, ledge=0.078,
     interior=dict(seat_s=0.02, seat_x=0.37, floor=0.30, dash_s=0.86, dash_z=0.87, dash_w=0.72, wheel_s=0.50, hip_z=0.49,

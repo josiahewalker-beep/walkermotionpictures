@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import car90
 
-OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero.glb')
+OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero_old.glb')   # retired: the hero is now saab9000.py
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0075
 TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 36000
 
