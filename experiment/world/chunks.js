@@ -36,9 +36,18 @@ export function installWorldChunks() {
  vG = 1.0;
  if ( uRev < 0.9999 ) {
   #ifndef DESERT_GROUND
+   #ifdef REV_BLOOM
+    // trees bloom: each grows from its own base over a wide band behind the build front (eased), so they swell into
+    // the world with the grid's cells instead of popping in whole; the un-build runs the same curve backwards
+    float bk = clamp( ( uR - length( dOrg.xz - uOrigin.xz ) ) / ( 0.9 * uR + 600.0 ), 0.0, 1.0 );
+    float bt = fract( sin( dot( floor( dOrg.xz / 40.0 ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.3;
+    vG = smoothstep( bt, bt + 0.7, bk ); vG = 1.0 - ( 1.0 - vG ) * ( 1.0 - vG ) * ( 1.0 - vG );
+    dwp.xyz = mix( vec3( dOrg.x, uFloor, dOrg.z ), dwp.xyz, vG );
+   #else
    if ( uMode == 0 ) vG = smoothstep( 0.0, 1.0, vDK );
    else if ( uMode == 2 ) { float ct = fract( sin( dot( floor( dOrg.xz / 160.0 ), vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 0.35; vG = smoothstep( ct, ct + 0.45, vDK ); }
    dwp.y = mix( uFloor, dwp.y, vG );                      // props rise up out of the grid's floor
+   #endif
   #else
    if ( uMode == 0 ) dwp.y = mix( uFloor, dwp.y, smoothstep( 0.0, 1.0, vDK ) );   // ground and ranges lift out of the fabric
   #endif
