@@ -24,7 +24,7 @@ import saab9000_badges as BADGE
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0068
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 26000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 24500
 
 L2 = 2.3805
 S_FA, S_RA, RT = TR.S_FA, TR.S_RA, 0.316
@@ -109,6 +109,8 @@ P = dict(
         Zbot=ZBOT, Lf=LF, Lr=LR,
         crease_z=[(2.4, 0.83), (0.0, 0.87), (-2.4, 0.93)],
         crease2_z=[(2.4, 0.45), (-2.4, 0.46)],
+        # behind the rear door the greenhouse is as wide as the quarter panel at the belt, so the C-pillar flows into the
+        # quarter as one smooth, nearly flat surface (v2.3; v2.2 had a ~7 cm step there that read as an indent)
         Wg=[(1.25, 0.74), (0.85, 0.815), (0.4, 0.84), (-0.6, 0.84), (-1.2, 0.83), (-1.8, 0.79), (-2.25, 0.71)],
         Zroof=ZROOF,
     ),
@@ -138,6 +140,16 @@ def fn_fog_mk():
         return np.where(dom, sdf(np.abs(V[:, 0]), V[:, 2]), 1.0)
     return fn
 fn_fog = fn_fog_mk()
+
+_hl = pts('hatch')
+_hl = np.r_[[[-1.02, 1.395]], _hl]                     # roof's rear corner, then the traced C-pillar top edge to the deck
+def hatch_side_fn(V, N):
+    """Side view of the hatch glass: from the roof back to the spoiler the glass and its black surround wrap down onto
+    the side of the C-pillar (04, 06). Negative above the C-pillar's traced top edge, on side-facing faces only."""
+    x, s, z = V[:, 0], V[:, 1], V[:, 2]
+    zl = np.interp(-s, -_hl[:, 0], _hl[:, 1])
+    # continuous (no hard domain edges, which made the refinement run away): bounded by the roof's rear edge and the spoiler
+    return np.maximum.reduce([(zl - 0.010) - z, s + 0.99, -2.03 - s, 0.35 - np.abs(x)])
 
 def lid_fn(V, N):
     """Hatch: from the roof's rear edge down the glass, then between the outer lamps to the bumper top."""
@@ -225,11 +237,12 @@ C = dict(
     rub=(rub_zc, rub_hw), rub_raise=0.008, rub_nz=1.01,
     mirror_mats=('paint', 'trim_black', 'chrome'), mirror_at=(0.665, 0.945), mirror_scale=0.82,
     antenna=False, exhaust=(-0.70, S_RA - 0.9, 0.255),
-    extra_cuts=[('fog', fn_fog, [0.0])] + rear_cuts,
+    extra_cuts=[('fog', fn_fog, [0.0]), ('hside', hatch_side_fn, [0.0])] + rear_cuts,
     extra_labels=dict({'fog': dict(mat='light_front', depth=0.012, wall='trim_black', wall_col=0.4, col=0.75),
                        # arch liners: matte black (glossy trim_black caught the sky at grazing angles = pale crescents)
                        'well': dict(mat='interior', depth=0.0, col=0.35, dec=0.15, nfn=liner_normals)}, **rear_labels),
     extra_rules=rear_rules + [('fog', lambda fm: fm['fog'] < 0),
+                              ('glass', lambda fm: fm['hside'] < 0),
                               ('well', lambda fm: (fm['well'] < 0.012) & (fm['c'][:, 2] < 0.75))],
     extras=[ledge_felt, handle_bars, REAR.aero_spoiler, REAR.brake_pod, BADGE.hatch_wordmark, BADGE.front_blanks],
     open_window=True, ledge=0.078, ledge_z=BELT + DLO_BOT,
