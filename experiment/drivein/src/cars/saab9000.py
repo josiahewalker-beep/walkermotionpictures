@@ -13,7 +13,7 @@ from wheels_saab import super_aero_mesh
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0072
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 34000
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 27000
 
 L2 = 2.38                                # half length
 S_FA, RT = 1.455, 0.316                  # front overhang 0.925
@@ -117,8 +117,8 @@ def stop_lamp(parts, B, f, L):
 
 C = dict(
     name='car_hero', P=P, BOUNDS=((-0.93, -L2 - 0.03, 0.13), (0.93, L2 + 0.03, 1.43)), res=RES, body_target=TARGET,
-    clad_cut=False, max_edge=0.10, S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.2032, TYRE_W=0.205, X_W=0.767,
-    paint=(0.47, 0.465, 0.452), paint_metal=0.70, paint_rough=0.28,      # Saab silver, warm-ish, linear ~0.5
+    clad_cut=False, max_edge=0.12, S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.2032, TYRE_W=0.205, X_W=0.767,
+    paint=(0.462, 0.466, 0.472), paint_metal=0.75, paint_rough=0.25,      # Saab silver, warm-ish, linear ~0.5
     interior_color=(0.045, 0.043, 0.041),
     # side glass: front door + rear door only; body-colour C-pillar between the rear door glass and the hatch glass
     dlo_rear=lambda Z, c_s: -1.06 + 0.12 * (Z - BELT), top_off=0.05, a_off=0.07, dlo_round=0.03,
@@ -128,7 +128,7 @@ C = dict(
     bl_dom=-1.15, bl_zlo=1.08, bl_ztop=1.335, bl_side=0.10,
     hood=(1.13, 0.80, HL[3] + 0.012), lid=(-1.26, 0.69, 0.575),
     head=HL, head_rnd=0.03, corner=(HL[1] + 0.012, 2.0, HL[2] + 0.004, HL[3] - 0.004), corner_s=0.62,
-    grille=(0.235, 0.612, 0.692), grille_rnd=0.02, grille_bars=2, bar_mat='trim_black', lower_intake=(0.40, 0.255, 0.40),
+    grille=(0.235, 0.612, 0.692), grille_rnd=0.02, grille_bars=2, bar_mat='trim_black', lower_intake=(0.47, 0.255, 0.385),
     tail=(0.40, 0.775, 0.925), tail_s=S_RA - 0.62, reverse=(0.42, 0.53, 0.785, 0.835), rplate=0.665,
     handles=[0.10, -0.90], handle_z=BELT - 0.095,
     markers=((S_FA - 0.42, 0.62), (S_RA - 0.93, 0.42)),             # amber repeater behind the front arch; red US-spec reflector low on the rear bumper
@@ -144,8 +144,8 @@ C = dict(
     interior=dict(seat_s=0.02, seat_x=0.37, floor=0.30, dash_s=0.86, dash_z=0.87, dash_w=0.72, wheel_s=0.50, hip_z=0.49,
                   seat_h=0.62, rear_seats=True, rear_s=-0.92, cabin_bounds=((-0.80, -1.95, 0.30), (0.80, 1.05, 1.37)),
                   glass_band=(BELT + 0.02, 1.32)),
-    wheel=dict(type='custom', mesh_fn=lambda target: super_aero_mesh(target), a_face=0.074, r_cover=0.196, dust=0.12),
-    wheel_target=5200, tyre_seg=56, rim_color=(0.70, 0.71, 0.72), rim_rough=0.22,
+    wheel=dict(type='custom', mesh_fn=lambda target: super_aero_mesh(target, n_seg=80), a_face=0.074, r_cover=0.196, dust=0.12),
+    wheel_target=3900, tyre_seg=52, rim_color=(0.70, 0.71, 0.72), rim_rough=0.22,
 )
 
 if __name__ == '__main__':
