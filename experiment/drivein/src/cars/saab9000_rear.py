@@ -23,8 +23,9 @@ PANEL_Z0, PANEL_Z1 = 0.822, 0.995        # centre panel
 REV = (0.32, 0.46, 0.838, 0.902)         # reverse lens (x signed: passenger side +), z
 # Corner wrap seen from the side (04 / 08): the lens runs round the corner onto the quarter panel; its bottom edge stays level
 # at LAMP_Z0 and its front edge sweeps down from the top-rear corner to a pointed tip at the bottom (a teardrop / wedge in side
-# view), the tip ~0.12 m forward of the tail silhouette. Front edge as (z, s offset forward of the tail profile Lr(z)).
-WRAP_EDGE = ((0.815, 0.225), (0.835, 0.210), (0.870, 0.186), (0.910, 0.156), (0.945, 0.124), (0.975, 0.094), (1.000, 0.062))
+# view). Measured on 04 against the rim (977 px/m): ~0.145 m long on the flat quarter at its level bottom edge, ~0.16 m
+# tall at the corner. Front edge as (z, s offset forward of the centre-line tail profile Lr(z)); the plan corner takes ~0.10.
+WRAP_EDGE = ((0.815, 0.250), (0.835, 0.240), (0.870, 0.222), (0.910, 0.196), (0.945, 0.162), (0.975, 0.118), (1.000, 0.072))
 TAIL_PROFILE = None                      # Lr(z): set by the car config (centre-line tail face s at height z)
 RECESS = (0.53, 0.625, 0.812)            # plate recess half width, z0, z1
 PLATE_Z = 0.718

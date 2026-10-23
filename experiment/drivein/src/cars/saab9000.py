@@ -117,7 +117,7 @@ P = dict(
     flares=[(S_FA, RT, 0.375, 0.003, 0.07), (S_RA, RT, 0.36, 0.003, 0.07)],
     haunches=[(-0.05, 0.62, 0.25, 0.045, 0.012)],
     fender_x0=0.45, fender_x1=0.78, hood_crown=0.03,
-    nose_corner=0.24, nose_pow=2.6, tail_corner=0.13, tail_pow=2.3,
+    nose_corner=0.24, nose_pow=2.6, tail_corner=0.10, tail_pow=3.2,
     k_shoulder=0.06, k_nose=0.022, k_tail=0.03, k_bottom=0.035, normal_blur=0.02,
     belt=BELT, tumble=0.20, tumble2=0.30,
     ws_line=(tuple(_ws0), tuple(_ws1)), ws_wrap=WS_WRAP, ws_bulge=0.008,
@@ -221,7 +221,7 @@ C = dict(
     rear_lamp_fns=REAR.lamp_fns,
     handles=HANDLES, handle_size=(0.082, 0.024),
     markers=((float(_mk[:, 0].mean()), float(_mk[:, 1].mean())), (-2.31, 0.40)),
-    fuel=(S_RA - 0.42, 0.86),                                       # passenger (-X glTF) rear quarter
+    fuel=(S_RA - 0.216, 0.806),                                     # passenger (-X glTF) rear quarter (measured on 04)
     rub=(rub_zc, rub_hw), rub_raise=0.008, rub_nz=1.01,
     mirror_mats=('paint', 'trim_black', 'chrome'), mirror_at=(0.665, 0.945), mirror_scale=0.82,
     antenna=False, exhaust=(-0.70, S_RA - 0.9, 0.255),
