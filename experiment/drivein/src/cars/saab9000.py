@@ -67,6 +67,18 @@ def fn_fog(V, N):
     dom = (V[:, 1] > S_FA + 0.55) & (N[:, 1] > -0.1)
     return np.where(dom, _fog_sdf(np.abs(V[:, 0]), V[:, 2]), 1.0)
 
+# ---------------------------------------------------------------- side view of the wraparound hatch glass (extra cut)
+# On the 9000 CS the hatch glass is visible from the side: a long dark band from a slim body-colour C-pillar back to the
+# spoiler, above a near-level line at ~1.06 m.  Glass + black frit on the side faces of the rear greenhouse.
+from body import Body as _Body
+_B = _Body(P)
+_QZ0 = 1.065
+_qg_sdf = car90.MaskSDF(lambda S, Z: (S < -1.20 + 0.25 * (Z - _QZ0)) & (S > -2.40) & (Z > _QZ0) & (Z < _B.c['Zroof'](S) - 0.05),
+                        (-3.0, 0.0), (3.0, 2.2), rnd=0.03)
+def fn_qg(V, N):
+    dom = (np.abs(V[:, 0]) > 0.45) & (np.abs(N[:, 0]) > 0.25) & (V[:, 2] > 1.0) & (V[:, 1] < -1.0)
+    return np.where(dom, _qg_sdf(V[:, 1], V[:, 2]), 1.0)
+
 # ---------------------------------------------------------------- extras
 def ledge_felt(parts, B, f, L):
     """Felt/rubber window strips on the rolled-down driver's door: one along the outer lip, one along the inner lip."""
@@ -136,10 +148,11 @@ C = dict(
     rub=(lambda s: np.full_like(s, 0.50), 0.019), rub_raise=0.007,
     mirror_mats=('paint', 'trim_black', 'chrome'), mirror_dz=0.065, mirror_ds=0.03, mirror_scale=0.80,
     antenna=False, exhaust=(-0.46, S_RA - 0.9, 0.24),
-    extra_cuts=[('fog', fn_fog, [0.0])],
+    extra_cuts=[('fog', fn_fog, [0.0]), ('qg', fn_qg, [0.0, 0.018])],
     extra_labels={'fog': dict(mat='light_front', depth=0.012, wall='trim_black', wall_col=0.4, col=0.75)},
     # fog lamps; and keep the whole upper wheel-well lining black (faces just past the well cut whose normals face into the arch)
     extra_rules=[('fog', lambda fm: fm['fog'] < 0),
+                 ('glass', lambda fm: fm['qg'] < 0), ('dlo_trim', lambda fm: fm['qg'] < 0.018),
                  ('well', lambda fm: (fm['well'] < 0.03) & (np.abs(fm['n'][:, 0]) < 0.7) & (fm['c'][:, 2] < 0.75))],
     extras=[ledge_felt, hatch_spoiler, stop_lamp],
     open_window=True, ledge=0.078,
