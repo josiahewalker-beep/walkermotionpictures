@@ -300,7 +300,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     tpl.traverse(o => { if (!o.isMesh || !/^(needles|leaf)/.test((o.material.name || '').toLowerCase())) return;
       o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox;
       const cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2, R = Math.max(b.max.x - cx, b.max.z - cz), cr = new THREE.Vector3(R, b.min.y, b.max.y), cc = new THREE.Vector2(cx, cz);
-      const m = o.material.clone(); m.name = o.material.name; const prev = m.onBeforeCompile;
+      const src = o.material, m = src.clone(); m.name = src.name; const prev = src.onBeforeCompile; const pk0 = src.customProgramCacheKey ? src.customProgramCacheKey.bind(src) : () => '';   // clone() drops onBeforeCompile: keep the reveal/rim hooks from the source
       m.onBeforeCompile = (sh, r) => { prev && prev.call(m, sh, r); Object.assign(sh.uniforms, { uMoonW: RIM.uMoonW, uRimC: RIM.uRimC, uRimK: RIM.uCrK, uCrP: RIM.uCrP, uCrown: { value: cr }, uCrC: { value: cc } });
         sh.vertexShader = 'uniform vec3 uCrown; uniform vec2 uCrC; varying vec3 vCrW; varying vec3 vCrR; varying float vCrO; varying float vCrH;\n' + sh.vertexShader.replace('#include <begin_vertex>',
           `#include <begin_vertex>
@@ -321,7 +321,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
              totalEmissiveRadiance += uRimC * uRimK * crEdge * ( pow( sil, uCrP ) * ( 0.2 + 0.8 * side ) + 0.4 * top * side ); }`)
           .replace('#include <aomap_fragment>', `reflectedLight.directDiffuse *= mix( 0.15, 0.7, crOuter ); reflectedLight.indirectDiffuse *= mix( 0.3, 0.8, crOuter ); reflectedLight.directSpecular *= 0.05 * crOuter; reflectedLight.indirectSpecular *= 0.1;
            #include <aomap_fragment>`); };
-      const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
+      m.customProgramCacheKey = () => pk0() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
       o.material = m; }); return tpl; }
   const rimFor = n => /^(needles|leaf)/.test(n) ? 0 : /^fur/.test(n) ? 0.7 :/^bark/.test(n) ? 0.06 : /^(wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
@@ -336,8 +336,9 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     // cars: nose +Z in the files, facing the screen (-Z) here
     carSpots.forEach((c, i) => { const t = TPL[c.file]; if (!t) return; const o = place(t, P(c.x, c.y, c.z), Math.PI + c.ry); o.userData.kind = 'carAsset';
       if (c.file === 'car_hero') o.traverse(m => { if (!m.isMesh) return; const n = (m.material.name || '').toLowerCase();   // keep the Aero silver under the warm stand light: cooler base, less metal so it doesn't mirror the amber
-        if (n.startsWith('paint')) { m.material = m.material.clone(); m.material.color.setRGB(0.36, 0.42, 0.55); m.material.metalness = 0.22; m.material.roughness = 0.3; }
-        else if (n.startsWith('rim')) { m.material = m.material.clone(); m.material.color.setRGB(0.5, 0.53, 0.58); m.material.metalness = 0.45; } }); world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
+        const keep = (a, b) => { b.onBeforeCompile = a.onBeforeCompile; b.customProgramCacheKey = a.customProgramCacheKey; return b; };
+        if (n.startsWith('paint')) { m.material = keep(m.material, m.material.clone()); m.material.color.setRGB(0.36, 0.42, 0.55); m.material.metalness = 0.22; m.material.roughness = 0.3; }
+        else if (n.startsWith('rim')) { m.material = keep(m.material, m.material.clone()); m.material.color.setRGB(0.5, 0.53, 0.58); m.material.metalness = 0.45; } }); world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
     if (TPL.speaker_post) postSpots.forEach((p, i) => { const o = place(TPL.speaker_post, P(p.x, lot(p.x, p.z), p.z), Math.PI + carSpots[i].ry); world.add(o); postBlocks[i].visible = false; });
     if (TPL.screen) { const o = place(TPL.screen, P(0, 0, 0)); world.add(o); screenBlock.visible = false; assetsDone.push('screen'); }
     if (TPL.booth) { const dir = aim.clone().sub(lens).setY(0).normalize(); const o = TPL.booth.clone(true); o.scale.setScalar(K); world.add(o); o.updateMatrixWorld(true);
