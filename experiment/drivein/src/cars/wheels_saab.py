@@ -1,91 +1,107 @@
-"""Saab 9000 Aero "Super Aero" style 16" alloy (generic, no centre-cap logo): three broad, slightly swept
-propeller spokes leaving three curved-triangle windows, a flat polished outer lip, a big plain centre cap.
-Local wheel frame as wheels90: a = axial (outboard +), (y, z) radial, metres.  Used via wheel type 'custom'.
-The spoke face + cap is an implicit field (marching cubes); the lip and barrel are lathe-turned (smooth, cheap).
+"""Saab 9000 Aero "Super Aero" 16" alloy (1994-98), generic: plain centre cap, no logo.
+Measured from the director's close-up (reference 01, unwrapped to polar coordinates about the hub):
+- a mostly solid, smooth, slightly dished face: three very broad spokes;
+- three D-shaped slots, 120 deg apart: a flat outer edge on r = 0.163 m spanning ~65 deg, the inner edge an arch that
+  reaches in to r = 0.108 m; each slot sits in a shallow dished flank (~18 mm) that catches the light;
+- a flat ring r 0.163-0.186 under the slots, a thin bright polished lip r 0.188-0.219;
+- a large flat round cap r = 0.075 m, flush with the face, with a fine seam; a valve stem on the ring under one slot.
+Local wheel frame as wheels90: a = axial (outboard +), (y, z) radial, metres. Used via wheel type 'custom'.
+The face is an implicit field (marching cubes); lip and barrel are lathe-turned.
 """
 import numpy as np
 from carlib import mc_mesh, decimate, field_normals, fix_winding, project_to_surface, revolve, vertex_normals, smin, smax
 
 ST = dict(
-    a_face=0.074,     # outboard face of the polished lip
-    r_lip=0.213,      # outer edge of the lip (sits over the tyre bead)
-    r_lip_in=0.180,   # inner edge of the lip, step down into the spoke face
-    r_cap=0.070,      # plain centre cap
-    win_r0=0.088, win_r1=0.171,               # radial span of the windows
-    win_w0=np.deg2rad(7.0), win_w1=np.deg2rad(36.0),   # angular half width of a window at r0 / r1
-    swirl=np.deg2rad(12.0),                    # windows sweep this far around between r0 and r1
-    bow=0.05,                                  # trailing edge bowed a little (scimitar look)
+    a_face=0.074,      # outboard face of the polished lip
+    r_lip=0.219,       # lip outer edge
+    r_lip_in=0.187,    # lip inner edge (step down onto the face ring)
+    r_cap=0.075,       # flat centre cap
+    slot_r_out=0.163, slot_r_in=0.108, slot_half=np.deg2rad(32.5), slot_round=0.010,
+    flank=0.018, flank_depth=0.010,
+    dish=0.011,        # face dips this much between cap and ring
     phase=np.deg2rad(90.0),
+    stem_slot=1,       # valve stem under this slot
 )
+
+def slot_sd(y, z, st=ST):
+    """Approximate signed distance (m) to the three D-shaped slots in the face plane."""
+    r = np.sqrt(y * y + z * z); th = np.arctan2(z, y)
+    sector = 2 * np.pi / 3
+    loc = (th - st['phase'] + sector / 2) % sector - sector / 2
+    ro, ri = st['slot_r_out'], st['slot_r_in']
+    U = st['slot_half'] * ro; Wd = ro - ri
+    u = loc * ro
+    w = np.clip(ro - r, 0, None)
+    q = np.sqrt((u / U) ** 2 + (w / Wd) ** 2)
+    d_ell = (q - 1) * np.minimum(U, Wd) * np.clip(q, 0.6, 1.4) ** 0 / 1.0
+    return smax(d_ell, r - ro, st['slot_round'])
 
 def face_field(st=ST):
     af = st['a_face']
     def field(a, y, z):
-        r = np.sqrt(y * y + z * z); th = np.arctan2(z, y)
+        r = np.sqrt(y * y + z * z)
         t = np.clip((r - st['r_cap']) / (st['r_lip_in'] - st['r_cap']), 0, 1)
-        # spoke face: hub proud, falling gently toward the lip
-        a_sp = af - 0.008 - 0.022 * t
-        d_face = smax(a - a_sp, (a_sp - 0.014) - a, 0.003)
-        d_face = smax(d_face, r - (st['r_lip_in'] + 0.007), 0.003)
-        # windows: rounded triangles, narrow at the hub, wide at the rim, slightly swept
-        tw = np.clip((r - st['win_r0']) / (st['win_r1'] - st['win_r0']), 0, 1)
-        sector = 2 * np.pi / 3
-        phc = st['phase'] + st['swirl'] * tw
-        loc = (th - phc + sector / 2) % sector - sector / 2
-        hw = st['win_w0'] + (st['win_w1'] - st['win_w0']) * tw ** 0.9
-        bow = st['bow'] * np.sin(np.pi * tw)
-        d_ang = (np.abs(loc + bow * (loc > 0)) - hw) * np.maximum(r, 0.03)
-        d_rad = np.maximum(st['win_r0'] - r, r - st['win_r1'])
-        d_win = smax(d_ang, d_rad, 0.012)
-        d_face = smax(d_face, -d_win, 0.004)
-        # centre cap: plain, nearly flat disc proud of the spokes
-        a_cap = af - 0.001 - 0.003 * (r / st['r_cap']) ** 2
-        d_cap = smax(r - st['r_cap'], smax(a - a_cap, (a_cap - 0.03) - a, 0.003), 0.004)
-        return smin(d_face, d_cap, 0.002)
+        a_top = af - 0.007 - st['dish'] * np.sin(np.pi * t) ** 1.2
+        ds = slot_sd(y, z, st)
+        fl = np.clip(1 - ds / st['flank'], 0, 1)
+        a_top = a_top - st['flank_depth'] * fl ** 2
+        d_face = smax(a - a_top, (a_top - 0.016) - a, 0.003)
+        d_face = smax(d_face, r - (st['r_lip_in'] + 0.006), 0.003)
+        d_face = smax(d_face, -ds, 0.004)
+        # flat cap, flush with the face around it, fine seam groove at its edge
+        a_cap = af - 0.006
+        d_cap = smax(r - (st['r_cap'] - 0.0025), smax(a - a_cap, (a_cap - 0.03) - a, 0.002), 0.003)
+        seam = smax(np.abs(r - st['r_cap']) - 0.0018, a - (a_cap - 0.003), 0.001)
+        return smax(smin(d_face, d_cap, 0.0015), -seam, 0.001)
     return field
 
-def _lathe(prof, n_seg, outward_a=True):
+def _lathe(prof, n_seg):
     V, F, _ = revolve(prof, n_seg)
-    N = vertex_normals(V, F)
-    return V, F, N
+    return V, F, vertex_normals(V, F)
 
-def super_aero_mesh(target=5200, res=0.0016, st=ST, n_seg=96):
+def super_aero_mesh(target=5200, res=0.0015, st=ST, n_seg=96):
     f = face_field(st)
     R = st['r_lip_in'] + 0.012
-    V, F = mc_mesh(f, (st['a_face'] - 0.045, -R, -R), (st['a_face'] + 0.006, R, R), res, slab=16)
+    V, F = mc_mesh(f, (st['a_face'] - 0.05, -R, -R), (st['a_face'] + 0.004, R, R), res, slab=16)
     V, F = decimate(V, F, target)
     V = project_to_surface(f, V, iters=3, h=0.0008)
     N = field_normals(f, V, h=0.0010)
     F = fix_winding(V, F, N)
     af = st['a_face']; ri, ro = st['r_lip_in'], st['r_lip']
-    # polished lip (a, r), from the inner step outward and back round to the tyre bead
-    lip = [(af - 0.034, ri - 0.004), (af - 0.010, ri - 0.002), (af - 0.003, ri + 0.002), (af, ri + 0.008),
-           (af + 0.0005, 0.5 * (ri + ro)), (af, ro - 0.006), (af - 0.004, ro - 0.001), (af - 0.012, ro), (af - 0.022, ro - 0.006)]
+    lip = [(af - 0.030, ri - 0.006), (af - 0.012, ri - 0.004), (af - 0.004, ri - 0.001), (af - 0.0005, ri + 0.003),
+           (af, 0.5 * (ri + ro)), (af - 0.0005, ro - 0.004), (af - 0.004, ro - 0.0005), (af - 0.012, ro), (af - 0.022, ro - 0.007)]
     Vl, Fl, Nl = _lathe(lip, n_seg)
-    # orient so the lip's front face points outboard (+a)
     front = Vl[:, 0] > af - 0.002
     if np.mean(Nl[front, 0]) < 0:
         Fl = Fl[:, ::-1].copy(); Nl = -Nl
-    # barrel seen through the windows (faces the axis)
-    bar = [(af - 0.022, ro - 0.012), (af - 0.06, 0.197), (af - 0.17, 0.197)]
+    bar = [(af - 0.022, ro - 0.014), (af - 0.06, 0.197), (af - 0.17, 0.197)]
     Vb, Fb, Nb = _lathe(bar, n_seg // 2)
     rr = np.linalg.norm(Vb[:, 1:], axis=1)
     if np.mean(np.einsum('ij,ij->i', Nb[:, 1:], Vb[:, 1:] / rr[:, None])) > 0:
         Fb = Fb[:, ::-1].copy(); Nb = -Nb
-    Vs = np.concatenate([V, Vl, Vb]); Ns = np.concatenate([N, Nl, Nb])
-    Fs = np.concatenate([F, Fl + len(V), Fb + len(V) + len(Vl)])
-    return Vs, Fs, Ns
+    # valve stem: short rubber-capped post on the face ring under one slot
+    phi = st['phase'] + st['stem_slot'] * 2 * np.pi / 3
+    rs = 0.5 * (st['slot_r_out'] + st['r_lip_in'])
+    prof = [(af - 0.012, 0.0), (af - 0.012, 0.0045), (af + 0.006, 0.0045), (af + 0.010, 0.0035), (af + 0.011, 0.0)]
+    Vs, Fs, Ns = _lathe(prof, 10)
+    Vs = Vs + np.array([0.0, rs * np.cos(phi), rs * np.sin(phi)])
+    if np.mean(Ns[:, 0]) < 0: Fs = Fs[:, ::-1].copy(); Ns = -Ns
+    parts = [(V, F, N), (Vl, Fl, Nl), (Vb, Fb, Nb), (Vs, Fs, Ns)]
+    Vo, Fo, No, off = [], [], [], 0
+    for v, fa, n in parts:
+        Vo.append(v); Fo.append(fa + off); No.append(n); off += len(v)
+    return np.concatenate(Vo), np.concatenate(Fo), np.concatenate(No)
 
 if __name__ == '__main__':
-    # quick face-on check of the window shape (no Blender needed)
+    # face-on depth map check (no Blender needed)
     import sys
     import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
     f = face_field()
-    g = np.linspace(-0.22, 0.22, 400); Y, Z = np.meshgrid(g, g)
+    g = np.linspace(-0.225, 0.225, 500); Y, Z = np.meshgrid(g, g)
     hit = np.full(Y.shape, np.nan)
-    for a in np.linspace(ST['a_face'] + 0.01, ST['a_face'] - 0.06, 120):
+    for a in np.linspace(ST['a_face'] + 0.005, ST['a_face'] - 0.05, 160):
         d = f(np.full(Y.shape, a), Y, Z)
         m = (d < 0) & np.isnan(hit); hit[m] = a
-    plt.figure(figsize=(5, 5)); plt.imshow(hit, origin='lower', cmap='gray', extent=[-0.22, 0.22, -0.22, 0.22])
-    plt.gca().add_patch(plt.Circle((0, 0), ST['r_lip'], fill=False)); plt.gca().add_patch(plt.Circle((0, 0), ST['r_lip_in'], fill=False))
+    plt.figure(figsize=(6, 6)); plt.imshow(hit, origin='lower', cmap='gray', extent=[-0.225, 0.225, -0.225, 0.225])
+    for r in (ST['r_lip'], ST['r_lip_in']): plt.gca().add_patch(plt.Circle((0, 0), r, fill=False, color='y'))
     plt.savefig(sys.argv[1] if len(sys.argv) > 1 else 'wheel_face.png', dpi=90)

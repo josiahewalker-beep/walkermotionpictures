@@ -103,6 +103,8 @@ def build(C, out):
     def dlo_in(S, Z):
         return (Z > zb) & (S < a_s(Z) - a_off) & (S > dlo_rear(Z, c_s)) & (Z < roof_z(S) - top_off)
     SIDE_LO, SIDE_HI = (-3.0, 0.0), (3.0, 2.2)
+    if 'dlo_mask' in C:                # traced side-glass outline (S, Z) -> bool, overrides the derived one
+        dlo_in = C['dlo_mask']
     dlo_sdf = MaskSDF(dlo_in, SIDE_LO, SIDE_HI, rnd=C.get('dlo_round', 0.035))
     side_dom = lambda V, N: (np.abs(V[:, 0]) > 0.45) & (np.abs(N[:, 0]) > 0.3)
     def side_fn(sdf, side=None, dom=None):
@@ -147,6 +149,7 @@ def build(C, out):
             rear = np.where(Z > BELT - 0.03, np.maximum(rear, dlo_rear(Z, c_s) - 0.035), rear)
         return (Z > sill) & (Z < dtop(S)) & (S < front) & (S > rear)
     side2 = lambda V, N: (np.abs(V[:, 0]) > 0.5) & (np.abs(N[:, 0]) > 0.25) & (V[:, 2] < 1.9)
+    fdoor_in = C.get('fdoor_mask', fdoor_in)
     fn_fdoor = side_fn(MaskSDF(fdoor_in, SIDE_LO, SIDE_HI, rnd=0.03), dom=side2)
     fns_extra = []
     if C.get('doors', 4) == 4:
@@ -154,6 +157,7 @@ def build(C, out):
         def rdoor_in(S, Z):
             out_arch = ((S - S_RA) ** 2 + (Z - za) ** 2) > (Rw + 0.045) ** 2
             return (Z > sill) & (Z < dtop(S)) & (S < s_b(Z)) & (S > rd1(Z, c_s)) & out_arch
+        rdoor_in = C.get('rdoor_mask', rdoor_in)
         fn_rdoor = side_fn(MaskSDF(rdoor_in, SIDE_LO, SIDE_HI, rnd=0.03), dom=side2)
     else:
         fn_rdoor = lambda V, N: np.full(len(V), BIG)
@@ -162,6 +166,7 @@ def build(C, out):
     fn_hood = lambda V, N: np.where((V[:, 1] > hb[0] - 0.3) & (V[:, 2] > hb[2] - 0.15), rbox3(V, (None, hb[0], hb[2]), (hb[1], None, None), 0.03), BIG)
     tb = C['lid']         # (s_front, half_w, z_bottom)  lid = s < s_front, |x| < w, z > z_bottom
     fn_lid = lambda V, N: np.where((V[:, 1] < tb[0] + 0.3) & (V[:, 2] > tb[2] - 0.15), rbox3(V, (None, None, tb[2]), (tb[1], tb[0], None), 0.03), BIG)
+    fn_lid = C.get('lid_fn', fn_lid)
     fz = C.get('fuel', (S_RA - 0.42, BELT - 0.12))
     fn_fuel = side_fn(MaskSDF(lambda S, Z: (np.abs(S - fz[0]) < 0.085) & (np.abs(Z - fz[1]) < 0.075), SIDE_LO, SIDE_HI, rnd=0.02), side=1)
 
@@ -190,18 +195,22 @@ def build(C, out):
     fn_tpanel = plane_fn(lambda X, Z: (X < tl[0] - 0.012) & (Z > tl[1]) & (Z < tl[2]), rear_dom, rnd=0.01) if C.get('tail_panel', True) else (lambda V, N: np.full(len(V), BIG))
     rv = C.get('reverse', (tl[0] + 0.02, tl[0] + 0.13, tl[1] + 0.012, tl[1] + 0.06))
     fn_rev = plane_fn(lambda X, Z: (X > rv[0]) & (X < rv[1]) & (Z > rv[2]) & (Z < rv[3]), rear_dom, rnd=0.008)
+    if 'rear_lamp_fns' in C:          # (tail, tpanel, rev) built by the config's own rear-lamp module
+        fn_tail, fn_tpanel, fn_rev = C['rear_lamp_fns'](plane_fn, MaskSDF)
     rp = C['rplate']      # (z centre)
     fn_rplate = plane_fn(lambda X, Z: (X < 0.175) & (np.abs(Z - rp) < 0.092), rear_dom, rnd=0.015)
     # door handles (pull-up flaps) and side markers
     hz = C.get('handle_z', BELT - 0.075)
     hs = C['handles']     # list of s centres
-    fn_handle = side_fn(MaskSDF(lambda S, Z: (np.min([np.abs(S - h) for h in hs], 0) < 0.075) & (np.abs(Z - hz) < 0.021), SIDE_LO, SIDE_HI, rnd=0.012))
+    hl_, hh_ = C.get('handle_size', (0.075, 0.021))
+    hsz = [h if isinstance(h, tuple) else (h, hz) for h in hs]
+    fn_handle = side_fn(MaskSDF(lambda S, Z: np.any([(np.abs(S - a) < hl_) & (np.abs(Z - b) < hh_) for a, b in hsz], 0), SIDE_LO, SIDE_HI, rnd=0.012))
     mk = C.get('markers', ((S_FA + 0.78, 0.60), (S_RA - 0.80, 0.62)))
     fn_mark_f = side_fn(MaskSDF(lambda S, Z: (np.abs(S - mk[0][0]) < 0.06) & (np.abs(Z - mk[0][1]) < 0.022), SIDE_LO, SIDE_HI, rnd=0.008))
     fn_mark_r = side_fn(MaskSDF(lambda S, Z: (np.abs(S - mk[1][0]) < 0.06) & (np.abs(Z - mk[1][1]) < 0.022), SIDE_LO, SIDE_HI, rnd=0.008))
     rz = C['rub']         # (z centre fn(s), half height)
     def fn_rub(V, N):
-        d = np.abs(V[:, 2] - rz[0](V[:, 1])) - rz[1]
+        d = np.abs(V[:, 2] - rz[0](V[:, 1])) - (rz[1](V[:, 1]) if callable(rz[1]) else rz[1])
         return np.where((N[:, 2] > -0.5) & (N[:, 2] < 0.6), d, BIG)
     zl = C.get('clad')    # None or z top of lower cladding (two-tone)
     fn_lower = (lambda V, N: V[:, 2] - zl(V[:, 1])) if zl else (lambda V, N: np.full(len(V), BIG))
@@ -445,7 +454,7 @@ def build(C, out):
     mats = {k: v for k, v in mats.items() if k in used_mats}
     emp = {}
     if open_win:
-        emp = hero_anchors(B, f, C, zb, s_b, a_s, a_off)
+        emp = hero_anchors(B, f, C, C.get('ledge_z', zb), s_b, a_s, a_off)
     raw = out[:-4] + '_raw.glb' if C.get('pack', True) else out
     CB.export(parts, mats, raw, cent, empties=emp, root=C['name'])
     if C.get('pack', True):
