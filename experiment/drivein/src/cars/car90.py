@@ -232,6 +232,7 @@ def build(C, out):
         ('handle', fn_handle, [0.0]), ('mark_f', fn_mark_f, [0.0]), ('mark_r', fn_mark_r, [0.0]),
         ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, [0.004]), ('clad', fn_clad, [0.0]),
     ]
+    cuts += list(C.get('extra_cuts', []))     # (name, fn(V, N), offsets): config-specific features (fog lamps, ...)
     if open_win:
         cuts.append(('open', fn_open, []))
     hmat = C.get('handle_mat', 'trim_black')
@@ -358,7 +359,7 @@ def build(C, out):
         h = surf([(ms, mz)], 'side', sgn, -0.005)
         if len(h):
             b = h[0].copy(); b[0] = abs(b[0])
-            D.mirror_parts(parts, f, tuple(b), sgn, scale=C.get('mirror_scale', 0.9), mats=('trim_black', 'trim_black', 'chrome'), lod=C.get('lod', 1.0))
+            D.mirror_parts(parts, f, tuple(b), sgn, scale=C.get('mirror_scale', 0.9), mats=C.get('mirror_mats', ('trim_black', 'trim_black', 'chrome')), lod=C.get('lod', 1.0))
     # wipers (parked on the cowl)
     (s0, z0), _ = P['ws_line']
     for (xa, xb) in [(-0.62, 0.0), (0.06, 0.58)]:

@@ -55,6 +55,8 @@ def add_wheels(parts, axles, r_out, r_bead, width, st, tyre_seg=48, target=3000)
     """axles: list of (name, s, x_half). Returns node -> hub centre (model frame)."""
     if st['type'] == 'alloy':
         rim = W.rim_mesh(st['alloy'], target=target)
+    elif st['type'] == 'custom':      # st['mesh_fn'](target) -> (V, F, N) in the local wheel frame
+        rim = st['mesh_fn'](target)
     else:
         rim = cover_mesh(st, target=target)
     back = back_plate(st)
@@ -69,7 +71,7 @@ def add_wheels(parts, axles, r_out, r_bead, width, st, tyre_seg=48, target=3000)
         Vr, Fr, Nr = rim
         rr = np.linalg.norm(Vr[:, 1:], axis=1)
         ca = np.ones((len(Vr), 3))
-        if st['type'] == 'alloy':
+        if st['type'] in ('alloy', 'custom'):
             ca *= (0.12 + 0.88 * sstep(-0.08, 0.08, Vr[:, 0]))[:, None]
         else:
             ca *= (0.55 + 0.45 * sstep(st['a_face'] - 0.03, st['a_face'], Vr[:, 0]))[:, None]

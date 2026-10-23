@@ -323,7 +323,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
            #include <aomap_fragment>`); };
       const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
       o.material = m; }); return tpl; }
-  const rimFor = n => /^(needles|leaf)/.test(n) ? 0 :/^bark/.test(n) ? 0.06 : /^(wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
+  const rimFor = n => /^(needles|leaf)/.test(n) ? 0 : /^fur/.test(n) ? 0.7 :/^bark/.test(n) ? 0.06 : /^(wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
   let applied = false;
   async function applyAssets() {
@@ -355,7 +355,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     if (TPL.popcorn_kernel) { let km = null; TPL.popcorn_kernel.traverse(o => { if (o.isMesh && !km) km = o; });
       if (km) { TPL.popcorn_kernel.updateMatrixWorld(true); kernels.geometry = km.geometry.clone().applyMatrix4(km.matrixWorld).scale(K, K, K); kernels.material = km.material; } }
     if (TPL.moth) { mothSprite.visible = false; const o = place(TPL.moth, new THREE.Vector3(), 0, 1.6); moth.add(o); moth.userData.wings = ['wing_L', 'wing_R'].map(n => o.getObjectByName(n)).filter(Boolean); assetsDone.push('moth'); }
-    if (TPL.mouse) { mouse.clear(); const o = place(TPL.mouse, new THREE.Vector3()); mouse.add(o); mouse.userData.parts = Object.fromEntries(['head', 'tail', 'leg_FL', 'leg_FR', 'leg_RL', 'leg_RR', 'body'].map(n => [n, o.getObjectByName(n)])); assetsDone.push('mouse'); }
+    if (TPL.mouse) { mouse.clear(); const o = place(TPL.mouse, new THREE.Vector3(), 0, 1.5);   // rat-sized, as Josiah drew it mouse.add(o); mouse.userData.parts = Object.fromEntries(['head', 'tail', 'leg_FL', 'leg_FR', 'leg_RL', 'leg_RR', 'body'].map(n => [n, o.getObjectByName(n)])); assetsDone.push('mouse'); }
     if (TPL.owl) { owl.clear(); const o = place(TPL.owl, new THREE.Vector3()); o.traverse(m => { if (m.isMesh) m.material = new THREE.MeshBasicMaterial({ color: 0x07080b, fog: false }); }); owl.add(o); owl.userData.wings = ['wing_L', 'wing_R'].map(n => o.getObjectByName(n)).filter(Boolean); assetsDone.push('owl'); }
     const [la, ln, lr] = await Promise.all([loadTex('lot_albedo.jpg', { srgb: true }), loadTex('lot_normal.jpg'), loadTex('lot_rough.jpg')]);
     if (la) { const rep = 600 / 4; for (const t of [la, ln, lr]) if (t) t.repeat.set(rep, rep); Object.assign(groundMesh.material, { map: la, normalMap: ln, roughnessMap: lr, color: new THREE.Color(1, 1, 1) }); groundMesh.material.needsUpdate = true; assetsDone.push('lot'); }
@@ -484,7 +484,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       x.addEventListener('click', ev => { ev.stopPropagation(); api.stopFilm(); }); box.appendChild(x);
       if (getComputedStyle(el).position === 'static') el.style.position = 'relative'; el.appendChild(box); film = box; if (window.__radio) window.__radio.duck(true); },
     stopFilm() { if (film) { film.remove(); film = null; if (window.__radio) window.__radio.duck(false); } },
-    get debug() { return { RIM, scene, camera, renderer, clock, world, REV, heroPose, moonDir, lens, P, K }; },
+    get debug() { return { RIM, mouse, owl, bucketGroup, kernels, scene, camera, renderer, clock, world, REV, heroPose, moonDir, lens, P, K }; },
   };
   return api;
 }
