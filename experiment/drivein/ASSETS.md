@@ -253,7 +253,7 @@ hero's invented-make chrome "SOB" wordmark on the hatch (DejaVu Sans Bold capita
 
 | asset | look | size L × W × H (m) | tris total (body / each wheel) | file |
 |---|---|---|---|---|
-| `car_hero.glb` | silver 1994–98 Saab 9000 Aero 5-door (CS body), v2 (traced from the director's year-correct photos): low wide nose with slim headlamps + amber wrap corners + chrome-ringed grille, black rub strip capping the bumpers and running along the doors, tall glasshouse (belt ~0.92 m rising to ~1.0 m at the quarter light), body-colour B-pillar, fixed quarter light in the rear door, body-colour C-pillar with black-edged hatch glass, full-width tail band (outer lamps smoked/amber over red, wrapping the corner onto the quarter panel as a teardrop that slopes down to a forward tip; smoked/red centre panel; reverse lens right of centre), leaning hatch face with rounded corners, black Aero blade spoiler on the hatch, roof-edge third brake pod, Aero skirts/valance/fog lamps, dark matte arch liners, 3-spoke Super Aero 16" alloys (broad dished face, three curved teardrop slots sweeping one way, flat plain cap), 205/55R16. Chrome "SOB" wordmark upper left of the hatch; plain bonnet cap; blank plates front and rear | 4.78 × 1.99 (mirrors; 1.78 body) × 1.42, wb 2.672, track 1.534 | 159,371 rendered (161,127 raw: body 121,287, each wheel 9,960) | 1.00 MB |
+| `car_hero.glb` | silver 1994–98 Saab 9000 Aero 5-door (CS body), v2 (traced from the director's year-correct photos): low wide nose with slim headlamps + amber wrap corners + chrome-ringed grille, black rub strip capping the bumpers and running along the doors, tall glasshouse (belt ~0.92 m rising to ~1.0 m at the quarter light), body-colour B-pillar, fixed quarter light in the rear door, body-colour C-pillar flowing smoothly into the quarter panel, hatch glass and its black edge visible from the side, full-width tail band (outer lamps smoked/amber over red, wrapping the corner onto the quarter panel as a teardrop that slopes down to a forward tip; smoked/red centre panel; reverse lens right of centre), leaning hatch face with rounded corners, black Aero blade spoiler on the hatch, roof-edge third brake pod, Aero skirts/valance/fog lamps, dark matte arch liners, 3-spoke Super Aero 16" alloys (broad dished face, three D-shaped slots, flat plain cap), 205/55R16. Chrome "SOB" wordmark upper left of the hatch; plain bonnet cap; blank plates front and rear | 4.78 × 1.99 (mirrors; 1.78 body) × 1.42, wb 2.672, track 1.534 | 156,462 rendered (158,036 raw: body 118,200, each wheel 9,959) | 0.97 MB |
 | `car_wagon.glb` | forest-green full-size wagon, chrome grille, roof rack, upright tailgate, vertical tail lamps | 5.33 × 2.07 (mirrors) × 1.53 (roof rack), wb 2.94 | ≈58,800 (60,181 before gltfpack dedup) | 0.48 MB |
 | `car_sedan_a.glb` | mustard-gold compact notchback, chrome rub strip, bottle-cap wheel covers | 4.55 × 1.81 × 1.37, wb 2.62 | 49,633 | 0.41 MB |
 | `car_suv.glb` | cream/tan boxy 4-door SUV, black lower two-tone + arch lips, roof rack, 5-spoke alloys | 4.82 × 2.07 (mirrors) × 1.81, wb 2.84 | 59,947 | 0.50 MB |
@@ -261,7 +261,7 @@ hero's invented-make chrome "SOB" wordmark on the hatch (DejaVu Sans Bold capita
 | `car_saab900.glb` | Cherry Red 1987 classic Saab 900 Turbo SPG three-door hatchback (the "Drive My Car" car): wraparound windscreen, tall glasshouse, clamshell bonnet, fastback hatch + lip spoiler, black bumpers/rub strips, body-colour SPG air dam/skirts/valance, sunroof outline, three-spoke 15" alloys; solid (non-metallic) paint. Generator `src/cars/saab900.py` + rims `src/cars/wheels_saab900.py`. Replaces `car_suv.glb` mid-row | 4.70 × 1.84 (mirrors; 1.69 body) × 1.42, wb 2.52 | 58,212 (body ~44k, each wheel ~3.7k) | 0.47 MB |
 | `speaker_post.glb` | steel pipe on a concrete footing, junction head with two hooks, two aluminium window speakers (louvred grille, volume knob, window lip), coiled cords | 0.37 × 0.19 footprint, 1.14 tall | 1,131 | 11 KB |
 
-- Hero v2.2 (Saab 9000 Aero, `src/cars/saab9000.py`, 2026-10-22; v2.1 kept as `assets/car_hero_v21.glb`, v2 as `assets/car_hero_v2.glb`, v1 as `assets/car_hero_v1.glb`, the old red sedan as
+- Hero v2.3 (Saab 9000 Aero, `src/cars/saab9000.py`, 2026-10-22; v2.2 kept as `assets/car_hero_v22.glb`, v2.1 as `assets/car_hero_v21.glb`, v2 as `assets/car_hero_v2.glb`, v1 as `assets/car_hero_v1.glb`, the old red sedan as
   `assets/car_hero_old.glb`). Side silhouette, beltline, side glass, pillars, shut lines, arches, rub strips and nose/tail
   profiles are traced from the director's straight driver-side photo (`saab9000_trace.py`: pixel data + the solved camera,
   437.9 px/m at the wheel plane, perspective-corrected per curve) and fed to `car90.py` as exact curves and masks. Rear lamps,
@@ -284,6 +284,11 @@ hero's invented-make chrome "SOB" wordmark on the hatch (DejaVu Sans Bold capita
   of the tail is now tighter (`tail_corner` 0.10, `tail_pow` 3.2) so the lens sits on the flat quarter instead of the curve,
   and `WRAP_EDGE` puts the tip ~0.25 m forward of the centre-line tail profile. Board camera for 04: harness
   `yaw=-90&dist=10.84&h=0.706&ty=0.706&tz=-1.349&fov=10` at 1024 × 858 (level, ~10 m from the wheel face).
+- Hero v2.3 (director's markup on v2.2): (1) the C-pillar now flows into the quarter panel as one smooth surface: the
+  config's `HeroBody` blends lower body and greenhouse with a union radius that grows (smoothstep) from 0.025 m at the
+  rear door to 0.15 m at the C-pillar (a wider greenhouse also removed the step but cost ~22k triangles); (2) the hatch
+  glass and its black edge show from the side: extra cut `hside` labels a ~4 cm band below the traced C-pillar top edge,
+  roof to spoiler, as glass; (3) wheel slots reverted to the v2 D-shapes (director's choice); tail lamps unchanged.
 - Hero, open window: the driver's (left, +X) front door glass is removed; the opening has a 7.8 cm deep black channel all
   round, whose bottom face is the door's inner window ledge (top at y ≈ 0.935), with a black felt/rubber strip along its
   outer and inner lips. Through it: driver's seat, steering wheel, dash (all `interior`, dim). Empties (glTF coordinates,
@@ -297,7 +302,7 @@ hero's invented-make chrome "SOB" wordmark on the hatch (DejaVu Sans Bold capita
   there is no lip; with no lip its domain edge inside the wells made the refinement run away), wheel type `custom`
   (`st['mesh_fn'](target)`). v2 adds (all optional): `dlo_mask`, `fdoor_mask`, `rdoor_mask` (traced (s, z) outlines),
   `lid_fn`, `rear_lamp_fns`, `mirror_at`, `handle_size` + `(s, z)` handle tuples, callable rub half-height, `rub_nz`,
-  `ledge_z`, `well_offsets`, `rim_metal`, and a per-label `nfn` shading-normal override in `surfops.build_labelled`. Cap edge length with `max_edge` (0.12 on the hero) so long decimated window triangles cannot
+  `ledge_z`, `well_offsets`, `rim_metal`, `body_cls` (Body subclass), and a per-label `nfn` shading-normal override in `surfops.build_labelled`. Cap edge length with `max_edge` (0.12 on the hero) so long decimated window triangles cannot
   jump the thin B-pillar / rub-strip bands.
 - Speaker post: root `speaker_post_root` → mesh `speaker_post`; origin at the base centre on the ground; speakers hang on
   ±X (glTF) of the pipe at y ≈ 0.97–1.09, grilles facing ±X. Materials `steel_weathered`, `aluminium`, `concrete`,
