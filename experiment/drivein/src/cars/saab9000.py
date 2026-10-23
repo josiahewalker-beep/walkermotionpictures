@@ -132,21 +132,23 @@ class HeroBody(Body):
     radius grows from k_belt at the rear door to K_C at the C-pillar, so the pillar flows into the quarter as one
     continuous surface instead of sitting on a shoulder step (director's markup on v2.2)."""
     K_C = 0.15
-    def _k(self, s):
-        t = np.clip((s - (-1.05)) / (-1.50 - (-1.05)), 0, 1)
-        t = t * t * (3 - 2 * t)                                  # smoothstep: no slope kink where the blend settles
-        return self.P['k_belt'] + (self.K_C - self.P['k_belt']) * t
+    def _k(self, s, z):
+        """Blend radius: k_belt everywhere except the upper rear quarter (above the fuel flap, behind the rear door and
+        ahead of the tail lamps), where it rises to K_C. Outside that window the field is exactly v2.2's (v2.4)."""
+        ss = lambda e0, e1, x: (lambda t: t * t * (3 - 2 * t))(np.clip((x - e0) / (e1 - e0), 0, 1))
+        w = ss(-1.05, -1.35, s) * (1 - ss(-1.55, -1.85, s)) * ss(0.72, 1.02, z)
+        return self.P['k_belt'] + (self.K_C - self.P['k_belt']) * w
     @staticmethod
     def _smin(a, b, k):
         h = np.maximum(k - np.abs(a - b), 0.0) / k
         return np.minimum(a, b) - h * h * k * 0.25
     def outer(self, x, s, z):
         ax = np.abs(x)
-        return self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s))
+        return self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s, z))
     def field(self, x, s, z):
         from carlib import smax as _smax
         ax = np.abs(x)
-        d = self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s))
+        d = self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s, z))
         return _smax(d, -self.wells(ax, s, z), self.P['k_well'])
 
 _B = HeroBody(P)
