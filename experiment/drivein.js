@@ -357,7 +357,14 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
         const sc = p.h / th * K, m = new THREE.Matrix4().compose(P(p.x, terrain(p.x, p.z) - 0.2, p.z), q.setFromAxisAngle(up, p.rot).clone(), new THREE.Vector3(sc, sc, sc));
         const near = Math.hypot(p.x - DRIVEIN_SHOT.pos[0], p.z - DRIVEIN_SHOT.pos[2]) < 95; (near || !TPL[pv[v] + '_lod1'] ? sets[v].hi : sets[v].lo).push(m); });
       const g = new THREE.Group(); sets.forEach((st, v) => { if (st.hi.length) g.add(instance(TPL[pv[v]], st.hi)); if (st.lo.length) g.add(instance(TPL[pv[v] + '_lod1'], st.lo)); });
-      world.add(g); pineBlock.visible = false; assetsDone.push('pines'); }
+      world.add(g); pineBlock.visible = false; assetsDone.push('pines');
+      // pines also grow on the CPU, per instance, from their own base as their tile builds (same timing as the shader's
+      // per-tile rise for the desert's Joshua trees), so they never stand on unbuilt grid whatever the GPU does
+      g.updateMatrixWorld(true); pineGrow = [];
+      g.traverse(im => { if (!im.isInstancedMesh) return; const base = [], org = [], wp = [];
+        for (let i = 0; i < im.count; i++) { const m = new THREE.Matrix4(); im.getMatrixAt(i, m); base.push(m); const o = new THREE.Vector3().setFromMatrixPosition(m); org.push(o); wp.push(o.clone().applyMatrix4(im.matrixWorld)); }
+        pineGrow.push({ im, base, org, wp }); });
+      growPines(REV.uRev.value, REV.uR.value); }
     if (TPL.popcorn_bucket) { bucketGroup.remove(bucketBlock); bucketGroup.add(place(TPL.popcorn_bucket, new THREE.Vector3())); assetsDone.push('popcorn_bucket'); }
     if (TPL.popcorn_kernel) { let km = null; TPL.popcorn_kernel.traverse(o => { if (o.isMesh && !km) km = o; });
       if (km) { TPL.popcorn_kernel.updateMatrixWorld(true); kernels.geometry = km.geometry.clone().applyMatrix4(km.matrixWorld).scale(K, K, K); kernels.material = km.material; } }
@@ -438,8 +445,17 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   REV.uHzY0.value = Y0; REV.uHzH.value = 40 * K; REV.uHzSun.value.copy(moonDir); REV.uHzSunC.value.set(0x6a7590); REV.uFloor.value = Y0 + 2.7 * K;
   REV.uOrigin.value.copy(P(0, 2.7, 1)); REV.uCam.value.copy(shot.pos);
   const bloomAt = t => Math.pow(Math.min(1, Math.max(0, (t - 0.03) / 0.97)), 1.15);
+  let pineGrow = null; const _gm = new THREE.Matrix4(), _gt = new THREE.Matrix4(), _gs = new THREE.Matrix4();
+  function growPines(p, R) { if (!pineGrow) return; const O = REV.uOrigin.value, full = p >= 0.9999;
+    for (const e of pineGrow) { for (let i = 0; i < e.base.length; i++) { let v = 1;
+        if (!full) { const w = e.wp[i], d = Math.hypot(w.x - O.x, w.z - O.z), dk = Math.min(1, Math.max(0, (R - d) / (0.25 * R + 300)));
+          const ct = (((Math.sin(Math.floor(w.x / 160) * 12.9898 + Math.floor(w.z / 160) * 78.233) * 43758.5453) % 1) + 1) % 1 * 0.35;
+          const u = Math.min(1, Math.max(0, (dk - ct) / 0.45)); v = u * u * (3 - 2 * u); }
+        const o = e.org[i]; _gt.makeTranslation(o.x, o.y, o.z); _gs.makeScale(Math.max(v, 1e-4), Math.max(v, 1e-4), Math.max(v, 1e-4));
+        _gm.makeTranslation(-o.x, -o.y, -o.z).premultiply(_gs).premultiply(_gt).multiply(e.base[i]); e.im.setMatrixAt(i, _gm); }
+      e.im.instanceMatrix.needsUpdate = true; } }
   function setReveal(p) {
-    const R = p >= 1 ? 1e7 : 300 * Math.pow(220, p); REV.uRev.value = p; REV.uMode.value = 2; REV.uR.value = R;
+    const R = p >= 1 ? 1e7 : 300 * Math.pow(220, p); REV.uRev.value = p; REV.uMode.value = 2; REV.uR.value = R; growPines(p, R);
     skyMat.uniforms.uSkyRev.value = 1;
     gridDes(p >= 1 || p <= 0 ? -1 : R, 0, 1, REV.uOrigin.value);
     const gf = smooth(0.92, 1, p); gridFade(gf);
