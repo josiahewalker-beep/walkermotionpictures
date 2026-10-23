@@ -64,6 +64,14 @@ export function makeComposer(renderer, scene, camera) {
   const ao = new N8AOPass(scene, camera, Math.round(size.x * PR), Math.round(size.y * PR));
   Object.assign(ao.configuration, { aoRadius: 2.2 * 108, distanceFalloff: 0.6 * 108, intensity: 2.2, color: new THREE.Color(0x1a0f08), halfRes: false, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 12, denoiseSamples: 6, denoiseRadius: 10 });
   if (!window.__noAO) composer.addPass(ao);
+  // NaN guard: one NaN pixel (an Apple GPU's pow of a tiny negative, a degenerate normal) is spread by the bloom blur into
+  // big black blocks; replace non-finite values before the bloom so the frame can never black out (10-23)
+  composer.addPass(new ShaderPass({ uniforms: { tDiffuse: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+      void main(){ vec4 c = texture2D(tDiffuse, vUv);
+        bool bad = !(c.r == c.r) || !(c.g == c.g) || !(c.b == c.b) || !(c.a == c.a) || any(greaterThan(abs(c), vec4(6.0e4)));
+        gl_FragColor = bad ? vec4(0.0, 0.0, 0.0, 1.0) : min(c, vec4(64.0)); }` }));
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.22, 0.55, 0.92);
   if (!window.__noBloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
