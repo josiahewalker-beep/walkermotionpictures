@@ -217,7 +217,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   const stand = new THREE.SpotLight(0xffb070, 1.6 * dStand * dStand, 85 * K, 0.62, 0.7, 2); stand.position.copy(standAt); stand.target.position.copy(standAim); stand.castShadow = true;
   stand.shadow.mapSize.set(2048, 2048); stand.shadow.camera.near = 2 * K; stand.shadow.camera.far = 100 * K; stand.shadow.bias = -0.0004; stand.shadow.normalBias = 0.06 * K;
   world.add(stand, stand.target);
-  const lampLight = new THREE.PointLight(0xffa860, 60 * K * K, 34 * K, 2); lampLight.position.copy(P(-18, 4.6, 27)); world.add(lampLight);
+  const lampLight = new THREE.PointLight(0xffa860, 95 * K * K, 38 * K, 2); lampLight.position.copy(P(-18, 4.6, 27)); world.add(lampLight);
   const screenSpill = new THREE.PointLight(0x8ea0c8, 260 * K * K, 70 * K, 2); screenSpill.position.copy(P(0, SCY * 0.8, 9)); world.add(screenSpill);   // the slide lights the lot a little
   // night environment for reflections: dark sky, moon glow behind, warm lot glow low in front
   let envTex = null;
@@ -336,7 +336,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     // cars: nose +Z in the files, facing the screen (-Z) here
     carSpots.forEach((c, i) => { const t = TPL[c.file]; if (!t) return; const o = place(t, P(c.x, c.y, c.z), Math.PI + c.ry); o.userData.kind = 'carAsset';
       if (c.file === 'car_hero') o.traverse(m => { if (!m.isMesh) return; const n = (m.material.name || '').toLowerCase();   // keep the Aero silver under the warm stand light: cooler base, less metal so it doesn't mirror the amber
-        if (n.startsWith('paint')) { m.material = m.material.clone(); m.material.color.setRGB(0.42, 0.46, 0.54); m.material.metalness = 0.35; m.material.roughness = 0.32; }
+        if (n.startsWith('paint')) { m.material = m.material.clone(); m.material.color.setRGB(0.36, 0.42, 0.55); m.material.metalness = 0.22; m.material.roughness = 0.3; }
         else if (n.startsWith('rim')) { m.material = m.material.clone(); m.material.color.setRGB(0.5, 0.53, 0.58); m.material.metalness = 0.45; } }); world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
     if (TPL.speaker_post) postSpots.forEach((p, i) => { const o = place(TPL.speaker_post, P(p.x, lot(p.x, p.z), p.z), Math.PI + carSpots[i].ry); world.add(o); postBlocks[i].visible = false; });
     if (TPL.screen) { const o = place(TPL.screen, P(0, 0, 0)); world.add(o); screenBlock.visible = false; assetsDone.push('screen'); }
