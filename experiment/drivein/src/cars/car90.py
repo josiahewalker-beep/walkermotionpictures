@@ -230,7 +230,7 @@ def build(C, out):
         ('head', fn_head, [0.0, 0.008]), ('corner', fn_corner, [0.0]), ('grille', fn_grille, [0.0, 0.012]), ('lowg', fn_lowg, [0.0]),
         ('tail', fn_tail, [0.0, -0.006]), ('tpanel', fn_tpanel, [0.0]), ('rev', fn_rev, [0.0]), ('rplate', fn_rplate, [0.0]),
         ('handle', fn_handle, [0.0]), ('mark_f', fn_mark_f, [0.0]), ('mark_r', fn_mark_r, [0.0]),
-        ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, [0.004]), ('clad', fn_clad, [0.0]),
+        ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, [0.004]), ('clad', fn_clad, [0.0] if C.get('clad_cut', True) else []),
     ]
     cuts += list(C.get('extra_cuts', []))     # (name, fn(V, N), offsets): config-specific features (fog lamps, ...)
     if open_win:

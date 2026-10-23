@@ -117,7 +117,7 @@ def stop_lamp(parts, B, f, L):
 
 C = dict(
     name='car_hero', P=P, BOUNDS=((-0.93, -L2 - 0.03, 0.13), (0.93, L2 + 0.03, 1.43)), res=RES, body_target=TARGET,
-    max_edge=0.05, S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.2032, TYRE_W=0.205, X_W=0.767,
+    clad_cut=False, S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.2032, TYRE_W=0.205, X_W=0.767,
     paint=(0.50, 0.495, 0.478), paint_metal=0.55, paint_rough=0.26,      # Saab silver, warm-ish, linear ~0.5
     interior_color=(0.045, 0.043, 0.041),
     # side glass: front door + rear door only; body-colour C-pillar between the rear door glass and the hatch glass
@@ -145,7 +145,7 @@ C = dict(
                   seat_h=0.62, rear_seats=True, rear_s=-0.92, cabin_bounds=((-0.80, -1.95, 0.30), (0.80, 1.05, 1.37)),
                   glass_band=(BELT + 0.02, 1.32)),
     wheel=dict(type='custom', mesh_fn=lambda target: super_aero_mesh(target), a_face=0.074, r_cover=0.196, dust=0.12),
-    wheel_target=9000, tyre_seg=64, rim_color=(0.70, 0.71, 0.72), rim_rough=0.22,
+    wheel_target=5200, tyre_seg=56, rim_color=(0.70, 0.71, 0.72), rim_rough=0.22,
 )
 
 if __name__ == '__main__':
