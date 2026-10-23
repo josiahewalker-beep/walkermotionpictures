@@ -19,7 +19,7 @@ const CARS = [   // x, z, yaw, mound, file, fallback colour
   { x: -4.08, z: 28.45, ry: 0.40, mound: 1.12, file: 'car_hero', col: 0x8a3a24, hero: true },
   { x: -11.93, z: 18.80, ry: 0.10, mound: 0, file: 'car_wagon', col: 0x2f4a32 },
   { x: -8.27, z: 10.07, ry: -0.05, mound: 0, file: 'car_sedan_a', col: 0xb08a3a },
-  { x: -2.57, z: 9.31, ry: 0.05, mound: 0, file: 'car_suv', col: 0xd8cbaa },
+  { x: -2.57, z: 9.31, ry: 0.05, mound: 0, file: 'car_saab900', col: 0xba1c28 },
   { x: -1.43, z: 17.28, ry: 0.12, mound: 0.63, file: 'car_sedan_b', col: 0x6b4a2b },
 ];
 const LENS = [10.18, 9.95, 26.72], LAMP = [-13, 4.6, 24], STAND = [-24, 0, 52];
@@ -328,7 +328,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   let applied = false;
   async function applyAssets() {
     if (applied) return assetsDone; applied = true;
-    const names = ['car_hero', 'car_wagon', 'car_sedan_a', 'car_suv', 'car_sedan_b', 'speaker_post', 'pine_a', 'pine_b', 'pine_c', 'pine_a_lod1', 'pine_b_lod1', 'pine_c_lod1',
+    const names = ['car_hero', 'car_wagon', 'car_sedan_a', 'car_saab900', 'car_sedan_b', 'speaker_post', 'pine_a', 'pine_b', 'pine_c', 'pine_a_lod1', 'pine_b_lod1', 'pine_c_lod1',
       'rock_a', 'rock_b', 'pinecone', 'needle_clump', 'screen', 'booth', 'popcorn_bucket', 'popcorn_kernel', 'moth', 'mouse', 'owl'];
     const got = Object.fromEntries((await Promise.all(names.map(loadGLB))).map((g, i) => [names[i], g]));
     for (const [k, g] of Object.entries(got)) if (g) TPL[k] = prep(g);
