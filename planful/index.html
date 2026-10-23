@@ -235,7 +235,7 @@ footer { display:flex; justify-content:space-between; gap:16px; padding:22px max
 </div>
 <script>
 (() => {
-  const BLOB = {"v": 1, "rounds": 600000, "salt": "kl4I63Vq4tP727xKB2DA+w==", "iv": "1ecUyhYkczFBiTKA", "ct": "1U/eAQs2n9JExEs3OJeM0CIMGoAyxSWsYURKQ4Qt0Oq+F99bcjc4w/KS4X4z6SKmMbS5h9twypMngw3Yr7G2fAs+caET5MjUvD+/EWWHoIiEhM2F5sXWMXgFJ2MA6UaMbPWCZN256JVNqr3p2lHswVicJHcOuH4KGlbFt1Wgnilk7JSpFWSpHpAatCZRv5+CgJiG71K/n7c9l4RRqi7ABtKmZNfpy2nRMX3035VEkvLkK65nmDAkyifbEIFXPdGAsFKPlKstZxD6Sflndp1r2Y8j2cLmu5J+TgdG7iuNyjSkSgy9Wxy/qIhB1Xbe+XCAN0+dAv3mwKxno0oKvLHgSUettEsEVfhb/hKfjenOnKB+jJgaLrhFW195/BSDrl4ap8gHvLaLaZ6YkCNfBJNi4K9UE0NSzIxK+hFa16B5iVyCJq3iqyvC0TNEe2r4nMZ10pamVa04vh8fVIK280mjEE+Mohvn0a8pBplc5HlGx5NbNYL8Vzd5IdYoGQUywbhj33mkethkkOCgTlg08ctZ/Sp/uSr7HDfA4wF0dSTqOjVz0PtDpeEwu9t7kWR07L7EgpiR3wNZbfAUYvU8NB4tqPlhPpTXPjwxbeYjg6imWALHE17i/z35Br3bOLsNX0jh8svxpJnElnpumzeAU1qXQ41R42gyC4AGpesgDY7K7MoTpp8nBXsdZncrIRjIynJMJ8BdhMucWFVwwte9/EkxTe2coT0kJLSEA7SwtS83rKHUjVJzYMaNPwk5cRLpLYv8hH+m2y3k+NGkL6BEJJK0NoGrAQD9"};
+  const BLOB = {"v": 1, "rounds": 600000, "salt": "j+8fsqPLvPMf9a7ovx9TNg==", "iv": "yIWGZSbonyxNAbIz", "ct": "ccxRG/ZUB/Ag9oS2j2b6sQGw5ovaenOZ7JufCXFKd02Zc7ImRGHRvzzgweOSOKaSQ4FIj6gjdPoO3cfTXOuQ1Ne//MlftAv1XbEB+CAUHOqW275YF4dpTp0dj2NBa6O8JubZIz00nV3ha40Yqg2b1itnO1LQjVEUEpaToMDcqOwbhXDgsMOJf900GUvBIBYcfBmUP2k0kNwLa1SKLkeD8EHezXT89LSHNQtkGkICOpqAtYlBhZqoJH+N6YSzfbCldWB9ywhFUDLXM39tvPfqwqCZL82AVNAvw9SV4lgiOSVbSQ1MHmxEgOo8FzzRXm+JcfFHrA75hze9B3LDuU6RQnVquBZ2e+h74QLEc2cTmlSj8jb2ae5r+xWk9/CduhpVakc1zrhRg3CnqKmqZNEq+BphlwEH0gJNRLmNEz8ucaljO7mGP/pbUkwE4wCXnz0tGqMd6YYpGvJBDruVW/9WBVmr5H973ueIuxaMsPrcmmsUssKm5Vf9opTTFifI5Ks4iJ69Kv7wD4I86wAnlPTlqVRzgcYvAQEyAarzAeZhHiKO5N1SH9SYnNAaNlPnQ/VWIYci7MLLHLzK4NKvW1Jj96SV81MaW3lKK7X13ndn/qIM6JrfnvHpwujQUnardgsdhWbngI3/29TpLGthcqipz7CGehM93Bebw5nogMp9jyRD5fUgElQO950zBuT9S7MIQWEIKZhF0wcjEpui0IHpXG4qpaz+L505ykVPoplFLdNlHWxkhFKmJDEK7BIY5w45xPO4GEo8BLXdygvsTNE4/BarJTxcOvJQ1NeEkhaB1D+Vo+vQmuhidp7Cns+t4o3t+jy97WMubyHUC6XIMQTCBp0faR3NirTrOC5zXBjEYrNec5l1m1/cyeuWHuuZg1Oof9L2X/zhYRIvWeSdxXFVAftxd+I+qqGS7PtuWhSkpzp6sTXvadp8Zdftlbmd6N81q0VmLgpSGEkaQ5YqPt5U6TudxOUaa9aw5ffR7ozNb5hFcA4lTgD6ZccKmNkLcS7MoTin8usJkQdE3h/79GuYvX66ASm5ou1aR63+JV6JJgcqtxIPUU6zCbXa3nzJ5LJig7U6cEoZQpxe"};
   const $ = id => document.getElementById(id);
   const KEY = 'corp-pw:' + location.pathname;
   const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
@@ -341,7 +341,7 @@ footer { display:flex; justify-content:space-between; gap:16px; padding:22px max
     if (d.kicker) $('reelk').textContent = d.kicker;
     if (d.intro) { $('intro').textContent = d.intro; $('intro').hidden = false; }
     if (d.meta && d.meta.length) { const m = $('meta'); m.textContent = ''; d.meta.forEach(x => m.append(el('li', null, x))); m.hidden = false; }
-    const list = $('list'); list.textContent = ''; const one = d.videos.length === 1; list.classList.toggle('one', one); list.classList.toggle('two', d.videos.length === 2);
+    const list = $('list'); list.textContent = ''; const one = d.videos.length === 1; list.classList.toggle('one', one); list.classList.toggle('two', d.videos.length >= 2);
     d.videos.forEach((v, i) => {
       const fig = el('figure'), frame = el('div', 'frame'), label = v.title || ('Video ' + (i + 1));
       if (v.ar) { const [w, h] = String(v.ar).split('/').map(Number); if (w && h) { frame.style.aspectRatio = w + '/' + h; fig.style.setProperty('--arn', (w / h).toFixed(4)); } }
