@@ -98,7 +98,8 @@ def build_labelled(cs, labels, rules, default, col_fn=None, parts=None, node='bo
         Vl = V[used] - N[used] * d
         col = COL[used] * labels[ln].get('col', 1.0)
         Fl = remap[Fm]; Nl = N[used]
-        pass
+        if labels[ln].get('nfn'):          # optional shading-normal override for a label (e.g. matte arch liners)
+            Nl = labels[ln]['nfn'](Vl, Nl)
         if labels[ln].get('dec') and len(Fl) > 200:
             # hidden/dark areas (underside, wheel wells): border-preserving decimation, attributes re-sampled by nearest
             from carlib import decimate_fqmr

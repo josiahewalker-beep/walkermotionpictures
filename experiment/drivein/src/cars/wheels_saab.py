@@ -46,7 +46,7 @@ def face_field(st=ST):
         fl = np.clip(1 - ds / st['flank'], 0, 1)
         a_top = a_top - st['flank_depth'] * fl ** 2
         d_face = smax(a - a_top, (a_top - 0.016) - a, 0.003)
-        d_face = smax(d_face, r - (st['r_lip_in'] + 0.006), 0.003)
+        d_face = smax(d_face, r - (st['r_lip_in'] - 0.004), 0.002)
         d_face = smax(d_face, -ds, 0.004)
         # flat cap, flush with the face around it, fine seam groove at its edge
         a_cap = af - 0.006
@@ -63,12 +63,17 @@ def super_aero_mesh(target=5200, res=0.0015, st=ST, n_seg=96):
     f = face_field(st)
     R = st['r_lip_in'] + 0.012
     V, F = mc_mesh(f, (st['a_face'] - 0.05, -R, -R), (st['a_face'] + 0.004, R, R), res, slab=16)
+    # drop the hidden back of the face slab (never seen) so the decimation budget goes to the visible face
+    Nf = field_normals(f, V[F].mean(1), h=0.0010)
+    F = F[Nf[:, 0] > -0.35]
+    from carlib import clean_unused
+    V, F = clean_unused(V, F)[:2]
     V, F = decimate(V, F, target)
     V = project_to_surface(f, V, iters=3, h=0.0008)
     N = field_normals(f, V, h=0.0010)
     F = fix_winding(V, F, N)
     af = st['a_face']; ri, ro = st['r_lip_in'], st['r_lip']
-    lip = [(af - 0.030, ri - 0.006), (af - 0.012, ri - 0.004), (af - 0.004, ri - 0.001), (af - 0.0005, ri + 0.003),
+    lip = [(af - 0.030, ri - 0.013), (af - 0.011, ri - 0.011), (af - 0.0045, ri - 0.0065), (af - 0.0015, ri - 0.002), (af - 0.0002, ri + 0.004),
            (af, 0.5 * (ri + ro)), (af - 0.0005, ro - 0.004), (af - 0.004, ro - 0.0005), (af - 0.012, ro), (af - 0.022, ro - 0.007)]
     Vl, Fl, Nl = _lathe(lip, n_seg)
     front = Vl[:, 0] > af - 0.002

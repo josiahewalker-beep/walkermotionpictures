@@ -17,11 +17,11 @@ from carlib import sd_round_box, smin, smax
 import details as D
 
 LAMP_X0, LAMP_X1 = 0.567, 0.845          # outer lamp inner edge / outer extent (|x|)
-LAMP_Z0, LAMP_Z1 = 0.818, 1.000          # band bottom / top
+LAMP_Z0, LAMP_Z1 = 0.815, 1.000          # band bottom / top
 SPLIT_Z = 0.915                          # smoked above, red below
-PANEL_Z0, PANEL_Z1 = 0.830, 0.995        # centre panel
+PANEL_Z0, PANEL_Z1 = 0.822, 0.995        # centre panel
 REV = (0.32, 0.46, 0.838, 0.902)         # reverse lens (x signed: passenger side +), z
-WEDGE = ((0.818, -2.242), (0.995, -2.108))   # outboard edge of the corner wrap in side view: (z, s) pairs
+WEDGE = ((0.800, -2.252), (0.995, -2.108))   # outboard edge of the corner wrap in side view: (z, s) pairs
 RECESS = (0.53, 0.625, 0.812)            # plate recess half width, z0, z1
 PLATE_Z = 0.718
 
@@ -52,7 +52,7 @@ def cuts_labels_rules(plane_fn, MaskSDF):
     fn_rec = recess_fn(plane_fn, MaskSDF)
     cuts = [('tsplit', fn_split, [0.0]), ('recess', fn_rec, [0.0])]
     labels = {
-        'tail_smoke': dict(mat='light_marker', depth=0.006, wall='trim_black', wall_col=0.4, col=0.30),
+        'tail_smoke': dict(mat='light_marker', depth=0.006, wall='trim_black', wall_col=0.4, col=0.22),
         'panel_smoke': dict(mat='light_rear', depth=0.004, wall='trim_black', wall_col=0.4, col=0.10),
         'panel_red': dict(mat='light_rear', depth=0.004, wall='trim_black', wall_col=0.5, col=0.85),
         'recess': dict(mat='paint', depth=0.016, wall='paint', wall_col=0.55, col=0.92),
@@ -67,33 +67,28 @@ def cuts_labels_rules(plane_fn, MaskSDF):
 
 # ------------------------------------------------------------------------------------------------ add-on parts
 def aero_spoiler(parts, B, f, L):
-    """Black Aero blade on the top edge of the hatch's lower panel, body-colour end caps, two short mounts."""
-    h = D.ray_hit(f, (0.0, -2.12, 2.0), (0, 0, -1), tmax=1.5)
-    zd = h[2] if h is not None else 1.05
-    sc, half = -2.165, 0.735
-    ang = np.deg2rad(6.0)                 # chord tilted: trailing edge up
-    zc = zd + 0.042
-    def blade(x, s, z):
-        ds = s - sc; dz = z - zc
-        u = ds * np.cos(ang) + dz * np.sin(ang); w = -ds * np.sin(ang) + dz * np.cos(ang)
+    """Black Aero blade sitting on the hatch at the base of the glass: a wedge section (thin leading edge on the hatch,
+    thick trailing edge just past the tail face, upper surface rising rearward), ~0.055 m tall seen from behind, full
+    width with the ends dropping into body-colour end caps."""
+    h = D.ray_hit(f, (0.0, -2.10, 2.0), (0, 0, -1), tmax=1.5)
+    zd = h[2] if h is not None else 1.045
+    s_le, s_te = -2.020, -2.262          # leading / trailing edge
+    half = 0.725
+    def fld(x, s, z):
         ax = np.abs(x)
-        # airfoil-ish: thicker at the front, thin kicked-up trailing edge; tips taper and drop slightly
-        t = 0.013 + 0.007 * np.clip((u + 0.02) / 0.09, -1, 1)
-        chord = 0.088 - 0.025 * np.clip((ax - 0.55) / 0.19, 0, 1)
-        w = w + 0.010 * np.clip((ax - 0.6) / 0.14, 0, 1)
-        hx, hc, ht = np.broadcast_arrays(np.full_like(u, half * 0.5), chord + 0 * u, t + 0 * u)
-        return sd_round_box(np.stack([ax - half * 0.5, u + 0.005, w], -1), (0, 0, 0), np.stack([hx, hc, ht], -1), 0.010)
-    def mounts(x, s, z):
-        d = None
-        for xl in (-0.46, 0.46):
-            dl = sd_round_box(np.stack([x, s, z], -1), (xl, sc + 0.01, zd + 0.012), (0.035, 0.05, 0.03), 0.01)
-            d = dl if d is None else np.minimum(d, dl)
-        return d
-    fld = lambda x, s, z: smin(blade(x, s, z), mounts(x, s, z), 0.008)
-    V, F, N = D.mc_small(fld, (-0.80, sc - 0.15, zd - 0.03), (0.80, sc + 0.14, zd + 0.11), 0.005, 5200)
+        drop = 0.030 * np.clip((ax - 0.62) / (half - 0.62), 0, 1) ** 2
+        zz = z + drop
+        t = np.clip((s_le - s) / (s_le - s_te), 0, 1)           # 0 at the leading edge -> 1 at the trailing edge
+        z_bot = zd - 0.010 + 0.006 * t
+        z_top = zd + 0.006 + 0.036 * t ** 0.8                   # upper surface rises rearward
+        d_v = np.maximum(z_bot - zz, zz - z_top)
+        d_s = np.maximum(s - s_le, s_te - s)
+        d = smax(d_v, d_s, 0.008)
+        return smax(d, ax - half, 0.02)
+    V, F, N = D.mc_small(fld, (-0.80, s_te - 0.04, zd - 0.06), (0.80, s_le + 0.04, zd + 0.09), 0.0045, 3600)
     fc = V[F].mean(1)
-    cap = np.abs(fc[:, 0]) > half - 0.045
-    parts.add('body', V, F[~cap], 'trim_black', N=N, COL=np.c_[np.full((len(V), 3), 0.8), np.ones(len(V))])
+    cap = np.abs(fc[:, 0]) > half - 0.05
+    parts.add('body', V, F[~cap], 'trim_black', N=N, COL=np.c_[np.full((len(V), 3), 0.7), np.ones(len(V))])
     parts.add('body', V, F[cap], 'paint', N=N, COL=np.c_[np.full((len(V), 3), 0.85), np.ones(len(V))])
 
 def brake_pod(parts, B, f, L):

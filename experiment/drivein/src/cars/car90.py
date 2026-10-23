@@ -211,7 +211,7 @@ def build(C, out):
     rz = C['rub']         # (z centre fn(s), half height)
     def fn_rub(V, N):
         d = np.abs(V[:, 2] - rz[0](V[:, 1])) - (rz[1](V[:, 1]) if callable(rz[1]) else rz[1])
-        return np.where((N[:, 2] > -0.5) & (N[:, 2] < 0.6), d, BIG)
+        return np.where((N[:, 2] > -0.5) & (N[:, 2] < C.get('rub_nz', 0.6)), d, BIG)
     zl = C.get('clad')    # None or z top of lower cladding (two-tone)
     fn_lower = (lambda V, N: V[:, 2] - zl(V[:, 1])) if zl else (lambda V, N: np.full(len(V), BIG))
     def fn_well(V, N):
@@ -239,7 +239,7 @@ def build(C, out):
         ('head', fn_head, [0.0, 0.008]), ('corner', fn_corner, [0.0]), ('grille', fn_grille, [0.0, 0.012]), ('lowg', fn_lowg, [0.0]),
         ('tail', fn_tail, [0.0, -0.006]), ('tpanel', fn_tpanel, [0.0]), ('rev', fn_rev, [0.0]), ('rplate', fn_rplate, [0.0]),
         ('handle', fn_handle, [0.0]), ('mark_f', fn_mark_f, [0.0]), ('mark_r', fn_mark_r, [0.0]),
-        ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, [0.004]), ('clad', fn_clad, [0.0] if C.get('clad_cut', True) else []),
+        ('rub', fn_rub, [0.0]), ('lower', fn_lower, [0.0]), ('well', fn_well, C.get('well_offsets', [0.004])), ('clad', fn_clad, [0.0] if C.get('clad_cut', True) else []),
     ]
     cuts += list(C.get('extra_cuts', []))     # (name, fn(V, N), offsets): config-specific features (fog lamps, ...)
     if open_win:
@@ -364,6 +364,7 @@ def build(C, out):
     # mirrors
     mz = BELT + C.get('mirror_dz', 0.07)
     ms = a_s(mz) - a_off + C.get('mirror_ds', 0.02)
+    if 'mirror_at' in C: ms, mz = C['mirror_at']
     for sgn in (1, -1):
         h = surf([(ms, mz)], 'side', sgn, -0.005)
         if len(h):
@@ -443,6 +444,7 @@ def build(C, out):
     for k in ('brake', 'caliper', 'light_rear_led'):
         mats.pop(k, None)
     mats['paint'].update(metallic=C.get('paint_metal', 0.35), roughness=C.get('paint_rough', 0.34))
+    if 'rim_metal' in C: mats['rim']['metallic'] = C['rim_metal']
     mats['glass'].update(color=(0.018, 0.02, 0.022), roughness=0.03, alpha=0.84)
     mats['light_front'] = dict(color=(0.72, 0.73, 0.74), metallic=0.6, roughness=0.22, vcol=True)          # lights off
     mats['light_rear'] = dict(color=(0.30, 0.012, 0.010), metallic=0.0, roughness=0.10, vcol=True)
