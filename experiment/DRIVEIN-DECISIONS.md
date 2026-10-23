@@ -31,4 +31,4 @@
 - 10-22 Josiah: no telephone pole / streetlamp in frame. The pole is removed; its warm light stays, moved just off frame left.
 - 10-22 Josiah: the hero car (window down, popcorn bucket) is a silver 1994–98 Saab 9000 Aero 5-door hatchback with the Aero body kit and the Super Aero 3-spoke 16" wheels. Built procedurally from reference; no badges or wordmarks.
 - 10-22 Josiah: the SUV in the middle of the row becomes the red Saab from Drive My Car: a classic Saab 900 SPG (the top trim of the classic 900), 1987 Cherry Red three-door hatchback with the SPG kit and three-spoke wheels. File: assets/car_saab900.glb.
-- 10-22 Josiah: the hero car's badging uses an invented make, "Sob" (a nod, not a copy): chrome wordmark on the hatch in a plain period sans, not Saab's lettering. No real Saab badges, wordmarks, model scripts or griffin; bonnet roundel, front plate and wheel caps are blank.
+- 10-22 Josiah: the hero car's badging uses an invented make, "SOB" (a nod, not a copy): chrome wordmark on the hatch in plain all-caps block letters, not Saab's lettering. No real Saab badges, wordmarks, model scripts or griffin; bonnet roundel, front plate and wheel caps are blank.
