@@ -334,7 +334,10 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
     for (const [k, g] of Object.entries(got)) if (g) TPL[k] = prep(g);
     for (const k of Object.keys(TPL)) if (/^pine_/.test(k)) crownOn(TPL[k], 0.55);
     // cars: nose +Z in the files, facing the screen (-Z) here
-    carSpots.forEach((c, i) => { const t = TPL[c.file]; if (!t) return; const o = place(t, P(c.x, c.y, c.z), Math.PI + c.ry); o.userData.kind = 'carAsset'; world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
+    carSpots.forEach((c, i) => { const t = TPL[c.file]; if (!t) return; const o = place(t, P(c.x, c.y, c.z), Math.PI + c.ry); o.userData.kind = 'carAsset';
+      if (c.file === 'car_hero') o.traverse(m => { if (!m.isMesh) return; const n = (m.material.name || '').toLowerCase();   // keep the Aero silver under the warm stand light: cooler base, less metal so it doesn't mirror the amber
+        if (n.startsWith('paint')) { m.material = m.material.clone(); m.material.color.setRGB(0.42, 0.46, 0.54); m.material.metalness = 0.35; m.material.roughness = 0.32; }
+        else if (n.startsWith('rim')) { m.material = m.material.clone(); m.material.color.setRGB(0.5, 0.53, 0.58); m.material.metalness = 0.45; } }); world.add(o); carBlocks[i].visible = false; carBlocks[i] = o; assetsDone.push(c.file); });
     if (TPL.speaker_post) postSpots.forEach((p, i) => { const o = place(TPL.speaker_post, P(p.x, lot(p.x, p.z), p.z), Math.PI + carSpots[i].ry); world.add(o); postBlocks[i].visible = false; });
     if (TPL.screen) { const o = place(TPL.screen, P(0, 0, 0)); world.add(o); screenBlock.visible = false; assetsDone.push('screen'); }
     if (TPL.booth) { const dir = aim.clone().sub(lens).setY(0).normalize(); const o = TPL.booth.clone(true); o.scale.setScalar(K); world.add(o); o.updateMatrixWorld(true);
