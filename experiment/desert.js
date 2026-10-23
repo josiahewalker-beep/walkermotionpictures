@@ -2,9 +2,9 @@
 // Everything is built around the hero card where it already sits; the card never moves, only the camera does.
 // Units: the site's world units (1 unit ≈ 1 CSS px at the card plane). The card is ~4.3 m tall, so ~108 units per metre.
 import * as THREE from 'three';
-import { setupRenderer, skyEnvironment, makeComposer } from './desert/render.js?v=20261023b';
-import { loadGLB, loadTex, prepAsset, instance, vehicleFrom } from './desert/assets.js?v=20261023b';
-import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023b';
+import { setupRenderer, skyEnvironment, makeComposer } from './desert/render.js?v=20261023c';
+import { loadGLB, loadTex, prepAsset, instance, vehicleFrom } from './desert/assets.js?v=20261023c';
+import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023c';
 
 const M = 108;                                    // world units per metre
 const rng = seed => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
