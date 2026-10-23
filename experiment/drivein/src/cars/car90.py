@@ -63,7 +63,7 @@ def rbox3(V, lo, hi, k=0.02):
 
 def build(C, out):
     P = C['P']
-    B = Body(P)
+    B = C.get('body_cls', Body)(P)
     if 'field_mod' in C:
         fo, ff, fm_ = B.outer, B.field, C['field_mod']
         B.outer = lambda x, s, z: fm_(fo(x, s, z), x, s, z)

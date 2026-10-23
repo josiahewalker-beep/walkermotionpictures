@@ -1,9 +1,9 @@
 """Saab 9000 Aero "Super Aero" 16" alloy (1994-98), generic: plain centre cap, no logo.
 Measured from the director's close-up (reference 01, unwrapped to polar coordinates about the hub):
 - a mostly solid, smooth, slightly dished face: three very broad spokes;
-- three curved teardrop slots, 120 deg apart, all sweeping the same way round the wheel: a round head (~72 mm across)
-  tapering along the arc over ~78 deg to a thin tail that drifts out toward the rim; each slot sits in a shallow dished
-  flank (~18 mm) that catches the light;
+- three D-shaped slots, 120 deg apart: a flat outer edge on r = 0.163 m spanning ~65 deg, the inner edge an arch that
+  reaches in to r = 0.108 m; each slot sits in a shallow dished flank (~18 mm) that catches the light (v2 geometry,
+  kept by the director's choice over the v2.1 teardrops);
 - a flat ring r 0.163-0.186 under the slots, a thin bright polished lip r 0.188-0.219;
 - a large flat round cap r = 0.075 m, flush with the face, with a fine seam; a valve stem on the ring under one slot.
 Local wheel frame as wheels90: a = axial (outboard +), (y, z) radial, metres. Used via wheel type 'custom'.
@@ -17,41 +17,27 @@ ST = dict(
     r_lip=0.219,       # lip outer edge
     r_lip_in=0.187,    # lip inner edge (step down onto the face ring)
     r_cap=0.075,       # flat centre cap
-    # slots (v2.1): curved teardrops, all sweeping the same way round the wheel. The outer edge follows the circle
-    # r = 0.164 (as measured on the reference); the inner edge arches in to r ~0.102 near the round head and closes in
-    # toward a rounded tail ~66 deg further round.
-    slot_span=np.deg2rad(66.0), slot_r_out=0.164, slot_hw=0.031, slot_tail=0.009,
+    # slots (v2 geometry, director's choice): D-shaped in polar coordinates: a flat outer edge on r = 0.163 m spanning
+    # ~65 deg, the inner edge an arch reaching in to r = 0.108 m (measured by unwrapping the reference close-up)
+    slot_r_out=0.163, slot_r_in=0.108, slot_half=np.deg2rad(32.5), slot_round=0.010,
     flank=0.018, flank_depth=0.010,
     dish=0.011,        # face dips this much between cap and ring
-    phase=np.deg2rad(150.0),   # head angle of slot 0 (tail runs clockwise from it, as on the reference close-up)
+    phase=np.deg2rad(90.0),
+    stem_slot=1,       # valve stem on the ring under this slot
 )
 
-def _slot_discs(st=ST, n=44):
-    """Disc chain (angle offset, centre radius, radius) whose union is one slot: head at t=0, tail at t=1.
-    Discs stay tangent to the outer circle r = slot_r_out, so the outer edge is concentric. Full depth (r_out -> ~0.104)
-    over most of the arc, as measured on the reference (58 deg wide at r 0.14), closing only over the last third to a
-    rounded tail: a fat teardrop rather than a lens."""
-    t = np.linspace(0, 1, n)
-    ang = -st['slot_span'] * t
-    h0, h1 = st['slot_hw'], st['slot_tail']
-    head = h0 * np.sqrt(np.clip(1 - ((0.16 - t) / 0.20) ** 2, 0.25, 1))
-    tail = h1 + (h0 - h1) * np.clip((1 - t) / 0.42, 0, 1) ** 0.8
-    w = np.where(t < 0.16, head, np.minimum(h0, tail))
-    rc = st['slot_r_out'] - w
-    return ang, rc, w
-
 def slot_sd(y, z, st=ST):
-    """Signed distance (m) to the three teardrop slots in the face plane (union of discs)."""
-    ang, rc, w = _slot_discs(st)
+    """Approximate signed distance (m) to the three D-shaped slots in the face plane."""
     r = np.sqrt(y * y + z * z); th = np.arctan2(z, y)
-    d = np.full(np.shape(y), 1.0)
-    for k in range(3):
-        a0 = st['phase'] + k * 2 * np.pi / 3
-        cy = rc * np.cos(a0 + ang); cz = rc * np.sin(a0 + ang)
-        for i in range(len(rc)):
-            if w[i] <= 0: continue
-            d = np.minimum(d, np.sqrt((y - cy[i]) ** 2 + (z - cz[i]) ** 2) - w[i])
-    return d
+    sector = 2 * np.pi / 3
+    loc = (th - st['phase'] + sector / 2) % sector - sector / 2
+    ro, ri = st['slot_r_out'], st['slot_r_in']
+    U = st['slot_half'] * ro; Wd = ro - ri
+    u = loc * ro
+    w = np.clip(ro - r, 0, None)
+    q = np.sqrt((u / U) ** 2 + (w / Wd) ** 2)
+    d_ell = (q - 1) * np.minimum(U, Wd)
+    return smax(d_ell, r - ro, st['slot_round'])
 
 def face_field(st=ST):
     af = st['a_face']
@@ -102,8 +88,8 @@ def super_aero_mesh(target=5200, res=0.0015, st=ST, n_seg=96):
     if np.mean(np.einsum('ij,ij->i', Nb[:, 1:], Vb[:, 1:] / rr[:, None])) > 0:
         Fb = Fb[:, ::-1].copy(); Nb = -Nb
     # valve stem: short rubber-capped post on the face ring under one slot
-    phi = st['phase'] + np.deg2rad(22.0)
-    rs = 0.173
+    phi = st['phase'] + st['stem_slot'] * 2 * np.pi / 3
+    rs = 0.5 * (st['slot_r_out'] + st['r_lip_in'])
     prof = [(af - 0.012, 0.0), (af - 0.012, 0.0045), (af + 0.006, 0.0045), (af + 0.010, 0.0035), (af + 0.011, 0.0)]
     Vs, Fs, Ns = _lathe(prof, 10)
     Vs = Vs + np.array([0.0, rs * np.cos(phi), rs * np.sin(phi)])

@@ -24,7 +24,7 @@ import saab9000_badges as BADGE
 
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(car90.ASSETS, 'car_hero.glb')
 RES = float(sys.argv[2]) if len(sys.argv) > 2 else 0.0068
-TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 24500
+TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 26000
 
 L2 = 2.3805
 S_FA, S_RA, RT = TR.S_FA, TR.S_RA, 0.316
@@ -127,7 +127,29 @@ P = dict(
     roof_crown=0.035, k_roof=0.06, k_ws=0.045, k_bl=0.045, k_belt=0.025, k_well=0.012,
     wells=[(S_FA, RT, 0.365, 0.48), (S_RA, RT, 0.350, 0.48)],
 )
-_B = Body(P)
+class HeroBody(Body):
+    """Body with a wide, smooth blend between the quarter panel and the C-pillar behind the rear door (v2.3): the union
+    radius grows from k_belt at the rear door to K_C at the C-pillar, so the pillar flows into the quarter as one
+    continuous surface instead of sitting on a shoulder step (director's markup on v2.2)."""
+    K_C = 0.15
+    def _k(self, s):
+        t = np.clip((s - (-1.05)) / (-1.50 - (-1.05)), 0, 1)
+        t = t * t * (3 - 2 * t)                                  # smoothstep: no slope kink where the blend settles
+        return self.P['k_belt'] + (self.K_C - self.P['k_belt']) * t
+    @staticmethod
+    def _smin(a, b, k):
+        h = np.maximum(k - np.abs(a - b), 0.0) / k
+        return np.minimum(a, b) - h * h * k * 0.25
+    def outer(self, x, s, z):
+        ax = np.abs(x)
+        return self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s))
+    def field(self, x, s, z):
+        from carlib import smax as _smax
+        ax = np.abs(x)
+        d = self._smin(self.lower(ax, s, z), self.greenhouse(ax, s, z), self._k(s))
+        return _smax(d, -self.wells(ax, s, z), self.P['k_well'])
+
+_B = HeroBody(P)
 REAR.TAIL_PROFILE = _B.c['Lr']
 
 HL = (0.335, 0.665, 0.566, 0.664)      # slim rectangular headlamps under the bonnet edge
@@ -149,7 +171,7 @@ def hatch_side_fn(V, N):
     x, s, z = V[:, 0], V[:, 1], V[:, 2]
     zl = np.interp(-s, -_hl[:, 0], _hl[:, 1])
     # continuous (no hard domain edges, which made the refinement run away): bounded by the roof's rear edge and the spoiler
-    return np.maximum.reduce([(zl - 0.010) - z, s + 0.99, -2.03 - s, 0.35 - np.abs(x)])
+    return np.maximum.reduce([(zl - 0.040) - z, s + 0.99, -2.03 - s, 0.35 - np.abs(x)])   # band ~4 cm down the side (04)
 
 def lid_fn(V, N):
     """Hatch: from the roof's rear edge down the glass, then between the outer lamps to the bumper top."""
@@ -213,7 +235,7 @@ rear_cuts, rear_labels, rear_rules = REAR.cuts_labels_rules(
     lambda inside, dom, plane='front', rnd=0.012, mirror=True: car90_plane_fn(inside, dom, rnd, mirror), car90.MaskSDF)
 
 C = dict(
-    name='car_hero', P=P, BOUNDS=((-0.93, -L2 - 0.03, 0.15), (0.93, L2 + 0.03, 1.44)), res=RES, body_target=TARGET,
+    name='car_hero', P=P, body_cls=HeroBody, BOUNDS=((-0.93, -L2 - 0.03, 0.15), (0.93, L2 + 0.03, 1.44)), res=RES, body_target=TARGET,
     clad_cut=False, max_edge=0.12, well_offsets=[0.004, 0.012], S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.2032, TYRE_W=0.205, X_W=0.767,
     paint=(0.462, 0.466, 0.472), paint_metal=0.75, paint_rough=0.25,
     interior_color=(0.045, 0.043, 0.041),
