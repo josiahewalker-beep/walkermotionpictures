@@ -71,26 +71,32 @@ def cuts_labels_rules(plane_fn, MaskSDF):
     return cuts, labels, rules
 
 # ------------------------------------------------------------------------------------------------ add-on parts
+TAIL_CORNER = None                       # (corner, pow, half_w): the tail's plan rounding, set by the car config
+
 def aero_spoiler(parts, B, f, L):
-    """Black Aero blade sitting on the hatch at the base of the glass: a wedge section (thin leading edge on the hatch,
-    thick trailing edge just past the tail face, upper surface rising rearward), ~0.055 m tall seen from behind, full
-    width with the ends dropping into body-colour end caps."""
+    """Black Aero blade sitting low on the hatch at the base of the glass (v2.5, measured on 04 in the matched camera):
+    trailing edge only ~1 cm past the tail face all the way across (it follows the hatch corner's plan curve, so the
+    ends no longer overhang the rounded corners), ~2 cm of blade showing above the deck, seated ~1 cm lower than v2.4;
+    full width with the ends dropping into body-colour end caps that follow the hatch corner."""
     h = D.ray_hit(f, (0.0, -2.10, 2.0), (0, 0, -1), tmax=1.5)
-    zd = h[2] if h is not None else 1.045
-    s_le, s_te = -2.020, -2.262          # leading / trailing edge
+    zd = (h[2] if h is not None else 1.045) - 0.010
+    s_le = -2.020
+    corner, cpow, hw = TAIL_CORNER
+    s_te0 = TAIL_PROFILE(zd + 0.01) - 0.012           # centre trailing edge: 1.2 cm behind the tail face
     half = 0.725
     def fld(x, s, z):
         ax = np.abs(x)
+        s_te = s_te0 + corner * (np.minimum(ax, half) / hw) ** cpow
         drop = 0.030 * np.clip((ax - 0.62) / (half - 0.62), 0, 1) ** 2
         zz = z + drop
         t = np.clip((s_le - s) / (s_le - s_te), 0, 1)           # 0 at the leading edge -> 1 at the trailing edge
         z_bot = zd - 0.010 + 0.006 * t
-        z_top = zd + 0.006 + 0.036 * t ** 0.8                   # upper surface rises rearward
+        z_top = zd + 0.004 + 0.016 * t ** 0.8                   # upper surface rises gently rearward
         d_v = np.maximum(z_bot - zz, zz - z_top)
         d_s = np.maximum(s - s_le, s_te - s)
-        d = smax(d_v, d_s, 0.008)
+        d = smax(d_v, d_s, 0.006)
         return smax(d, ax - half, 0.02)
-    V, F, N = D.mc_small(fld, (-0.80, s_te - 0.04, zd - 0.06), (0.80, s_le + 0.04, zd + 0.09), 0.0045, 3600)
+    V, F, N = D.mc_small(fld, (-0.80, s_te0 - 0.04, zd - 0.06), (0.80, s_le + 0.04, zd + 0.07), 0.0045, 3600)
     fc = V[F].mean(1)
     cap = np.abs(fc[:, 0]) > half - 0.05
     parts.add('body', V, F[~cap], 'trim_black', N=N, COL=np.c_[np.full((len(V), 3), 0.7), np.ones(len(V))])

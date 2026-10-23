@@ -153,6 +153,7 @@ class HeroBody(Body):
 
 _B = HeroBody(P)
 REAR.TAIL_PROFILE = _B.c['Lr']
+REAR.TAIL_CORNER = (P['tail_corner'], P['tail_pow'], P['half_w'])
 
 HL = (0.335, 0.665, 0.566, 0.664)      # slim rectangular headlamps under the bonnet edge
 B_S = float(_b_hi[0, 0])
