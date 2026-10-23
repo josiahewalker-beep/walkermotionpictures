@@ -1518,6 +1518,10 @@ for (const k in cards) wireMail(cards[k].el, cards[k], k);
 
   // a video in the player takes the sound; the radio comes back when it closes
   // a video playing takes the sound: the radio fades out, and fades back in when the video stops or closes
+  // stop the radio when the page is hidden or closed (a closed tab or app pane can keep a page alive, playing to no one)
+  const hush = () => { try { if (audio && !audio.paused) audio.pause(); } catch (e) {} };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hush(); });
+  addEventListener('pagehide', hush); addEventListener('blur', () => { if (document.hidden) hush(); });
   window.__radio = { get audio() { return audio; }, get webAudio() { return audio === aW; }, get level() { return level(); }, tune, duck(on) { if (on) { if (!audio.paused && !ducked) { ducked = true; fadeTo(0, 700, () => { if (ducked) audio.pause(); }); } } else if (ducked) { ducked = false; if (!userPaused) start(); } }, get current() { return current; } };
   // first spin once the stops have faded in
   setTimeout(tune, still ? 300 : 1500);                 // spins as the globe fades in
