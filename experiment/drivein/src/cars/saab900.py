@@ -18,7 +18,7 @@ TARGET = int(sys.argv[3]) if len(sys.argv) > 3 else 5000
 # 900 three-door: L 4.69, W 1.69, H 1.42, wheelbase 2.517, 195/60 R15
 HALF_L = 2.31
 S_FA, S_RA, RT = 1.27, -1.247, 0.3075
-BELT = 0.85
+BELT = 0.83
 WELL_R = 0.365
 ZA = RT + 0.01
 BUMP = (0.405, 0.555)          # black bumper band (z)
@@ -46,13 +46,13 @@ P = dict(
     half_w=0.845,
     curves=dict(
         W=[(HALF_L, 0.70), (2.28, 0.80), (2.10, 0.835), (1.6, 0.845), (0.0, 0.845), (-1.8, 0.845), (-2.20, 0.83), (-HALF_L, 0.79)],
-        Ztop=[(HALF_L, 0.69), (2.25, 0.725), (2.0, 0.76), (1.5, 0.80), (1.0, 0.84), (0.6, 0.865), (0.0, 0.88), (-1.0, 0.90),
-              (-1.8, 0.94), (-2.2, 0.98), (-HALF_L, 0.97)],
+        Ztop=[(HALF_L, 0.67), (2.25, 0.70), (2.0, 0.735), (1.5, 0.785), (1.0, 0.82), (0.6, 0.84), (0.0, 0.85), (-1.0, 0.87),
+              (-1.8, 0.92), (-2.2, 0.97), (-HALF_L, 0.96)],
         fender=[(HALF_L, 0.0), (2.0, 0.006), (1.0, 0.006), (0.6, 0.0), (-HALF_L, 0.0)],
         Zbot=[(HALF_L, 0.25), (2.27, 0.165), (1.9, 0.16), (0.0, 0.175), (-1.9, 0.18), (-2.25, 0.20), (-HALF_L, 0.27)],
         Lf=[(0.14, 2.21), (0.20, 2.27), (0.32, 2.30), (0.46, 2.31), (0.56, 2.27), (0.64, 2.245), (0.70, 2.21), (0.74, 2.12), (0.78, 1.92)],
         Lr=[(0.18, -2.24), (0.24, -2.29), (0.36, -2.305), (0.50, -2.31), (0.60, -2.28), (0.85, -2.27), (0.98, -2.24), (1.03, -2.16), (1.08, -1.95)],
-        crease_z=[(2.3, 0.70), (1.0, 0.77), (0.0, 0.79), (-2.3, 0.82)],
+        crease_z=[(2.3, 0.70), (1.0, 0.75), (0.0, 0.77), (-2.3, 0.80)],
         crease2_z=[(2.3, 0.37), (-2.3, 0.37)],
         Wg=[(1.0, 0.66), (0.6, 0.73), (0.2, 0.755), (-0.8, 0.755), (-1.6, 0.74), (-2.1, 0.69), (-2.3, 0.62)],
         Zroof=[(1.0, 0.92), (0.5, 1.25), (0.2, 1.375), (0.0, 1.405), (-0.5, 1.42), (-0.9, 1.415), (-1.2, 1.37), (-2.0, 1.05), (-2.3, 0.98)],
@@ -64,7 +64,7 @@ P = dict(
     nose_corner=0.24, nose_pow=2.8, tail_corner=0.12, tail_pow=3.0,
     k_shoulder=0.06, k_nose=0.05, k_tail=0.05, k_bottom=0.05, normal_blur=0.025,
     belt=BELT, tumble=0.13, tumble2=0.18,
-    ws_line=((0.64, 0.85), (0.10, 1.395)), ws_wrap=0.32, ws_bulge=0.02,
+    ws_line=((0.68, 0.83), (0.16, 1.40)), ws_wrap=0.22, ws_bulge=0.02,
     bl_line=((-2.19, 0.99), (-1.08, 1.41)), bl_wrap=0.06,
     roof_crown=0.035, k_roof=0.06, k_ws=0.045, k_bl=0.05, k_belt=0.03, k_well=0.012,
     wells=[(S_FA, ZA, WELL_R, 0.48), (S_RA, ZA, WELL_R, 0.48)],
@@ -85,29 +85,29 @@ def sunroof(parts, B, f, L):
     if len(path) > 4:
         D.strip_along(parts, np.array(path + [path[0]]), 0.004, 'trim_black', n_seg=4, col=(0.3, 0.3, 0.3))
 
-HL = (0.37, 0.735, 0.565, 0.685)
+HL = (0.37, 0.735, 0.55, 0.665)
 C = dict(
     lod=0.4, name='car_saab900', P=P, BOUNDS=((-0.90, -2.40, 0.12), (0.90, 2.40, 1.46)), res=RES, body_target=TARGET,
     field_mod=field_mod, doors=2, fd1=lambda Z: np.full_like(Z, -0.47),
     S_FA=S_FA, S_RA=S_RA, R_TYRE=RT, R_BEAD=0.19, TYRE_W=0.195, X_W=0.715,
-    paint=car90.lin((178, 24, 36)), paint_metal=0.0, paint_rough=0.30, interior_color=(0.05, 0.047, 0.045),
+    paint=car90.lin((186, 28, 40)), paint_metal=0.0, paint_rough=0.30, interior_color=(0.05, 0.047, 0.045),
     dlo_rear=lambda Z, c_s: -1.42 + 0.70 * (Z - BELT), top_off=0.05, a_off=0.06,
     pillars=[(-0.50, 0.028, -0.03)], b_s=-0.47, b_slant=-0.03, fd0=0.64, sill=0.39,
-    ws_dom=0.15, ws_ztop=1.345, ws_side=0.075, bl_dom=-0.95, bl_zlo=1.02, bl_ztop=1.355, bl_side=0.10, dlo_bot=0.03,
-    hood=(0.66, 1.3, 0.695), lid=(-1.02, 0.64, 0.60), rear_dom=0.62,
+    ws_dom=-0.35, ws_ztop=1.345, ws_side=0.075, bl_dom=-0.95, bl_zlo=1.02, bl_ztop=1.355, bl_side=0.10, dlo_bot=0.03,
+    hood=(0.66, 1.3, 0.675), lid=(-1.02, 0.64, 0.575), rear_dom=0.62,
     head=HL, corner=(HL[1] + 0.012, 2.0, HL[2], HL[3]), corner_s=0.70, head_rnd=0.012,
-    grille=(0.33, 0.57, 0.678), grille_bars=3, grille_sur_mat='trim_black', bar_mat='trim_black', lower_intake=(0.44, 0.24, 0.355),
-    tail=(0.25, 0.605, 0.80), tail_s=-2.22, tail_panel=False, reverse=(0.26, 0.36, 0.62, 0.68), rplate=0.712,
+    grille=(0.33, 0.555, 0.658), grille_bars=3, grille_sur_mat='trim_black', bar_mat='trim_black', lower_intake=(0.44, 0.24, 0.355),
+    tail=(0.215, 0.585, 0.815), tail_s=-2.22, tail_panel=False, reverse=(0.225, 0.33, 0.60, 0.67), rplate=0.712,
     handles=[-0.33], handle_z=BELT - 0.06, markers=((S_FA - 0.52, 0.66), (-9.0, 0.0)), fuel=(S_RA - 0.50, 0.78),
-    rub=(lambda s: np.full_like(s, 0.49), 0.024),
+    rub=(lambda s: np.full_like(s, 0.43), 0.025),
     clad=lambda s: BUMP[1] * _ends(s), arch_lip=0.0,
     extra_labels={'airdam': dict(mat='paint', depth=0.0)},
-    extra_rules=[('airdam', lambda fm: (fm['lower'] < 0) & (fm['c'][:, 2] < BUMP[0] - 0.004) & (fm['well'] > 0.004)
+    extra_rules=[('airdam', lambda fm: (fm['lower'] < 0) & (fm['rub'] > 0) & (fm['c'][:, 2] < 0.43) & (fm['well'] > 0.004)
                   & (fm['n'][:, 2] > -0.55))], rub_raise=0.0,
     antenna=False, rear_wiper=1.06, mirror_scale=0.85, mirror_dz=0.06,
     exhaust=(0.42, S_RA - 0.9, 0.22),
     extras=[sunroof],
-    interior=dict(seat_s=-0.12, seat_x=0.36, floor=0.30, dash_s=0.62, dash_z=0.84, dash_w=0.70, wheel_s=0.33, hip_z=0.48,
+    interior=dict(seat_s=-0.12, seat_x=0.36, floor=0.30, dash_s=0.62, dash_z=0.82, dash_w=0.70, wheel_s=0.33, hip_z=0.48,
                   seat_h=0.60, rear_seats=True, rear_s=-1.0, cabin_bounds=((-0.76, -1.95, 0.30), (0.76, 0.70, 1.38)),
                   glass_band=(BELT + 0.02, 1.33)),
     wheel=dict(type='saab3', rim=dict(r_lip=0.200, r_barrel=0.180, width=0.16, a_face=0.050, dish=0.018, thick=0.010,

@@ -399,7 +399,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       spill.forEach((s, i) => { if (!s.rest) { s.v.y += -9.8 * K * dt; s.p.addScaledVector(s.v, dt); const gy = groundAt(s.p) + 0.008 * K; if (s.p.y <= gy) { s.p.y = gy; if (Math.abs(s.v.y) > 0.5 * K) { s.v.y *= -0.25; s.v.x *= 0.5; s.v.z *= 0.5; } else s.rest = true; } s.r += dt * 9; }
         kernels.setMatrixAt(i, m4.compose(s.p, q.setFromEuler(new THREE.Euler(s.r, s.r * 0.7, 0)), one)); }); kernels.instanceMatrix.needsUpdate = true; }
     // 10 s: a mouse runs in from the left to the spill, stops, sits and nibbles
-    if (!mouseRun && t >= 10 && spill.length) { const target = spill[0].p.clone().add(outward().multiplyScalar(-0.05 * K)); const camRight = new THREE.Vector3().subVectors(shot.look, shot.pos).setY(0).normalize(); camRight.set(-camRight.z, 0, camRight.x);
+    if (!mouseRun && t >= 10 && spill.length) { const target = bucketGroup.position.clone().addScaledVector(camLeft(), 0.5 * K).addScaledVector(outward(), 0.15 * K); /* beside the spill, screen-left of the bucket, in clear view */ const camRight = new THREE.Vector3().subVectors(shot.look, shot.pos).setY(0).normalize(); camRight.set(-camRight.z, 0, camRight.x);
       const start = target.clone().addScaledVector(camRight, -5.5 * K).add(new THREE.Vector3(0, 0, 0.4 * K)); mouseRun = { t0: t, start, target, dur: 3.6 }; mouse.visible = true; }
     if (mouseRun) { const u = (t - mouseRun.t0) / mouseRun.dur, P0 = mouseRun.start, P1 = mouseRun.target;
       const stopAt = [0.36, 0.7], pauses = stopAt.map(s => smooth(s - 0.04, s, u) * (1 - smooth(s + 0.05, s + 0.1, u)));
