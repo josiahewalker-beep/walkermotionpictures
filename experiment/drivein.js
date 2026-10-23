@@ -5,9 +5,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { setupRenderer, makeComposer } from './desert/render.js?v=20261023c';
-import { prepAsset, instance, upgradeMaterial } from './desert/assets.js?v=20261023c';
-import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023c';
+import { setupRenderer, makeComposer } from './desert/render.js?v=20261023d';
+import { prepAsset, instance, upgradeMaterial } from './desert/assets.js?v=20261023d';
+import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023d';
 
 export const SCREEN_FACE = { w: 1120, h: 645 };          // the Work slide in px at its reference layout
 export const REF_ASPECT = 16 / 9;
@@ -291,7 +291,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
       sh.fragmentShader = 'uniform vec3 uMoonW; uniform vec3 uRimC; uniform float uRimK;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>',
         `#include <emissivemap_fragment>
          { vec3 Vv = normalize( vViewPosition ); vec3 Mv = normalize( ( viewMatrix * vec4( uMoonW, 0.0 ) ).xyz );
-           float back = smoothstep( 0.05, 0.75, dot( -Vv, Mv ) ), edge = pow( 1.0 - abs( dot( normalize( normal ), Vv ) ), 2.2 );
+           float back = smoothstep( 0.05, 0.75, dot( -Vv, Mv ) ), edge = pow( clamp( 1.0 - abs( dot( normalize( normal + vec3( 0.0, 1e-6, 0.0 ) ), Vv ) ), 0.0, 1.0 ), 2.2 );   // clamp: Apple GPUs give NaN for pow of a tiny negative
            totalEmissiveRadiance += uRimC * uRimK * back * edge; }`); };
     const pk = m.customProgramCacheKey ? m.customProgramCacheKey.bind(m) : () => ''; m.customProgramCacheKey = () => pk() + '|rim' + k; return m; }
   // pines: needle cards have random normals, so a normal-based rim lights the whole crown. Rim them by crown shape instead:
@@ -318,7 +318,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
           .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
            float crOuter = smoothstep( 0.45, 1.0, vCrO ), crEdge = smoothstep( 0.8, 1.15, vCrO );
            { vec3 V = normalize( cameraPosition - vCrW ), Rd = normalize( vCrR + vec3( 1e-5 ) );
-             float sil = 1.0 - abs( dot( Rd, normalize( vec3( V.x, 0.0, V.z ) ) ) );
+             float sil = clamp( 1.0 - abs( dot( Rd, normalize( vec3( V.x, 1e-5, V.z ) ) ) ), 0.0, 1.0 );
              float side = 0.5 + 0.5 * dot( Rd, normalize( vec3( uMoonW.x, 0.0, uMoonW.z ) ) );
              float top = smoothstep( 0.72, 1.0, vCrH );
              totalEmissiveRadiance += uRimC * uRimK * crEdge * ( pow( sil, uCrP ) * ( 0.2 + 0.8 * side ) + 0.4 * top * side ); }`)
