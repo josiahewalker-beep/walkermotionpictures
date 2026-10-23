@@ -1530,7 +1530,7 @@ window.__wmp = { lens(f) { camera.fov = f; camera.updateProjectionMatrix(); }, s
 // desert billboard audition (experiment only): #desert loads the blockout; __wmp.shot parks the camera on an exact framing
 window.__wmp.lookAt = () => lookNow(); window.__wmp.fov = () => camera.fov;
 window.__wmp.shot = (p, l, f) => { flight = null; cam.pos.copy(p); cam.look.copy(l); camera.fov = f; camera.updateProjectionMatrix(); current = 'hero'; };
-if (DESERT_ON) import('./desert.js?v=20261023b').then(m => {
+if (DESERT_ON) import('./desert.js?v=20261023c').then(m => {
   const D = window.__desert = m.makeDesert({ scene, cssCards: cards, camera, renderer: gl, clear: window.__clear || m.HERO_SHOT.clear, gridFade: v => { WARP.uFade.value = v; },
     gridDes: (r, amp, glow, o) => { WARP.uDesR.value = r; WARP.uDesAmp.value = amp; WARP.uDesGlow.value = glow; WARP.uDesO.value.copy(o); } });
   if (window.__desertManualClock) D.clock.manual = true;
@@ -1545,7 +1545,7 @@ if (DESERT_ON) import('./desert.js?v=20261023b').then(m => {
   D.prepareHero(shot, style); WORLDS.hero = D;
 });
 // the drive-in (Josiah 10-22): the Work slide is the screen. Same guard: the world is built for the slide at 1120 x 645 px.
-if (DESERT_ON && !/nodrivein/.test(location.hash)) import('./drivein.js?v=20261023b').then(m => {
+if (DESERT_ON && !/nodrivein/.test(location.hash)) import('./drivein.js?v=20261023c').then(m => {
   const we = cards.work.el, ok = Math.abs(we.offsetWidth - m.SCREEN_FACE.w) <= 2 && Math.abs(we.offsetHeight - m.SCREEN_FACE.h) <= 2;
   if (!ok) { console.warn('[guard] Work slide is', we.offsetWidth, 'x', we.offsetHeight, 'but the drive-in screen is', m.SCREEN_FACE.w, 'x', m.SCREEN_FACE.h, '- drive-in off'); return; }
   const DI = window.__drivein = m.makeDriveIn({ scene, cssCards: cards, cardId: 'work', camera, renderer: gl, gridFade: v => { WARP.uFade.value = v; },

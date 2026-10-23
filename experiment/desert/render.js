@@ -68,10 +68,14 @@ export function makeComposer(renderer, scene, camera) {
   if (!window.__noBloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
   const finish = new ShaderPass(FinishShader); composer.addPass(finish);
-  const resize = () => { renderer.getSize(size); composer.setSize(size.x, size.y); ao.setSize(Math.round(size.x * PR), Math.round(size.y * PR)); };
-  addEventListener('resize', resize);
+  // keep every buffer at the canvas's current drawing size. EffectComposer.setSize sizes each pass (AO and bloom included)
+  // at width x pixel ratio; sizing a pass by hand, or only on window 'resize', left the AO pass at a different size from
+  // the rest after the canvas changed, and on a 2x screen part of the landed frame went black (10-23)
+  let lw = size.x, lh = size.y, lpr = PR;
+  const sync = () => { renderer.getSize(size); const pr = Math.min(renderer.getPixelRatio(), 1.5);
+    if (size.x !== lw || size.y !== lh || pr !== lpr) { lw = size.x; lh = size.y; lpr = pr; composer.setPixelRatio(pr); composer.setSize(size.x, size.y); } };
   let t = 0;
   return {
-    render(dt, k = 1) { t += dt; finish.uniforms.uTime.value = t % 100; finish.uniforms.uK.value = k; ao.configuration.intensity = 2.2 * k; bloom.strength = 0.22 * k; composer.render(dt); },
+    render(dt, k = 1) { sync(); t += dt; finish.uniforms.uTime.value = t % 100; finish.uniforms.uK.value = k; ao.configuration.intensity = 2.2 * k; bloom.strength = 0.22 * k; composer.render(dt); },
   };
 }
