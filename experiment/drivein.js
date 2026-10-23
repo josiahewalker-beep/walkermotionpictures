@@ -5,9 +5,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { setupRenderer, makeComposer } from './desert/render.js';
-import { prepAsset, instance, upgradeMaterial } from './desert/assets.js';
-import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js';
+import { setupRenderer, makeComposer } from './desert/render.js?v=20261023b';
+import { prepAsset, instance, upgradeMaterial } from './desert/assets.js?v=20261023b';
+import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023b';
 
 export const SCREEN_FACE = { w: 1120, h: 645 };          // the Work slide in px at its reference layout
 export const REF_ASPECT = 16 / 9;
@@ -298,9 +298,9 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
   // bright only at the outer silhouette fringe (and the tip), interior dark, so they read backlit against the moon sky.
   function crownOn(tpl, k) { tpl.updateMatrixWorld(true);
     tpl.traverse(o => { if (!o.isMesh) return;
-      if (!/^(needles|leaf)/.test((o.material.name || '').toLowerCase())) {   // bark etc.: same bloom-in as the crown
+      if (!/^(needles|leaf)/.test((o.material.name || '').toLowerCase())) {   // bark etc.: rises out of its tile like the desert's Joshua trees (standard build path)
         const src = o.material, m = src.clone(); m.name = src.name; m.onBeforeCompile = src.onBeforeCompile; const pk1 = src.customProgramCacheKey ? src.customProgramCacheKey.bind(src) : () => '';
-        m.customProgramCacheKey = () => pk1() + '|bloom'; m.defines = Object.assign({}, src.defines, { REV_BLOOM: '' }); o.material = m; return; }
+        m.customProgramCacheKey = () => pk1() + '|pine'; o.material = m; return; }
       o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox;
       const cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2, R = Math.max(b.max.x - cx, b.max.z - cz), cr = new THREE.Vector3(R, b.min.y, b.max.y), cc = new THREE.Vector2(cx, cz);
       const src = o.material, m = src.clone(); m.name = src.name; const prev = src.onBeforeCompile; const pk0 = src.customProgramCacheKey ? src.customProgramCacheKey.bind(src) : () => '';   // clone() drops onBeforeCompile: keep the reveal/rim hooks from the source
@@ -324,7 +324,7 @@ export function makeDriveIn({ scene, cssCards, cardId = 'work', camera, renderer
              totalEmissiveRadiance += uRimC * uRimK * crEdge * ( pow( sil, uCrP ) * ( 0.2 + 0.8 * side ) + 0.4 * top * side ); }`)
           .replace('#include <aomap_fragment>', `reflectedLight.directDiffuse *= mix( 0.15, 0.7, crOuter ); reflectedLight.indirectDiffuse *= mix( 0.3, 0.8, crOuter ); reflectedLight.directSpecular *= 0.05 * crOuter; reflectedLight.indirectSpecular *= 0.1;
            #include <aomap_fragment>`); };
-      m.defines = Object.assign({}, src.defines, { REV_BLOOM: '' }); m.customProgramCacheKey = () => pk0() + '|bloom|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
+      m.customProgramCacheKey = () => pk0() + '|crown' + R.toFixed(2) + b.min.y.toFixed(2) + b.max.y.toFixed(2);
       o.material = m; }); return tpl; }
   const rimFor = n => /^(needles|leaf)/.test(n) ? 0 : /^fur/.test(n) ? 0.7 :/^bark/.test(n) ? 0.06 : /^(wood|steel|paint_peeling|concrete)/.test(n) ? 0.35 : 0;
   const place = (tpl, pos, ry = 0, s = 1) => { const o = tpl.clone(true); o.scale.setScalar(K * s); o.position.copy(pos); o.rotation.y = ry; return o; };
