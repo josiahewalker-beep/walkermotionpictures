@@ -317,3 +317,6 @@ hero's invented-make chrome "SOB" wordmark on the hatch (DejaVu Sans Bold capita
 - Files are meshopt-compressed and quantized (gltfpack 0.22 `-cc -kn -km`, like the desert assets): load with
   `GLTFLoader.setMeshoptDecoder(MeshoptDecoder)`. Named nodes keep their transforms; each mesh sits on an unnamed child
   node carrying the dequantization transform, so address parts by the named parent (`body`, `wheel_FL`, ...).
+
+### car_saab900 v2 (2026-10-23, coordinator note)
+Rebuilt from traced outlines drawn from published dimensions (no photos available): `src/cars/saab900_profile.py`. 91,997 tris (over the 60k background budget; accepted for now since the scene is pine-dominated), 0.64 MB, 1.84 × 1.41 × 4.81 m. Upright A-pillar, slim headlamp band, SPG air dam/skirts/valance, hatch lip spoiler. Known: slightly jagged lower edge of the rear bumper up close; wheels follow the SPG spec, not verified against the film. v1 kept as `car_saab900_v1.glb`.
