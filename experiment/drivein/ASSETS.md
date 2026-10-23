@@ -228,8 +228,9 @@ outline against the moonlit sky; `feather` is double-sided.
 ## CARS (cars thread, 2026-10-22)
 Generators: `src/cars/` — `car90.py` (shared 1990s car generator: implicit body field → marching cubes → Blender decimate →
 adaptive edge refinement for thin features → exact level-set cuts → labelled insets → details → GLB → `gltfpack -cc -kn -km`),
-one config file per car (`hero.py`, `wagon.py`, `sedan_a.py`, `suv.py`, `sedan_b.py`), `wheels90.py` (wheel covers / steel /
-alloy), `speaker_post.py`; shared code adapted from `../desert/src/cars/` (`carlib.py`, `body.py`, `surfops.py`, `details.py`,
+one config file per car (`saab9000.py` = the hero, `wagon.py`, `sedan_a.py`, `suv.py`, `sedan_b.py`), `wheels90.py` (wheel covers / steel /
+alloy / `custom`), `wheels_saab.py` (the hero's 3-spoke Super Aero alloy), `speaker_post.py`; `hero.py` is the retired red sedan
+(now writes `car_hero_old.glb`, kept for comparison); shared code adapted from `../desert/src/cars/` (`carlib.py`, `body.py`, `surfops.py`, `details.py`,
 `wheels.py`, `interior.py`, `blendout.py`, `carbuild.py`). Rebuild everything under the lock: `sh src/cars/build_all.sh`
 (~30 s per car; gltfpack is found via `$GLTFPACK`, default the npm copy in the session scratchpad, else on PATH; without it the
 GLB is written uncompressed). `pickup_wip.py` is an unfinished compact pickup (not exported to assets). All geometry and textures are
@@ -251,7 +252,7 @@ procedural and original: no badges, no logos, plates are blank (border + plain c
 
 | asset | look | size L × W × H (m) | tris total (body / each wheel) | file |
 |---|---|---|---|---|
-| `car_hero.glb` | rust-red mid-size sedan, soft aero shape, slotted wheel covers, black rub strip, fixed fender antenna | 4.91 × 1.88 (1.80 body) × 1.40 (1.62 to antenna tip), wb 2.74 | 148,514 (body ~119k, each wheel ~7.7k) | 0.92 MB |
+| `car_hero.glb` | silver 1994–98 Saab 9000 Aero 5-door (CS/CSE body): Aero kit (deep front spoiler with intake + fog lamps, side skirts, rear valance, dark hatch-lid spoiler), black rub strip round the car, black window frames and B-pillar, wraparound hatch glass seen from the side, full-width tail lamp band with smoked centre, 3-spoke Super Aero 16" alloys, 205/55R16. No badges/lettering; blank plate | 4.78 × 1.90 (mirrors; 1.78 body) × 1.41, wb 2.672, track 1.534 | 152,887 after gltfpack (156,630 raw: body 114,662, each wheel 10,492) | 0.91 MB |
 | `car_wagon.glb` | forest-green full-size wagon, chrome grille, roof rack, upright tailgate, vertical tail lamps | 5.33 × 2.07 (mirrors) × 1.53 (roof rack), wb 2.94 | ≈58,800 (60,181 before gltfpack dedup) | 0.48 MB |
 | `car_sedan_a.glb` | mustard-gold compact notchback, chrome rub strip, bottle-cap wheel covers | 4.55 × 1.81 × 1.37, wb 2.62 | 49,633 | 0.41 MB |
 | `car_suv.glb` | cream/tan boxy 4-door SUV, black lower two-tone + arch lips, roof rack, 5-spoke alloys | 4.82 × 2.07 (mirrors) × 1.81, wb 2.84 | 59,947 | 0.50 MB |
@@ -259,13 +260,26 @@ procedural and original: no badges, no logos, plates are blank (border + plain c
 | `car_saab900.glb` | Cherry Red 1987 classic Saab 900 Turbo SPG three-door hatchback (the "Drive My Car" car): wraparound windscreen, tall glasshouse, clamshell bonnet, fastback hatch + lip spoiler, black bumpers/rub strips, body-colour SPG air dam/skirts/valance, sunroof outline, three-spoke 15" alloys; solid (non-metallic) paint. Generator `src/cars/saab900.py` + rims `src/cars/wheels_saab900.py`. Replaces `car_suv.glb` mid-row | 4.70 × 1.84 (mirrors; 1.69 body) × 1.42, wb 2.52 | 58,212 (body ~44k, each wheel ~3.7k) | 0.47 MB |
 | `speaker_post.glb` | steel pipe on a concrete footing, junction head with two hooks, two aluminium window speakers (louvred grille, volume knob, window lip), coiled cords | 0.37 × 0.19 footprint, 1.14 tall | 1,131 | 11 KB |
 
-- Hero, open window: the driver's (left, +X) front door glass is removed; the opening has a 6.5 cm deep black channel all
-  round, whose bottom face is the door's inner window ledge (top at y ≈ 0.957). Through it: driver's seat, steering wheel,
-  dash (all `interior`, dim). Empties (glTF coordinates, metres, relative to the car root):
-  - `bucket_anchor` = (0.745, 0.957, 0.309): top of the ledge, mid-window, mid-thickness. Put the bucket's base here; the
-    ledge is only ~6.5 cm deep, so let the bucket overhang outward (+X) a little.
-  - `ledge_drop` = (1.098, 0.0, 0.259): on the ground 0.35 m outside the door, just behind mid-window (where it lands).
-  - The ledge runs along the window bottom from z ≈ −0.12 (B-pillar) to z ≈ 0.74 (front of the window).
+- Hero (Saab 9000 Aero, `src/cars/saab9000.py`, 2026-10-22; old red sedan kept as `assets/car_hero_old.glb`). Real-car
+  dimensions 4761 × 1778 × 1415 mm, wb 2672, track 1534/1504. Axles at glTF z = +1.455 (front) / −1.217 (rear), hubs at
+  x = ±0.767, y = 0.316. Paint: `paint` base (0.462, 0.466, 0.472) linear, metallic 0.75, roughness 0.25 (Saab silver; nudged
+  a hair cool so it holds silver under the amber key; the amber light still warms it). Rim `rim` (0.70, 0.71, 0.72), metallic,
+  roughness 0.22. Hatch spoiler and roof stop-lamp pod are part of `body` (`trim_black` / `light_rear`). Fuel flap on the
+  passenger (−X) rear quarter; exhaust tip on the driver (+X) side; amber repeater behind the front arch and a red US-spec
+  reflector low on the rear bumper sides. All lamps unlit (no emission).
+- Hero, open window: the driver's (left, +X) front door glass is removed; the opening has a 7.8 cm deep black channel all
+  round, whose bottom face is the door's inner window ledge (top at y ≈ 0.957), with a black felt/rubber strip along its
+  outer and inner lips. Through it: driver's seat, steering wheel, dash (all `interior`, dim). Empties (glTF coordinates,
+  metres, relative to the car root):
+  - `bucket_anchor` = (0.770, 0.957, 0.303): top of the ledge, mid-window, mid-thickness. Put the bucket's base here; the
+    ledge is ~7.8 cm deep, so let the bucket overhang outward (+X) a little.
+  - `ledge_drop` = (1.129, 0.0, 0.253): on the ground 0.35 m outside the door, just behind mid-window (where it lands).
+  - The ledge runs along the window bottom from z ≈ −0.14 (B-pillar) to z ≈ 0.75 (front of the window).
+- Shared-generator hooks added for the hero (other cars unchanged by default): `C['extra_cuts']` (config-specific level-set
+  cuts, used with `extra_labels` / `extra_rules`), `C['mirror_mats']`, `C['clad_cut']=False` (skip the arch-lip cut when
+  there is no lip; with no lip its domain edge inside the wells made the refinement run away), wheel type `custom`
+  (`st['mesh_fn'](target)`). Cap edge length with `max_edge` (0.12 on the hero) so long decimated window triangles cannot
+  jump the thin B-pillar / rub-strip bands.
 - Speaker post: root `speaker_post_root` → mesh `speaker_post`; origin at the base centre on the ground; speakers hang on
   ±X (glTF) of the pipe at y ≈ 0.97–1.09, grilles facing ±X. Materials `steel_weathered`, `aluminium`, `concrete`,
   `trim_black`, `rubber` (COLOR_0 occlusion). Place one post between each pair of cars.
