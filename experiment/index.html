@@ -1,5 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><script>/* desert experiment on wide screens (Josiah 10-22: phones land on the plain slide for now) */
-if (!/nodesert/.test(location.hash) && innerWidth >= 700 && innerWidth > innerHeight) document.documentElement.classList.add('desert-on');</script>
+if (!/nodesert/.test(location.hash) && innerWidth >= 700 && innerWidth > innerHeight) document.documentElement.classList.add('desert-on');
+/* diagnostics: #noao, #nobloom, #nopost switch off parts of the landed post chain to isolate display faults */
+if (/noao/.test(location.hash)) window.__noAO = true; if (/nobloom/.test(location.hash)) window.__noBloom = true; if (/nopost/.test(location.hash)) window.__desertNoPost = true;</script>
 <title>Experiment · Walker Motion Pictures</title>
 <meta name="robots" content="noindex,nofollow">
 <meta name="description" content="Corporate video with a soft spot for fintech and SaaS. Customer stories, company updates and commercials, from a single interview to a full event crew.">
