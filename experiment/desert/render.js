@@ -57,16 +57,18 @@ export function makeComposer(renderer, scene, camera) {
   const size = new THREE.Vector2(); renderer.getSize(size);
   const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
   const composer = new EffectComposer(renderer, rt);
-  composer.setPixelRatio(Math.min(renderer.getPixelRatio(), 1.5));
+  const PR = Math.min(renderer.getPixelRatio(), 1.5); composer.setPixelRatio(PR);
   composer.addPass(new RenderPass(scene, camera));
-  const ao = new N8AOPass(scene, camera, size.x, size.y);
+  // N8AO works in drawing-buffer pixels: give it the composer's pixel size, not the CSS size, or on a 2x screen it covers
+  // only part of the frame and the rest goes black (Retina bug, 10-23)
+  const ao = new N8AOPass(scene, camera, Math.round(size.x * PR), Math.round(size.y * PR));
   Object.assign(ao.configuration, { aoRadius: 2.2 * 108, distanceFalloff: 0.6 * 108, intensity: 2.2, color: new THREE.Color(0x1a0f08), halfRes: false, depthAwareUpsampling: true, gammaCorrection: false, aoSamples: 12, denoiseSamples: 6, denoiseRadius: 10 });
   if (!window.__noAO) composer.addPass(ao);
   const bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.22, 0.55, 0.92);
   if (!window.__noBloom) composer.addPass(bloom);
   composer.addPass(new OutputPass());
   const finish = new ShaderPass(FinishShader); composer.addPass(finish);
-  const resize = () => { renderer.getSize(size); composer.setSize(size.x, size.y); ao.setSize(size.x, size.y); };
+  const resize = () => { renderer.getSize(size); composer.setSize(size.x, size.y); ao.setSize(Math.round(size.x * PR), Math.round(size.y * PR)); };
   addEventListener('resize', resize);
   let t = 0;
   return {
