@@ -34,3 +34,9 @@
 - 10-22 Josiah: the hero car's badging uses an invented make, "SOB" (a nod, not a copy): chrome wordmark on the hatch in plain all-caps block letters, not Saab's lettering. No real Saab badges, wordmarks, model scripts or griffin; bonnet roundel, front plate and wheel caps are blank.
 - 10-22 Josiah (via the render markup page): Saab 9000 Aero — keep the v2 wheel (D-shaped slots; the correct shape), tail lamps as in v2.2 ("perfect"); rear quarter/C-pillar must be one smooth flat sweep with no crease; the dark hatch-glass band shows from the side.
 - 10-22 Josiah: Saab 9000 Aero v2.5 approved ("perfect"): traced from his 1995 Aero photo set, v2 wheel, v2.2 tail corner and lamps, smooth upper rear quarter, hatch-glass band, spoiler seated 1.2 cm past the tail.
+- 10-22 Josiah: lamp pole removed from frame; its warm light kept off frame left.
+- Technical (overnight 10-22/23): the hero Saab's paint is cooled and less metallic in the scene so it reads silver under the
+  amber stand light; the moth's wings face the camera (the model's wings lie flat and showed only their edge) and it glows
+  in the beam; material clones keep the build/reveal shader hook (pines previously floated outside the build); models
+  compressed with meshopt and right-sized textures (~16 MB loaded, was ~40 MB); red 900 SPG v2 traced from published
+  dimensions (no photos available). Shipped to /experiment 10-23; revert point: branch `pre-drivein-2026-10-23`.

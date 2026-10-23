@@ -10,6 +10,10 @@ the camera, the card CSS or the desert hookup on either page.
 - Revert a single file to it: `git fetch origin good-grid-2026-10-22 && git checkout FETCH_HEAD -- index.html` (or
   `experiment/index.html`, `experiment/desert.js`), then commit and push to main. Don't reset main; other sessions push to it.
 
+- Branch `pre-drivein-2026-10-23`: main just before the drive-in world shipped to /experiment. To back the drive-in out,
+  revert the merge commit on main (`git revert -m 1 <merge>`) or check `experiment/` out of this branch; don't reset main.
+- The guard check also checks the Work slide is exactly the drive-in screen (1120 × 645) in desert mode.
+
 ## The rules
 
 1. **The grid canvas shows at exactly the window size.** `#gl { width:100%; height:100%; display:block; }` in both
