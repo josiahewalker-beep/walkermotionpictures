@@ -10,8 +10,8 @@ ST = dict(
     r_lip=0.212,      # outer edge of the lip (sits over the tyre bead)
     r_lip_in=0.180,   # inner edge of the lip, step down into the spoke face
     r_cap=0.072,      # plain centre cap
-    win_r0=0.090, win_r1=0.170,               # radial span of the windows
-    win_w0=np.deg2rad(5.0), win_w1=np.deg2rad(31.0),   # angular half width of a window at r0 / r1
+    win_r0=0.084, win_r1=0.171,               # radial span of the windows
+    win_w0=np.deg2rad(5.0), win_w1=np.deg2rad(35.0),   # angular half width of a window at r0 / r1
     swirl=np.deg2rad(24.0),                    # windows sweep this far around between r0 and r1
     phase=np.deg2rad(90.0),
 )
@@ -35,7 +35,7 @@ def super_aero_field(st=ST):
         bow = 0.10 * np.sin(np.pi * tw)
         d_ang = (np.abs(loc + bow * np.sign(loc) * (loc > 0)) - hw) * np.maximum(r, 0.03)
         d_rad = np.maximum(st['win_r0'] - r, r - st['win_r1'])
-        d_win = smax(d_ang, d_rad, 0.016)
+        d_win = smax(d_ang, d_rad, 0.013)
         d_face = smax(d_face, -d_win, 0.005)
         # polished outer lip: flat ring with rounded edges, a step proud of the spoke face
         d_lip = np.sqrt(np.maximum(np.abs(a - (af - 0.010)) - 0.007, 0) ** 2
