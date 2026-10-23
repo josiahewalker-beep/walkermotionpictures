@@ -5,9 +5,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { setupRenderer, makeComposer } from './desert/render.js?v=20261023c';
-import { prepAsset, instance, upgradeMaterial } from './desert/assets.js?v=20261023c';
-import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023c';
+import { setupRenderer, makeComposer } from './desert/render.js?v=20261023d';
+import { prepAsset, instance, upgradeMaterial } from './desert/assets.js?v=20261023d';
+import { installWorldChunks, REV_UNIFORMS } from './world/chunks.js?v=20261023d';
 
 export const SCREEN_FACE = { w: 1120, h: 645 };          // the Work slide in px at its reference layout
 export const REF_ASPECT = 16 / 9;
