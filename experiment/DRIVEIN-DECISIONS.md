@@ -25,3 +25,12 @@
   (1120 × 645 px) in desert mode, guarded.
 - Technical: assets in `drivein/` to `drivein/ASSETS.md`; three asset threads (cars; pines and ground; screen, booth,
   props and creatures). The integrator is `drivein.js`, sharing the page hookup with the desert.
+- 10-22 Josiah: the dirt lot should feel lived in, with tyre marks and tracks. A truly flat lot was tried and hid the cars
+  under the camera's upward tilt; Josiah chose to keep round 3's ground (gentle rise, hidden lifts) and add the tracks: a
+  90 m overlay drawn in code (worn lanes, the ruts of every car into its spot, old faint arcs) over the fine dirt tile.
+- 10-22 Josiah: no telephone pole / streetlamp in frame. The pole is removed; its warm light stays, moved just off frame left.
+- 10-22 Josiah: the hero car (window down, popcorn bucket) is a silver 1994–98 Saab 9000 Aero 5-door hatchback with the Aero body kit and the Super Aero 3-spoke 16" wheels. Built procedurally from reference; no badges or wordmarks.
+- 10-22 Josiah: the SUV in the middle of the row becomes the red Saab from Drive My Car: a classic Saab 900 SPG (the top trim of the classic 900), 1987 Cherry Red three-door hatchback with the SPG kit and three-spoke wheels. File: assets/car_saab900.glb.
+- 10-22 Josiah: the hero car's badging uses an invented make, "SOB" (a nod, not a copy): chrome wordmark on the hatch in plain all-caps block letters, not Saab's lettering. No real Saab badges, wordmarks, model scripts or griffin; bonnet roundel, front plate and wheel caps are blank.
+- 10-22 Josiah (via the render markup page): Saab 9000 Aero — keep the v2 wheel (D-shaped slots; the correct shape), tail lamps as in v2.2 ("perfect"); rear quarter/C-pillar must be one smooth flat sweep with no crease; the dark hatch-glass band shows from the side.
+- 10-22 Josiah: Saab 9000 Aero v2.5 approved ("perfect"): traced from his 1995 Aero photo set, v2 wheel, v2.2 tail corner and lamps, smooth upper rear quarter, hatch-glass band, spoiler seated 1.2 cm past the tail.

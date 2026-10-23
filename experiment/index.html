@@ -296,6 +296,18 @@ html.desert-on .card[data-id="hero"] .hero .sub { font-size:18px; margin-bottom:
 html.desert-on .card[data-id="hero"] .hero .kick { margin-bottom:22px; }
 html.desert-on .card[data-id="hero"] .chip { margin-bottom:18px; }
 html.desert-on .card[data-id="hero"] .vid .big { font-size:50px; }
+/* the Work slide is the drive-in's screen: same rule, reference layout on every window (1120 x 645 px) */
+html.desert-on .card[data-id="work"] { width:var(--w); padding:34px 34px 30px; }
+html.desert-on .card[data-id="work"] h2 { font-size:44px; margin-bottom:12px; }
+html.desert-on .card[data-id="work"] .chip { margin-bottom:18px; }
+html.desert-on .card[data-id="work"] .work { gap:30px; margin-top:26px; }
+html.desert-on .card[data-id="work"] .work .feat .vid { aspect-ratio:1600/880; }
+html.desert-on .card[data-id="work"] .frames { margin-top:12px; }
+html.desert-on .card[data-id="work"] .frames figcaption { display:block; }
+html.desert-on .card[data-id="work"] .work h3 { font-size:24px; margin-bottom:10px; }
+html.desert-on .card[data-id="work"] .work .logline { font-size:16px; margin-bottom:14px; }
+html.desert-on .card[data-id="work"] .work .meta { margin-bottom:22px; }
+html.desert-on .card[data-id="work"] .vid .big { font-size:50px; }
 
 /* Portfolio selects */
 .sel { margin:24px 0 22px; }
@@ -832,7 +844,7 @@ for (const src of tpl.querySelectorAll('.card')) {
   cards[id] = { obj, el, ring };
   el.addEventListener('click', e => {
     if (moved > 6) return;
-    const v1 = e.target.closest('[data-vid]'); if (v1 && current === id) { openVideo(v1.dataset.vid, v1.dataset.title); return; }
+    const v1 = e.target.closest('[data-vid]'); if (v1 && current === id) { const W = window.__worlds && window.__worlds[id]; if (W && W.inside && W.playOnScreen) { W.playOnScreen(v1.dataset.vid, v1.dataset.title); return; } openVideo(v1.dataset.vid, v1.dataset.title); return; }   // in the drive-in the film plays on the screen
     const go1 = e.target.closest('[data-go]'); if (go1 && current === id) { go(go1.dataset.go); return; }
     if (current !== id) go(id);
   });
@@ -949,19 +961,23 @@ function eyeNow() { return camera.position.clone(); }
 function lookNow() { const d = new THREE.Vector3(); camera.getWorldDirection(d); return camera.position.clone().addScaledVector(d, Math.max(400, cam.pos.distanceTo(cam.look))); }
 
 let desertNext = null;
+const WORLDS = window.__worlds = {};                  // slide id -> world (experiment)
+const activeWorld = () => { for (const id in WORLDS) { const w = WORLDS[id]; if (w && (w.inside || w.flying || w.leaving)) return { id, w }; } return null; };
 function go(id, opt = {}) {
   if (HOLE.active) return;
-  // desert experiment: the first slide is entered by a slow approach into its billboard frame, and left by un-building the world
-  const DS = window.__desert;
-  if (DS && DS.ready) {
-    if (id === 'hero') { if (DS.flying || DS.inside) return;
-      tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; flight = null; mark(null);
-      DS.approachFrom(eyeNow(), lookNow(), camera.fov); current = 'flying'; navState('hero'); return; }
-    if (DS.leaving) { desertNext = id; return; }                  // already pulling back: just retarget
-    if (DS.inside || DS.flying) { window.__desertLock = false;
-      if (DS.leave()) { desertNext = id; current = 'flying'; flight = null; return; }        // pull back up the approach while it un-builds, then fly on
-      if (camera.fov !== BASE_FOV && id !== 'overview') { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } }
+  // slide worlds (experiment): a slide with a world (hero: the desert, work: the drive-in) is entered by a slow approach that
+  // builds the world, and left by pulling back while it un-builds; going from one world to another leaves first, then enters
+  const active = activeWorld(), target = WORLDS[id];
+  if (active && active.w.leaving) { desertNext = id; return; }                      // already pulling back: just retarget
+  if (active && (active.w.inside || active.w.flying)) {
+    if (active.id === id) return;
+    window.__desertLock = false;
+    if (active.w.leave()) { desertNext = id; current = 'flying'; flight = null; return; }   // pull back up the approach while it un-builds, then fly on
+    if (camera.fov !== BASE_FOV && id !== 'overview') { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); }
   }
+  if (target && target.ready) {
+    tYaw = tPitch = yaw = pitch = 0; pan.y = pan.cur = 0; pan.max = 0; flight = null; mark(null);
+    target.approachFrom(eyeNow(), lookNow(), camera.fov); current = 'flying'; navState(id); return; }
   if (id !== 'overview' && !cards[id]) return;
   if (id === current && !flight) return;
   const to = viewFor(id), fromPos = eyeNow(), fromLook = lookNow();
@@ -1176,12 +1192,13 @@ function frame(now) {
     if (trail.material.opacity > 0) headMat.opacity = smooth(0, .08, k) * (1 - smooth(.8, .95, k)); { const hp = flight.path.getPointAt(Math.min(.9995, tt + .06)); if (hp) head.position.copy(hp); }
     if (k >= 1) { const v = viewFor(flight.id); cam.pos.copy(v.pos); cam.look.copy(v.look); if (flight.fov1 != null && camera.fov !== flight.fov1) { camera.fov = flight.fov1; camera.updateProjectionMatrix(); } arrive(flight.id); }
   }
-  if (window.__desert && window.__desert.flying) { const s = window.__desert.flyStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
-    if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
-    if (s.done) { current = 'hero'; mark('hero'); navState('hero'); window.__desertLock = true; } }
-  if (window.__desert && window.__desert.leaving) { const s = window.__desert.leaveStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
-    if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
-    if (s.done) { const id = desertNext || 'overview'; desertNext = null; current = null; if (camera.fov !== BASE_FOV) { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } go(id); } }
+  for (const wid in WORLDS) { const W = WORLDS[wid]; if (!W) continue;
+    if (W.flying) { const s = W.flyStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
+      if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
+      if (s.done) { current = wid; mark(wid); navState(wid); window.__desertLock = true; } }
+    else if (W.leaving) { const s = W.leaveStep(dt); cam.pos.copy(s.pos); cam.look.copy(s.look);
+      if (camera.fov !== s.fov) { camera.fov = s.fov; camera.updateProjectionMatrix(); }
+      if (s.done) { const id = desertNext || 'overview'; desertNext = null; current = null; if (camera.fov !== BASE_FOV) { camera.fov = BASE_FOV; camera.updateProjectionMatrix(); } go(id); } } }
   if (window.__desertLock) { tYaw = tPitch = 0; pan.y = 0; }      // landed in the billboard frame: the camera holds still
   { const k = 1 - Math.exp(-dt * 8); yaw += (tYaw - yaw) * k; pitch += (tPitch - pitch) * k; }
   if (Math.abs(tYaw - yaw) < .004) yaw = tYaw; if (Math.abs(tPitch - pitch) < .004) pitch = tPitch;
@@ -1195,21 +1212,22 @@ function frame(now) {
   // ground rings breathe gently
   const s = 1 + Math.sin(now / 700) * .06; for (const k in cards) cards[k].ring.scale.setScalar(k === current ? s * 1.25 : 1);
   placeCtl(dt); CODE.tick(now); HOLE.tick(now, dt);
-  if (window.__desert) window.__desert.tick(dt);
-  if (!(window.__desert && window.__desert.render(dt))) gl.render(scene, camera); css.render(cssScene, camera);
+  const qaSkip = window.__qaNoRender === true;   // QA: step the state without drawing (headless captures draw only the frames they keep)
+  let drawn = false; for (const wid in WORLDS) { const W = WORLDS[wid]; if (!W) continue; W.tick(dt); if (!qaSkip && !drawn && W.render(dt)) drawn = true; }
+  if (!qaSkip) { if (!drawn) gl.render(scene, camera); css.render(cssScene, camera); }
   requestAnimationFrame(frame);
 }
 function resize() {
   const w = innerWidth, h = innerHeight;
   camera.aspect = w / h; camera.fov = (current === 'overview' || current === 'flying') ? overFov() : BASE_FOV;
-  if (window.__desert && window.__desert.inside && window.__desert.landedFov) camera.fov = window.__desert.landedFov;   // landed in the desert: only the lens follows the window
+  { const a = activeWorld(); if (a && a.w.inside && a.w.landedFov) camera.fov = a.w.landedFov; }   // landed in a world: only the lens follows the window
   camera.updateProjectionMatrix();   // cards: the desktop lens on every screen
   gl.setSize(w, h, false); css.setSize(w, h); setOverview();
   // guard (see GUARDRAILS.md): the grid canvas must show at exactly the window size, or on Retina screens the grid sits
   // crooked and off-centre under the cards. If anything ever breaks the #gl CSS rule, size it here and say so.
   { const r = gl.domElement.getBoundingClientRect(); if (Math.abs(r.width - w) > 1 || Math.abs(r.height - h) > 1) {
     gl.domElement.style.width = w + 'px'; gl.domElement.style.height = h + 'px'; console.warn('[guard] grid canvas was', r.width, 'x', r.height, 'for a', w, 'x', h, 'window; forced to fit'); } }
-  if (!flight && !(window.__desert && (window.__desert.inside || window.__desert.flying))) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
+  if (!flight && !activeWorld()) { const v = viewFor(current === 'flying' ? 'overview' : current); cam.pos.copy(v.pos); cam.look.copy(v.look); }
 }
 addEventListener('resize', resize); resize();
 cam.pos.copy(OVER.pos); cam.look.copy(OVER.look);
@@ -1518,8 +1536,17 @@ if (DESERT_ON) import('./desert.js').then(m => {
     if (!okW || !okH) { console.warn('[guard] intro slide is', he.offsetWidth, 'x', he.offsetHeight, 'but the billboard face is', m.BILLBOARD_FACE.w, 'x', m.BILLBOARD_FACE.h, '- desert off'); window.__desert = null; return; } }
   const shot = m.HERO_SHOT;
   const style = ({ a: 0, b: 1, c: 2 })[(location.hash.match(/desert-([abc])/) || [])[1]] ?? 2;     // build C (cell by cell) is the default
-  D.prepareHero(shot, style);
+  D.prepareHero(shot, style); WORLDS.hero = D;
 });
+// the drive-in (Josiah 10-22): the Work slide is the screen. Same guard: the world is built for the slide at 1120 x 645 px.
+if (DESERT_ON && !/nodrivein/.test(location.hash)) import('./drivein.js').then(m => {
+  const we = cards.work.el, ok = Math.abs(we.offsetWidth - m.SCREEN_FACE.w) <= 2 && Math.abs(we.offsetHeight - m.SCREEN_FACE.h) <= 2;
+  if (!ok) { console.warn('[guard] Work slide is', we.offsetWidth, 'x', we.offsetHeight, 'but the drive-in screen is', m.SCREEN_FACE.w, 'x', m.SCREEN_FACE.h, '- drive-in off'); return; }
+  const DI = window.__drivein = m.makeDriveIn({ scene, cssCards: cards, cardId: 'work', camera, renderer: gl, gridFade: v => { WARP.uFade.value = v; },
+    gridDes: (r, amp, glow, o) => { WARP.uDesR.value = r; WARP.uDesAmp.value = amp; WARP.uDesGlow.value = glow; WARP.uDesO.value.copy(o); } });
+  if (window.__desertManualClock) DI.clock.manual = true;
+  DI.prepare(); WORLDS.work = DI;
+}).catch(e => console.warn('[drivein] failed to load', e));
 </script>
 <script>
 // safety net: if anything stops the opening sequence, show the page anyway
