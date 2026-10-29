@@ -44,7 +44,7 @@ body{background:#FEF9ED;color:#5D5146;font-family:Geist,'Helvetica Neue',Arial,s
       <p class="msg" id="msg" role="status"></p>
       <button id="go" type="submit">Open the proposal</button>
     </form>
-    <p class="note">Each visit is recorded with the email entered.</p>
+    <p class="note">Only @exacare.com emails may enter.</p>
   </div>
 </div>
 <script>
@@ -136,7 +136,7 @@ body{background:#FEF9ED;color:#5D5146;font-family:Geist,'Helvetica Neue',Arial,s
     e.preventDefault();
     const email = $('em').value.trim(), pw = $('pw').value;
     $('msg').style.color = '';
-    if (!DOMAIN.test(email)) { $('msg').textContent = 'Only @exacare.com emails can enter.'; $('em').focus(); return; }
+    if (!DOMAIN.test(email)) { $('msg').textContent = 'Only @exacare.com emails may enter.'; $('em').focus(); return; }
     if (!pw) { $('msg').textContent = 'Enter the password.'; $('pw').focus(); return; }
     tryOpen(email, pw, false);
   });
